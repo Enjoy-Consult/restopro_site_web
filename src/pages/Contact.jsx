@@ -99,6 +99,7 @@ export default function Contact() {
             Nouvelle demande
           </Button>
         </motion.div>
+      </div>
       </>
     );
   }
@@ -360,6 +361,7 @@ export default function Contact() {
           </motion.div>
         </div>
       </div>
+    </div>
     </>
   );
 }
