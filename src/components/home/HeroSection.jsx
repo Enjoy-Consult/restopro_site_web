@@ -42,47 +42,45 @@ export default function HeroSection() {
               <span className="text-sm font-medium text-emerald-700">Expert en sécurité alimentaire</span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight mb-6">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-slate-900 leading-tight mb-6">
               Votre conformité
               <span className="block text-emerald-600">sanitaire simplifiée</span>
             </h1>
 
-            <p className="text-lg md:text-xl text-slate-600 leading-relaxed mb-8 max-w-xl">
+            <p className="text-xl md:text-xl text-slate-600 leading-relaxed mb-8 max-w-xl">
               Accompagnement sur-mesure pour les restaurateurs. 
               Contrôles DDPP, audits hygiène et mise en conformité — 
               nous transformons vos obligations en tranquillité d'esprit.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 mb-12">
-              <Link to={createPageUrl("Contact")}>
-                <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6 text-lg rounded-xl shadow-lg shadow-emerald-600/20 transition-all hover:shadow-xl hover:shadow-emerald-600/30">
+              <Link to={createPageUrl("Contact")} className="w-full sm:w-auto">
+                <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-7 text-xl rounded-xl shadow-lg shadow-emerald-600/20 transition-all hover:shadow-xl hover:shadow-emerald-600/30">
                   Demander une intervention
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <ArrowRight className="ml-2 w-6 h-6" />
                 </Button>
               </Link>
-              <a href="tel:0680952589">
-                <Button variant="outline" size="lg" className="px-8 py-6 text-lg rounded-xl border-2 border-slate-200 hover:border-emerald-600 hover:text-emerald-600">
-                  <Phone className="mr-2 w-5 h-5" />
+              <a href="tel:0680952589" className="w-full sm:w-auto">
+                <Button variant="outline" size="lg" className="w-full px-8 py-7 text-xl rounded-xl border-2 border-slate-200 hover:border-emerald-600 hover:text-emerald-600">
+                  <Phone className="mr-2 w-6 h-6" />
                   06 80 95 25 89
                 </Button>
               </a>
             </div>
 
             {/* Trust Badges */}
-            <div className="flex items-center gap-8 pt-8 border-t border-slate-200">
+            <div className="grid grid-cols-3 gap-4 pt-8 border-t border-slate-200">
               <div className="text-center">
-                <p className="text-3xl font-bold text-slate-900">15+</p>
-                <p className="text-sm text-slate-500">Années d'expérience</p>
+                <p className="text-3xl md:text-3xl font-bold text-slate-900">15+</p>
+                <p className="text-sm md:text-sm text-slate-500 leading-tight">Années d'expérience</p>
               </div>
-              <div className="w-px h-12 bg-slate-200" />
-              <div className="text-center">
-                <p className="text-3xl font-bold text-slate-900">200+</p>
-                <p className="text-sm text-slate-500">Restaurants accompagnés</p>
+              <div className="text-center border-x border-slate-200">
+                <p className="text-3xl md:text-3xl font-bold text-slate-900">200+</p>
+                <p className="text-sm md:text-sm text-slate-500 leading-tight">Restaurants accompagnés</p>
               </div>
-              <div className="w-px h-12 bg-slate-200" />
               <div className="text-center">
-                <p className="text-3xl font-bold text-slate-900">100%</p>
-                <p className="text-sm text-slate-500">Conformité obtenue</p>
+                <p className="text-3xl md:text-3xl font-bold text-slate-900">100%</p>
+                <p className="text-sm md:text-sm text-slate-500 leading-tight">Conformité obtenue</p>
               </div>
             </div>
           </motion.div>
