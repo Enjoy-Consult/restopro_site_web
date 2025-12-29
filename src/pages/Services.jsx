@@ -153,10 +153,10 @@ export default function Services() {
             className="text-center max-w-3xl mx-auto"
           >
             <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wider">Nos Services</span>
-            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mt-4 mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mt-4 mb-6 leading-tight">
               Des solutions adaptées à chaque situation
             </h1>
-            <p className="text-lg text-slate-600">
+            <p className="text-xl md:text-lg text-slate-600 leading-relaxed">
               De l'urgence DDPP à la prévention, découvrez nos offres d'accompagnement 
               pour garantir la conformité sanitaire de votre établissement.
             </p>
@@ -174,9 +174,9 @@ export default function Services() {
                 <TabsTrigger 
                   key={service.id} 
                   value={service.id}
-                  className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white py-3 px-4 rounded-lg transition-all"
+                  className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white py-4 px-4 rounded-lg transition-all text-base"
                 >
-                  <Icon className="w-4 h-4 mr-2" />
+                  <Icon className="w-5 h-5 mr-2" />
                   <span className="hidden sm:inline">{service.id === "urgence" ? "Urgence" : service.id === "audit" ? "Audit" : "Administratif"}</span>
                 </TabsTrigger>
               );
@@ -207,8 +207,8 @@ export default function Services() {
                       <Icon className={`w-4 h-4 ${colors.text}`} />
                       <span className={`text-sm font-medium ${colors.text}`}>{service.delay}</span>
                     </div>
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-2">{service.title}</h2>
-                    <p className="text-xl text-slate-200">{service.subtitle}</p>
+                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-2 leading-tight">{service.title}</h2>
+                    <p className="text-xl md:text-xl text-slate-200">{service.subtitle}</p>
                   </div>
                 </motion.div>
 
@@ -217,21 +217,21 @@ export default function Services() {
                   {/* Main Content */}
                   <div className="lg:col-span-2 space-y-8">
                     {/* Description */}
-                    <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
-                      <h3 className="text-xl font-bold text-slate-900 mb-4">Présentation</h3>
-                      <p className="text-slate-600 leading-relaxed text-lg">{service.description}</p>
+                    <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100">
+                      <h3 className="text-2xl md:text-xl font-bold text-slate-900 mb-4">Présentation</h3>
+                      <p className="text-slate-600 leading-relaxed text-lg md:text-lg">{service.description}</p>
                     </div>
 
                     {/* Objectives */}
-                    <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
-                      <h3 className="text-xl font-bold text-slate-900 mb-6">Nos objectifs</h3>
+                    <div className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100">
+                      <h3 className="text-2xl md:text-xl font-bold text-slate-900 mb-6">Nos objectifs</h3>
                       <ul className="space-y-4">
                         {service.objectives.map((objective, idx) => (
                           <li key={idx} className="flex items-start gap-4">
-                            <div className={`w-6 h-6 rounded-full ${colors.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                              <CheckCircle className={`w-4 h-4 ${colors.text}`} />
+                            <div className={`w-7 h-7 md:w-6 md:h-6 rounded-full ${colors.bg} flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                              <CheckCircle className={`w-5 h-5 md:w-4 md:h-4 ${colors.text}`} />
                             </div>
-                            <span className="text-slate-700">{objective}</span>
+                            <span className="text-slate-700 text-lg md:text-base leading-relaxed">{objective}</span>
                           </li>
                         ))}
                       </ul>

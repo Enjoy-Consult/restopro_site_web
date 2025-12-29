@@ -59,24 +59,24 @@ export default function About() {
               transition={{ duration: 0.6 }}
             >
               <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wider">À Propos</span>
-              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mt-4 mb-6">
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mt-4 mb-6 leading-tight">
                 Un expert terrain à vos côtés
               </h1>
-              <p className="text-lg text-slate-600 leading-relaxed mb-8">
+              <p className="text-xl md:text-lg text-slate-600 leading-relaxed mb-8">
                 Fondé par Thierry Bailleul, <strong>Enjoy Consult</strong> est né d'une conviction : 
                 les restaurateurs méritent un accompagnement humain, pragmatique et sans jugement 
                 pour faire face à leurs obligations sanitaires.
               </p>
-              <p className="text-lg text-slate-600 leading-relaxed mb-8">
+              <p className="text-xl md:text-lg text-slate-600 leading-relaxed mb-8">
                 Fort de plus de 15 ans d'expérience dans le secteur de la restauration et de la 
                 sécurité alimentaire, je connais vos réalités quotidiennes et vos contraintes. 
                 Mon objectif : transformer vos obligations en atouts pour votre établissement.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link to={createPageUrl("Contact")}>
-                  <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-6">
+                <Link to={createPageUrl("Contact")} className="w-full sm:w-auto">
+                  <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-7 text-xl md:text-lg">
                     Me contacter
-                    <ArrowRight className="ml-2 w-5 h-5" />
+                    <ArrowRight className="ml-2 w-6 h-6" />
                   </Button>
                 </Link>
               </div>

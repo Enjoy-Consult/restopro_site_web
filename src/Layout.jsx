@@ -28,8 +28,8 @@ export default function Layout({ children, currentPageName }) {
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
-                <span className="font-bold text-xl text-slate-900">ENJOY</span>
-                <span className="font-light text-xl text-emerald-600 ml-1">Consult</span>
+                <span className="font-bold text-xl md:text-xl text-slate-900">ENJOY</span>
+                <span className="font-light text-xl md:text-xl text-emerald-600 ml-1">Consult</span>
               </div>
             </Link>
 
@@ -72,12 +72,12 @@ export default function Layout({ children, currentPageName }) {
                 <div className="flex flex-col h-full py-6">
                   {/* Mobile Logo */}
                   <div className="flex items-center gap-3 mb-8">
-                    <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
-                      <Shield className="w-6 h-6 text-white" />
+                    <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center">
+                      <Shield className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <span className="font-bold text-xl text-slate-900">ENJOY</span>
-                      <span className="font-light text-xl text-emerald-600 ml-1">Consult</span>
+                      <span className="font-bold text-2xl text-slate-900">ENJOY</span>
+                      <span className="font-light text-2xl text-emerald-600 ml-1">Consult</span>
                     </div>
                   </div>
 
@@ -88,7 +88,7 @@ export default function Layout({ children, currentPageName }) {
                         key={item.page}
                         to={createPageUrl(item.page)}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`px-4 py-3 rounded-lg text-base font-medium transition-colors ${
+                        className={`px-4 py-4 rounded-lg text-lg font-medium transition-colors ${
                           currentPageName === item.page 
                             ? "bg-emerald-50 text-emerald-600" 
                             : "text-slate-700 hover:bg-slate-50"
@@ -103,13 +103,13 @@ export default function Layout({ children, currentPageName }) {
                   <div className="space-y-4 pt-6 border-t border-slate-200">
                     <a 
                       href="tel:0680952589" 
-                      className="flex items-center justify-center gap-2 py-3 text-slate-700 hover:text-emerald-600 transition-colors"
+                      className="flex items-center justify-center gap-2 py-4 text-lg text-slate-700 hover:text-emerald-600 transition-colors"
                     >
-                      <Phone className="w-5 h-5" />
+                      <Phone className="w-6 h-6" />
                       06 80 95 25 89
                     </a>
                     <Link to={createPageUrl("Contact")} onClick={() => setMobileMenuOpen(false)}>
-                      <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                      <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-lg py-6">
                         Demander un devis
                       </Button>
                     </Link>

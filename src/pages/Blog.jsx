@@ -71,10 +71,10 @@ export default function Blog() {
               className="text-center max-w-3xl mx-auto"
             >
               <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wider">Blog</span>
-              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mt-4 mb-6">
+              <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mt-4 mb-6 leading-tight">
                 Conseils & Actualités
               </h1>
-              <p className="text-lg text-slate-600">
+              <p className="text-xl md:text-lg text-slate-600 leading-relaxed">
                 Restez informé des dernières évolutions réglementaires et découvrez 
                 nos conseils d'expert pour gérer l'hygiène de votre restaurant.
               </p>
@@ -153,10 +153,10 @@ export default function Blog() {
                       <Badge className={`${categoryColors[featuredPost.category]} border-0 w-fit mb-4`}>
                         {categories.find(c => c.value === featuredPost.category)?.label}
                       </Badge>
-                      <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
+                      <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4 leading-tight">
                         {featuredPost.title}
                       </h2>
-                      <p className="text-slate-600 text-lg mb-6 line-clamp-3">
+                      <p className="text-slate-600 text-xl md:text-lg mb-6 line-clamp-3 leading-relaxed">
                         {featuredPost.excerpt}
                       </p>
                       <div className="flex items-center gap-6 text-sm text-slate-500 mb-6">
@@ -170,9 +170,9 @@ export default function Blog() {
                         </span>
                       </div>
                       <Link to={createPageUrl(`BlogPost?slug=${featuredPost.slug}`)}>
-                        <Button className="bg-emerald-600 hover:bg-emerald-700 w-fit">
+                        <Button className="bg-emerald-600 hover:bg-emerald-700 w-full sm:w-fit py-6 text-lg md:text-base">
                           Lire l'article
-                          <ArrowRight className="ml-2 w-4 h-4" />
+                          <ArrowRight className="ml-2 w-5 h-5" />
                         </Button>
                       </Link>
                     </div>
@@ -202,10 +202,10 @@ export default function Blog() {
                         </Badge>
                       </div>
                       <div className="p-6">
-                        <h3 className="text-xl font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors">
+                        <h3 className="text-xl md:text-xl font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-emerald-600 transition-colors leading-tight">
                           {post.title}
                         </h3>
-                        <p className="text-slate-600 mb-4 line-clamp-3">
+                        <p className="text-slate-600 mb-4 line-clamp-3 text-lg md:text-base leading-relaxed">
                           {post.excerpt}
                         </p>
                         <div className="flex items-center gap-4 text-sm text-slate-500 mb-4">
