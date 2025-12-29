@@ -143,7 +143,7 @@ export default function Contact() {
             transition={{ duration: 0.6 }}
             className="space-y-6"
           >
-            <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100">
+            <div className="bg-white rounded-2xl p-10 shadow-sm border border-slate-100">
               <h3 className="text-xl font-bold text-slate-900 mb-6">Coordonnées</h3>
               
               <div className="space-y-6">

@@ -1,20 +1,20 @@
 import About from './pages/About';
+import Blog from './pages/Blog';
+import BlogPost from './pages/BlogPost';
 import Contact from './pages/Contact';
 import Home from './pages/Home';
 import Services from './pages/Services';
-import Blog from './pages/Blog';
-import BlogPost from './pages/BlogPost';
 import Sitemap from './pages/Sitemap';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "About": About,
+    "Blog": Blog,
+    "BlogPost": BlogPost,
     "Contact": Contact,
     "Home": Home,
     "Services": Services,
-    "Blog": Blog,
-    "BlogPost": BlogPost,
     "Sitemap": Sitemap,
 }
 
