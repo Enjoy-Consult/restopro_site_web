@@ -290,6 +290,7 @@ export default function Services() {
           })}
         </Tabs>
       </div>
+    </div>
     </>
   );
 }
