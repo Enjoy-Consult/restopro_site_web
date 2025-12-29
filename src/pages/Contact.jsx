@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -60,7 +61,13 @@ export default function Contact() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+      <>
+        <SEO 
+          title="Demande Envoyée - Merci de votre confiance"
+          description="Votre demande a été envoyée avec succès. Notre équipe vous recontactera dans les plus brefs délais."
+          keywords="contact enjoy consult, demande intervention, devis hygiène restaurant"
+        />
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -92,12 +99,19 @@ export default function Contact() {
             Nouvelle demande
           </Button>
         </motion.div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <>
+      <SEO 
+        title="Contact - Demande d'Intervention ou Devis Gratuit"
+        description="Contactez Enjoy Consult pour une urgence DDPP, un audit hygiène ou un accompagnement administratif. Réponse sous 2h, intervention sous 24h en cas d'urgence. Tél: 06 80 95 25 89"
+        keywords="contact consultant hygiène, demande intervention DDPP, devis audit restaurant, urgence sanitaire, RDV consultant alimentaire, Île-de-France"
+        canonicalUrl={`${window.location.origin}${window.location.pathname}`}
+      />
+      <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <section className="bg-white border-b border-slate-200 py-16">
         <div className="container mx-auto px-6 lg:px-12">
@@ -346,6 +360,6 @@ export default function Contact() {
           </motion.div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

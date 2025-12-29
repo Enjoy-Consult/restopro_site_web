@@ -8,6 +8,7 @@ import { Menu, Phone, X, Shield, ChefHat } from "lucide-react";
 const navigation = [
   { name: "Accueil", page: "Home" },
   { name: "Services", page: "Services" },
+  { name: "Blog", page: "Blog" },
   { name: "À Propos", page: "About" },
   { name: "Contact", page: "Contact" }
 ];
@@ -178,6 +179,9 @@ export default function Layout({ children, currentPageName }) {
                 </Link>
                 <Link to={createPageUrl("Services?service=administratif")} className="block text-slate-400 hover:text-white transition-colors">
                   Accompagnement Administratif
+                </Link>
+                <Link to={createPageUrl("Blog")} className="block text-slate-400 hover:text-white transition-colors">
+                  Blog & Conseils
                 </Link>
               </nav>
             </div>

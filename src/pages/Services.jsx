@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
@@ -110,10 +111,40 @@ export default function Services() {
     }
   }, [serviceParam]);
 
+  const getServiceSEO = () => {
+    const seoData = {
+      urgence: {
+        title: "Urgence DDPP - Intervention Rapide Contrôle Sanitaire",
+        description: "Contrôle DDPP avec non-conformités ? Intervention sous 24h pour éviter la fermeture de votre restaurant. Remise en conformité rapide et efficace par expert certifié.",
+        keywords: "urgence DDPP, contrôle sanitaire restaurant, mise en demeure DDPP, fermeture administrative, remise en conformité hygiène, intervention urgente restaurant"
+      },
+      audit: {
+        title: "Audit Hygiène Restaurant - Inspection Préventive DDPP",
+        description: "Audit hygiène complet de votre restaurant. Anticipez les contrôles DDPP avec une inspection préventive détaillée. Rapport et plan d'action personnalisé. Tarif dès 350€.",
+        keywords: "audit hygiène restaurant, inspection cuisine professionnelle, contrôle préventif DDPP, diagnostic sanitaire, audit HACCP, vérification conformité restaurant"
+      },
+      administratif: {
+        title: "Plan Maîtrise Sanitaire (PMS) - Conformité Administrative",
+        description: "Création de votre Plan de Maîtrise Sanitaire personnalisé. Conformité CERFA, loi EGAlim, traçabilité et allergènes. Accompagnement administratif complet pour restaurants.",
+        keywords: "plan maîtrise sanitaire, PMS restaurant, CERFA restauration, loi EGAlim, conformité administrative restaurant, traçabilité alimentaire, gestion allergènes"
+      }
+    };
+    return seoData[activeTab] || seoData.urgence;
+  };
+
+  const seo = getServiceSEO();
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <section className="bg-white border-b border-slate-200 py-16">
+    <>
+      <SEO 
+        title={seo.title}
+        description={seo.description}
+        keywords={seo.keywords}
+        canonicalUrl={`${window.location.origin}${window.location.pathname}`}
+      />
+      <div className="min-h-screen bg-slate-50">
+        {/* Header */}
+        <section className="bg-white border-b border-slate-200 py-16">
         <div className="container mx-auto px-6 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -167,7 +198,7 @@ export default function Services() {
                 >
                   <img 
                     src={service.heroImage} 
-                    alt={service.title}
+                    alt={`${service.title} - ${service.subtitle} pour restaurants professionnels`}
                     className="w-full h-80 md:h-96 object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/50 to-transparent" />
@@ -259,6 +290,6 @@ export default function Services() {
           })}
         </Tabs>
       </div>
-    </div>
+    </>
   );
 }

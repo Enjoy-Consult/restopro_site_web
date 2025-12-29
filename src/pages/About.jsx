@@ -1,5 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
+import SEO from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { 
   Award, Users, Target, Heart, ArrowRight, Phone,
@@ -40,7 +41,14 @@ const timeline = [
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-white">
+    <>
+      <SEO 
+        title="À Propos - Thierry Bailleul, Expert Sécurité Alimentaire"
+        description="Thierry Bailleul, consultant en hygiène et sécurité alimentaire depuis 15 ans. Expert terrain en restauration, formateur HACCP certifié. Plus de 200 restaurants accompagnés en Île-de-France."
+        keywords="Thierry Bailleul, consultant hygiène alimentaire, expert sécurité alimentaire, formateur HACCP, consultant DDPP, expérience restauration, expert sanitaire Paris"
+        canonicalUrl={`${window.location.origin}${window.location.pathname}`}
+      />
+      <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <section className="relative py-24 bg-gradient-to-br from-slate-50 to-emerald-50 overflow-hidden">
         <div className="container mx-auto px-6 lg:px-12">
@@ -84,7 +92,7 @@ export default function About() {
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-3xl transform rotate-3" />
                 <img 
                   src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=700&fit=crop"
-                  alt="Consultant professionnel"
+                  alt="Thierry Bailleul, consultant expert en hygiène et sécurité alimentaire pour restaurants professionnels"
                   className="relative rounded-3xl shadow-2xl w-full h-[500px] object-cover"
                 />
               </div>
@@ -233,6 +241,6 @@ export default function About() {
           </motion.div>
         </div>
       </section>
-    </div>
+    </>
   );
 }

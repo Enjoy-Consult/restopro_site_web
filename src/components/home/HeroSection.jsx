@@ -98,7 +98,7 @@ export default function HeroSection() {
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-3xl transform rotate-3" />
               <img 
                 src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=700&fit=crop"
-                alt="Chef professionnel en cuisine"
+                alt="Consultant en hygiène alimentaire inspectant une cuisine professionnelle de restaurant avec un chef cuisinier"
                 className="relative rounded-3xl shadow-2xl w-full h-[600px] object-cover"
               />
               
