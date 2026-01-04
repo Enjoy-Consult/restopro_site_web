@@ -27,7 +27,7 @@ const reasons = [
 
 export default function WhyUsSection() {
   return (
-    <section className="py-24 bg-slate-900 relative overflow-hidden">
+    <section className="py-16 md:py-24 bg-slate-900 relative overflow-hidden">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-5">
         <div className="absolute inset-0" style={{
@@ -44,10 +44,10 @@ export default function WhyUsSection() {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <span className="text-emerald-400 font-semibold text-sm uppercase tracking-wider">Pourquoi Nous Choisir</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mt-4 mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mt-4 mb-6 leading-tight">
             Un partenaire de confiance pour votre sérénité
           </h2>
-          <p className="text-lg text-slate-400">
+          <p className="text-xl md:text-lg text-slate-400 leading-relaxed">
             Nous ne sommes pas là pour pointer du doigt, mais pour vous aider 
             à transformer vos contraintes réglementaires en atouts.
           </p>
@@ -65,11 +65,11 @@ export default function WhyUsSection() {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 className="text-center"
               >
-                <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Icon className="w-8 h-8 text-emerald-400" />
+                <div className="w-16 h-16 md:w-16 md:h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                  <Icon className="w-8 h-8 md:w-8 md:h-8 text-emerald-400" />
                 </div>
-                <h3 className="text-xl font-bold text-white mb-3">{reason.title}</h3>
-                <p className="text-slate-400 leading-relaxed">{reason.description}</p>
+                <h3 className="text-2xl md:text-xl font-bold text-white mb-3 leading-tight">{reason.title}</h3>
+                <p className="text-slate-400 leading-relaxed text-lg md:text-base">{reason.description}</p>
               </motion.div>
             );
           })}

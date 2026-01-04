@@ -40,7 +40,7 @@ const testimonials = [
 
 export default function TestimonialsSection() {
   return (
-    <section className="py-24 bg-gradient-to-b from-slate-50 to-white overflow-hidden">
+    <section className="py-16 md:py-24 bg-gradient-to-b from-slate-50 to-white overflow-hidden">
       <div className="container mx-auto px-6 lg:px-12">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -50,10 +50,10 @@ export default function TestimonialsSection() {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wider">Témoignages</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-6 leading-tight">
             Ils nous font confiance
           </h2>
-          <p className="text-lg text-slate-600">
+          <p className="text-xl md:text-lg text-slate-600 leading-relaxed">
             Découvrez ce que nos clients restaurateurs disent de notre accompagnement.
           </p>
         </motion.div>
@@ -67,7 +67,7 @@ export default function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
-              className={`bg-white rounded-2xl p-8 shadow-sm border border-slate-100 hover:shadow-lg transition-shadow ${
+              className={`bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-slate-100 hover:shadow-lg transition-shadow ${
                 index === 0 ? 'lg:col-span-2' : ''
               }`}
             >
@@ -82,20 +82,20 @@ export default function TestimonialsSection() {
               </div>
 
               {/* Content */}
-              <p className="text-slate-700 leading-relaxed mb-6 text-lg">
+              <p className="text-slate-700 leading-relaxed mb-6 text-lg md:text-base">
                 "{testimonial.content}"
               </p>
 
               {/* Author */}
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">
+                <div className="w-12 h-12 md:w-12 md:h-12 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-lg md:text-lg">
                     {testimonial.author[0]}
                   </span>
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-900">{testimonial.author}</p>
-                  <p className="text-sm text-slate-500">
+                  <p className="font-semibold text-slate-900 text-lg md:text-base">{testimonial.author}</p>
+                  <p className="text-base md:text-sm text-slate-500">
                     {testimonial.role ? `${testimonial.role}, ` : ''}{testimonial.location}
                   </p>
                 </div>
