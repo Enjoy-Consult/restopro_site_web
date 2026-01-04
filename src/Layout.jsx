@@ -28,8 +28,8 @@ export default function Layout({ children, currentPageName }) {
                 <Shield className="w-6 h-6 text-white" />
               </div>
               <div>
-                <span className="font-bold text-xl md:text-xl text-slate-900">ENJOY</span>
-                <span className="font-light text-xl md:text-xl text-emerald-600 ml-1">Consult</span>
+                <span className="font-bold text-xl md:text-xl text-slate-900">Rest</span>
+                <span className="font-light text-xl md:text-xl text-emerald-600">Oclair</span>
               </div>
             </Link>
 
@@ -76,8 +76,8 @@ export default function Layout({ children, currentPageName }) {
                       <Shield className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <span className="font-bold text-2xl text-slate-900">ENJOY</span>
-                      <span className="font-light text-2xl text-emerald-600 ml-1">Consult</span>
+                      <span className="font-bold text-2xl text-slate-900">Rest</span>
+                      <span className="font-light text-2xl text-emerald-600">Oclair</span>
                     </div>
                   </div>
 
@@ -137,8 +137,8 @@ export default function Layout({ children, currentPageName }) {
                   <Shield className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <span className="font-bold text-xl">ENJOY</span>
-                  <span className="font-light text-xl text-emerald-400 ml-1">Consult</span>
+                  <span className="font-bold text-xl">Rest</span>
+                  <span className="font-light text-xl text-emerald-400">Oclair</span>
                 </div>
               </div>
               <p className="text-slate-400 max-w-md leading-relaxed mb-6">
@@ -190,7 +190,7 @@ export default function Layout({ children, currentPageName }) {
           {/* Bottom */}
           <div className="border-t border-slate-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-slate-500 text-sm">
-              © {new Date().getFullYear()} Enjoy Consult. Tous droits réservés.
+              © {new Date().getFullYear()} RestOclair. Tous droits réservés.
             </p>
             <p className="text-slate-500 text-sm">
               Expert en sécurité alimentaire • Île-de-France

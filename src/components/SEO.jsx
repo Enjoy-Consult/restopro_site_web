@@ -9,7 +9,7 @@ export default function SEO({
 }) {
   useEffect(() => {
     // Set page title
-    document.title = title ? `${title} | Enjoy Consult` : "Enjoy Consult - Expert en Sécurité Alimentaire pour Restaurateurs";
+    document.title = title ? `${title} | RestOclair` : "RestOclair - Expert en Sécurité Alimentaire pour Restaurateurs";
 
     // Set or update meta tags
     const metaTags = [
@@ -30,7 +30,7 @@ export default function SEO({
       
       // Additional SEO
       { name: "robots", content: "index, follow" },
-      { name: "author", content: "Enjoy Consult - Thierry Bailleul" },
+      { name: "author", content: "RestOclair - Thierry Bailleul" },
       { name: "viewport", content: "width=device-width, initial-scale=1.0" },
     ];
 
@@ -66,7 +66,7 @@ export default function SEO({
     const schemaData = {
       "@context": "https://schema.org",
       "@type": "ProfessionalService",
-      "name": "Enjoy Consult",
+      "name": "RestOclair",
       "description": "Conseil en hygiène et sécurité alimentaire pour les restaurateurs en Île-de-France",
       "telephone": "+33680952589",
       "address": {

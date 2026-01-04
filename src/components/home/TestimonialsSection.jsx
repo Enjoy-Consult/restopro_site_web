@@ -4,7 +4,7 @@ import { Star, Quote } from "lucide-react";
 
 const testimonials = [
   {
-    content: "Avoir travaillé avec Enjoy Consult a été un vrai plaisir. Une capacité à simplifier des démarches compliquées pour nous gérants. Une vraie confiance et des résultats. Je recommande vivement.",
+    content: "Avoir travaillé avec RestOclair a été un vrai plaisir. Une capacité à simplifier des démarches compliquées pour nous gérants. Une vraie confiance et des résultats. Je recommande vivement.",
     author: "Le Pain Français",
     location: "Gennevilliers",
     rating: 5

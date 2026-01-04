@@ -108,7 +108,7 @@ export default function Contact() {
     <>
       <SEO 
         title="Contact - Demande d'Intervention ou Devis Gratuit"
-        description="Contactez Enjoy Consult pour une urgence DDPP, un audit hygiène ou un accompagnement administratif. Réponse sous 2h, intervention sous 24h en cas d'urgence. Tél: 06 80 95 25 89"
+        description="Contactez RestOclair pour une urgence DDPP, un audit hygiène ou un accompagnement administratif. Réponse sous 2h, intervention sous 24h en cas d'urgence. Tél: 06 80 95 25 89"
         keywords="contact consultant hygiène, demande intervention DDPP, devis audit restaurant, urgence sanitaire, RDV consultant alimentaire, Île-de-France"
         canonicalUrl={`${window.location.origin}${window.location.pathname}`}
       />
@@ -157,13 +157,13 @@ export default function Contact() {
                   </div>
                 </a>
 
-                <a href="mailto:contact@enjoyconsult.fr" className="flex items-start gap-4 group">
+                <a href="mailto:contact@restoclair.fr" className="flex items-start gap-4 group">
                   <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
                     <Mail className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
                     <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors text-lg md:text-base">Email</p>
-                    <p className="text-slate-600 text-base md:text-base break-all">contact@enjoyconsult.fr</p>
+                    <p className="text-slate-600 text-base md:text-base break-all">contact@restoclair.fr</p>
                   </div>
                 </a>
 
