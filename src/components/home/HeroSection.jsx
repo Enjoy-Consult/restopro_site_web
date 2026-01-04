@@ -60,12 +60,6 @@ export default function HeroSection() {
                   <ArrowRight className="ml-2 w-6 h-6" />
                 </Button>
               </Link>
-              <a href="tel:0680952589" className="w-full sm:w-auto">
-                <Button variant="outline" size="lg" className="w-full px-8 py-7 text-xl rounded-xl border-2 border-slate-200 hover:border-emerald-600 hover:text-emerald-600">
-                  <Phone className="mr-2 w-6 h-6" />
-                  06 80 95 25 89
-                </Button>
-              </a>
             </div>
 
             {/* Trust Badges */}
