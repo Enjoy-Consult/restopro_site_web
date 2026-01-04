@@ -90,10 +90,10 @@ export default function ServicesSection() {
           className="text-center max-w-3xl mx-auto mb-16"
         >
           <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wider">Nos Services</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-6 leading-tight">
             Un accompagnement complet pour votre conformité
           </h2>
-          <p className="text-lg text-slate-600">
+          <p className="text-xl md:text-lg text-slate-600 leading-relaxed">
             De l'urgence à la prévention, nous vous accompagnons à chaque étape 
             pour garantir la sécurité alimentaire de votre établissement.
           </p>
@@ -114,22 +114,22 @@ export default function ServicesSection() {
                 transition={{ duration: 0.6, delay: index * 0.15 }}
                 className="group"
               >
-                <div className={`h-full rounded-2xl border-2 ${colors.border} ${colors.hover} p-8 transition-all duration-300 hover:shadow-xl`}>
+                <div className={`h-full rounded-2xl border-2 ${colors.border} ${colors.hover} p-6 md:p-8 transition-all duration-300 hover:shadow-xl`}>
                   {/* Icon */}
-                  <div className={`w-14 h-14 ${colors.iconBg} rounded-xl flex items-center justify-center mb-6`}>
-                    <Icon className={`w-7 h-7 ${colors.icon}`} />
+                  <div className={`w-16 h-16 md:w-14 md:h-14 ${colors.iconBg} rounded-xl flex items-center justify-center mb-6`}>
+                    <Icon className={`w-8 h-8 md:w-7 md:h-7 ${colors.icon}`} />
                   </div>
 
                   {/* Content */}
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">{service.title}</h3>
-                  <p className="text-sm font-medium text-slate-500 mb-4">{service.subtitle}</p>
-                  <p className="text-slate-600 mb-6 leading-relaxed">{service.description}</p>
+                  <h3 className="text-2xl md:text-xl font-bold text-slate-900 mb-2 leading-tight">{service.title}</h3>
+                  <p className="text-lg md:text-sm font-medium text-slate-500 mb-4">{service.subtitle}</p>
+                  <p className="text-slate-600 mb-6 leading-relaxed text-lg md:text-base">{service.description}</p>
 
                   {/* Features */}
                   <ul className="space-y-3 mb-8">
                     {service.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center gap-3 text-sm text-slate-700">
-                        <div className={`w-1.5 h-1.5 rounded-full ${colors.icon.replace('text-', 'bg-')}`} />
+                      <li key={idx} className="flex items-center gap-3 text-base md:text-sm text-slate-700">
+                        <div className={`w-2 h-2 md:w-1.5 md:h-1.5 rounded-full ${colors.icon.replace('text-', 'bg-')}`} />
                         {feature}
                       </li>
                     ))}
@@ -137,9 +137,9 @@ export default function ServicesSection() {
 
                   {/* CTA */}
                   <Link to={createPageUrl(service.link)}>
-                    <Button variant="ghost" className="group/btn p-0 h-auto font-semibold text-slate-900 hover:text-emerald-600 hover:bg-transparent">
+                    <Button variant="ghost" className="group/btn p-0 h-auto font-semibold text-slate-900 hover:text-emerald-600 hover:bg-transparent text-lg md:text-base">
                       En savoir plus
-                      <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover/btn:translate-x-1" />
+                      <ArrowRight className="ml-2 w-5 h-5 md:w-4 md:h-4 transition-transform group-hover/btn:translate-x-1" />
                     </Button>
                   </Link>
                 </div>
