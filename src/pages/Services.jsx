@@ -200,6 +200,7 @@ export default function Services() {
                     src={service.heroImage} 
                     alt={`${service.title} - ${service.subtitle} pour restaurants professionnels`}
                     className="w-full h-80 md:h-96 object-cover"
+                    loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/50 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12">
@@ -262,24 +263,24 @@ export default function Services() {
                   {/* Sidebar */}
                   <div className="space-y-6">
                     {/* Pricing Card */}
-                    <div className={`rounded-2xl p-8 ${colors.bg} border ${colors.border}`}>
-                      <h3 className="text-xl font-bold text-slate-900 mb-2">Tarification</h3>
-                      <p className={`text-2xl font-bold ${colors.text} mb-4`}>{service.pricing}</p>
-                      <p className="text-sm text-slate-600 mb-6">{service.delay}</p>
+                    <div className={`rounded-2xl p-6 md:p-8 ${colors.bg} border ${colors.border}`}>
+                      <h3 className="text-2xl md:text-xl font-bold text-slate-900 mb-2">Tarification</h3>
+                      <p className={`text-2xl md:text-2xl font-bold ${colors.text} mb-4`}>{service.pricing}</p>
+                      <p className="text-base md:text-sm text-slate-600 mb-6">{service.delay}</p>
                       <Link to={createPageUrl("Contact") + `?service=${service.id}`}>
-                        <Button className={`w-full ${colors.button} text-white py-6`}>
+                        <Button className={`w-full ${colors.button} text-white py-7 md:py-6 text-lg md:text-base`}>
                           Demander un devis
-                          <ArrowRight className="ml-2 w-4 h-4" />
+                          <ArrowRight className="ml-2 w-5 h-5 md:w-4 md:h-4" />
                         </Button>
                       </Link>
                     </div>
 
                     {/* Contact Card */}
-                    <div className="bg-slate-900 rounded-2xl p-8 text-white">
-                      <h3 className="text-xl font-bold mb-4">Besoin d'aide ?</h3>
-                      <p className="text-slate-300 mb-6">Notre équipe est disponible pour répondre à toutes vos questions.</p>
-                      <a href="tel:0680952589" className="flex items-center gap-3 text-emerald-400 font-semibold hover:text-emerald-300 transition-colors">
-                        <Phone className="w-5 h-5" />
+                    <div className="bg-slate-900 rounded-2xl p-6 md:p-8 text-white">
+                      <h3 className="text-2xl md:text-xl font-bold mb-4">Besoin d'aide ?</h3>
+                      <p className="text-slate-300 mb-6 text-lg md:text-base leading-relaxed">Notre équipe est disponible pour répondre à toutes vos questions.</p>
+                      <a href="tel:0680952589" className="flex items-center gap-3 text-emerald-400 font-semibold hover:text-emerald-300 transition-colors text-lg md:text-base">
+                        <Phone className="w-6 h-6 md:w-5 md:h-5" />
                         06 80 95 25 89
                       </a>
                     </div>

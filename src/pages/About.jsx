@@ -94,6 +94,7 @@ export default function About() {
                   src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&h=700&fit=crop"
                   alt="Thierry Bailleul, consultant expert en hygiène et sécurité alimentaire pour restaurants professionnels"
                   className="relative rounded-3xl shadow-2xl w-full h-[500px] object-cover"
+                  loading="lazy"
                 />
               </div>
 
@@ -148,13 +149,13 @@ export default function About() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="bg-slate-50 rounded-2xl p-8 text-center hover:bg-emerald-50 transition-colors"
+                  className="bg-slate-50 rounded-2xl p-6 md:p-8 text-center hover:bg-emerald-50 transition-colors"
                 >
                   <div className="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                     <Icon className="w-8 h-8 text-emerald-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-3">{value.title}</h3>
-                  <p className="text-slate-600">{value.description}</p>
+                  <h3 className="text-2xl md:text-xl font-bold text-slate-900 mb-3 leading-tight">{value.title}</h3>
+                  <p className="text-slate-600 text-lg md:text-base leading-relaxed">{value.description}</p>
                 </motion.div>
               );
             })}
@@ -225,15 +226,15 @@ export default function About() {
               Discutons de vos besoins et trouvons ensemble la meilleure solution pour votre établissement.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to={createPageUrl("Contact")}>
-                <Button size="lg" className="bg-white text-emerald-600 hover:bg-emerald-50 px-8 py-6 text-lg">
+              <Link to={createPageUrl("Contact")} className="w-full sm:w-auto">
+                <Button size="lg" className="w-full bg-white text-emerald-600 hover:bg-emerald-50 px-8 py-7 text-xl md:text-lg">
                   Prendre contact
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <ArrowRight className="ml-2 w-6 h-6 md:w-5 md:h-5" />
                 </Button>
               </Link>
-              <a href="tel:0680952589">
-                <Button variant="outline" size="lg" className="border-2 border-white text-white hover:bg-white/10 px-8 py-6 text-lg">
-                  <Phone className="mr-2 w-5 h-5" />
+              <a href="tel:0680952589" className="w-full sm:w-auto">
+                <Button variant="outline" size="lg" className="w-full border-2 border-white text-white hover:bg-white/10 px-8 py-7 text-xl md:text-lg">
+                  <Phone className="mr-2 w-6 h-6 md:w-5 md:h-5" />
                   06 80 95 25 89
                 </Button>
               </a>
