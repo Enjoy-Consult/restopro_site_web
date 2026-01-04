@@ -36,7 +36,7 @@ const timeline = [
   { year: "2010", title: "Débuts en restauration", desc: "Expérience terrain en cuisine et management d'équipe" },
   { year: "2015", title: "Expert qualité", desc: "Responsable qualité et sécurité alimentaire en groupe de restauration" },
   { year: "2018", title: "Formation HACCP", desc: "Certification formateur en hygiène alimentaire" },
-  { year: "2022", title: "Création Enjoy Consult", desc: "Lancement du cabinet de conseil dédié aux restaurateurs" }
+  { year: "2022", title: "Création RestOclair", desc: "Lancement du cabinet de conseil dédié aux restaurateurs" }
 ];
 
 export default function About() {
@@ -63,7 +63,7 @@ export default function About() {
                 Un expert terrain à vos côtés
               </h1>
               <p className="text-xl md:text-lg text-slate-600 leading-relaxed mb-8">
-                Fondé par Thierry Bailleul, <strong>Enjoy Consult</strong> est né d'une conviction : 
+                Fondé par Thierry Bailleul, <strong>RestOclair</strong> est né d'une conviction : 
                 les restaurateurs méritent un accompagnement humain, pragmatique et sans jugement 
                 pour faire face à leurs obligations sanitaires.
               </p>
