@@ -42,6 +42,7 @@ export default function Contact() {
     message: ""
   });
   const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   // Mapping des valeurs pour Airtable
   const mapServiceType = (value) => {
