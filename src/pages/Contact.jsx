@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { base44 } from "@/api/base44Client";
 import { useMutation } from "@tanstack/react-query";
 import { 
   Phone, Mail, MapPin, Clock, Send, CheckCircle, 
@@ -43,8 +42,63 @@ export default function Contact() {
   });
   const [submitted, setSubmitted] = useState(false);
 
+  // Mapping des valeurs pour Airtable
+  const mapServiceType = (value) => {
+    const mapping = {
+      "urgence_ddpp": "Urgence DDPP",
+      "audit_hygiene": "Audit Hygiène",
+      "accompagnement_administratif": "Accompagnement Administratif",
+      "autre": "Autre demande"
+    };
+    return mapping[value] || value;
+  };
+
+  const mapUrgency = (value) => {
+    const mapping = {
+      "urgent": "Urgent (contrôle en cours)",
+      "normal": "Normal",
+      "information": "Simple renseignement"
+    };
+    return mapping[value] || value;
+  };
+
   const createContactMutation = useMutation({
-    mutationFn: (data) => base44.entities.ContactRequest.create(data),
+    mutationFn: async (data) => {
+      const airtableData = {
+        records: [
+          {
+            fields: {
+              "Nom de l'établissement": data.restaurant_name,
+              "Prénom du client": data.contact_name,
+              "Adresse Mail": data.email,
+              "Numéro de téléphone (contact)": data.phone,
+              "Raison de la prise de contact": mapServiceType(data.service_type),
+              "Urgence": mapUrgency(data.urgency),
+              "Message": data.message
+            }
+          }
+        ]
+      };
+
+      const response = await fetch(
+        `https://api.airtable.com/v0/appL7jbLQnqVyg8kC/Base%20Stockage%20contact`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer patbCjabOl0thn3A2.e23118c4e2daedf922c901d3b0da364c51bd977654e2191c885f90d774ef58bf`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(airtableData)
+        }
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error?.message || "Erreur lors de l'envoi");
+      }
+
+      return response.json();
+    },
     onSuccess: () => {
       setSubmitted(true);
     }
