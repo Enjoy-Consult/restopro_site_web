@@ -65,27 +65,23 @@ export default function Contact() {
   const createContactMutation = useMutation({
     mutationFn: async (data) => {
       const airtableData = {
-        records: [
-          {
-            fields: {
-              "Nom de l'établissement": data.restaurant_name,
-              "Prénom du client": data.contact_name,
-              "Adresse Mail": data.email,
-              "Numéro de téléphone (contact)": data.phone,
-              "Raison de la prise de contact": mapServiceType(data.service_type),
-              "Urgence": mapUrgency(data.urgency),
-              "Message": data.message
-            }
-          }
-        ]
+        fields: {
+          "Nom de l'établissement": data.restaurant_name,
+          "Prénom du client": data.contact_name,
+          "Adresse Mail": data.email,
+          "Numéro de téléphone (contact)": data.phone,
+          "Raison de la prise de contact": mapServiceType(data.service_type),
+          "Urgence": mapUrgency(data.urgency),
+          "Message": data.message || ""
+        }
       };
 
       const response = await fetch(
-        `https://api.airtable.com/v0/appL7jbLQnqVyg8kC/Base%20Stockage%20contact`,
+        "https://api.airtable.com/v0/appL7jbLQnqVyg8kC/Base%20Stockage%20contact",
         {
           method: "POST",
           headers: {
-            "Authorization": `Bearer patbCjabOl0thn3A2.e23118c4e2daedf922c901d3b0da364c51bd977654e2191c885f90d774ef58bf`,
+            "Authorization": "Bearer patbCjabOl0thn3A2.e23118c4e2daedf922c901d3b0da364c51bd977654e2191c885f90d774ef58bf",
             "Content-Type": "application/json"
           },
           body: JSON.stringify(airtableData)
@@ -94,6 +90,7 @@ export default function Contact() {
 
       if (!response.ok) {
         const error = await response.json();
+        console.error("Erreur Airtable:", error);
         throw new Error(error.error?.message || "Erreur lors de l'envoi");
       }
 
@@ -101,6 +98,10 @@ export default function Contact() {
     },
     onSuccess: () => {
       setSubmitted(true);
+    },
+    onError: (error) => {
+      console.error("Erreur lors de l'envoi:", error);
+      alert("Erreur lors de l'envoi du formulaire. Veuillez réessayer.");
     }
   });
 
