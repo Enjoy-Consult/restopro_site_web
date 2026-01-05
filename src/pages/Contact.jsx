@@ -65,15 +65,20 @@ export default function Contact() {
   const createContactMutation = useMutation({
     mutationFn: async (data) => {
       const airtableData = {
-        fields: {
-          "Nom de l'établissement": data.restaurant_name,
-          "Prénom du client": data.contact_name,
-          "Adresse Mail": data.email,
-          "Numéro de téléphone (contact)": data.phone,
-          "Raison de la prise de contact": mapServiceType(data.service_type),
-          "Urgence": mapUrgency(data.urgency),
-          "Message": data.message || ""
-        }
+        records: [
+          {
+            fields: {
+              "Nom de l'établissement": data.restaurant_name,
+              "Prénom du client": data.contact_name,
+              "Adresse Mail": data.email,
+              "Numéro de téléphone (contact)": data.phone,
+              "Raison de la prise de contact": mapServiceType(data.service_type),
+              "Urgence": mapUrgency(data.urgency),
+              "Message": data.message || ""
+            }
+          }
+        ],
+        typecast: true
       };
 
       const response = await fetch(
