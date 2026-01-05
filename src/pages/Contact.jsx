@@ -7,10 +7,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useMutation } from "@tanstack/react-query";
 import { 
   Phone, Mail, MapPin, Clock, Send, CheckCircle, 
-  AlertTriangle, ClipboardCheck, FileText, Loader2
+  AlertTriangle, ClipboardCheck, FileText, Loader2, XCircle
 } from "lucide-react";
 
 const serviceTypes = [
