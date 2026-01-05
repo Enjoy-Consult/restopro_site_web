@@ -479,6 +479,16 @@ export default function Contact() {
                   />
                 </div>
 
+                {/* Error Message */}
+                {errorMessage && (
+                  <Alert variant="destructive" className="bg-red-50 border-red-200">
+                    <XCircle className="h-5 w-5 text-red-600" />
+                    <AlertDescription className="text-red-800 ml-2">
+                      {errorMessage}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 {/* Submit */}
                 <Button 
                   type="submit" 
