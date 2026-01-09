@@ -44,159 +44,18 @@ export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // Mapping des valeurs pour Airtable
-  const mapServiceType = (value) => {
-    const mapping = {
-      "urgence_ddpp": "Urgence DDPP",
-      "audit_hygiene": "Audit Hygiène",
-      "accompagnement_administratif": "Accompagnement Administratif",
-      "autre": "Autre demande"
-    };
-    return mapping[value] || value;
-  };
-
-  const mapUrgency = (value) => {
-    const mapping = {
-      "urgent": "Urgent (contrôle en cours)",
-      "normal": "Normal",
-      "information": "Simple renseignement"
-    };
-    return mapping[value] || value;
-  };
-
-  // Fonction pour déterminer le message d'erreur utilisateur
-  const getErrorMessage = (error, statusCode) => {
-    if (!navigator.onLine) {
-      return "Vous semblez être hors ligne. Vérifiez votre connexion internet et réessayez.";
-    }
-    
-    if (statusCode === 401 || statusCode === 403) {
-      return "Problème de connexion à notre service. Veuillez nous contacter par téléphone au 06 80 95 25 89.";
-    }
-    
-    if (statusCode === 422 || statusCode === 400) {
-      return "Certaines informations semblent incorrectes. Veuillez vérifier vos données et réessayer.";
-    }
-    
-    if (statusCode === 429) {
-      return "Trop de demandes envoyées. Veuillez patienter quelques minutes avant de réessayer.";
-    }
-    
-    if (statusCode >= 500) {
-      return "Notre service est temporairement indisponible. Veuillez nous contacter par téléphone au 06 80 95 25 89.";
-    }
-    
-    if (error?.message?.includes("Failed to fetch") || error?.message?.includes("NetworkError")) {
-      return "Problème de connexion réseau. Veuillez vérifier votre connexion et réessayer.";
-    }
-    
-    return "Erreur lors de l'envoi du formulaire. Veuillez réessayer ou nous contacter par téléphone au 06 80 95 25 89.";
-  };
-
   const createContactMutation = useMutation({
     mutationFn: async (data) => {
-      // Réinitialiser le message d'erreur
       setErrorMessage("");
-      
-      const airtableData = {
-        records: [
-          {
-            fields: {
-              "Nom de l'établissement": data.restaurant_name,
-              "Prénom du client": data.contact_name,
-              "Adresse Mail": data.email,
-              "Numéro de téléphone (contact)": data.phone,
-              "Raison de la prise de contact": mapServiceType(data.service_type),
-              "Urgence": mapUrgency(data.urgency),
-              "Message": data.message || ""
-            }
-          }
-        ],
-        typecast: true
-      };
-
-      // Debug logs
-      console.log("Mon Token est :", import.meta.env.VITE_AIRTABLE_TOKEN);
-      console.log("Header envoyé :", `Bearer ${import.meta.env.VITE_AIRTABLE_TOKEN}`);
-      console.log("Données envoyées à Airtable :", JSON.stringify(airtableData, null, 2));
-
-      let response;
-      try {
-        response = await fetch(
-          "https://api.airtable.com/v0/appL7jbLQnqVyg8kC/Base%20Stockage%20contact",
-          {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${import.meta.env.VITE_AIRTABLE_TOKEN}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(airtableData)
-          }
-        );
-      } catch (networkError) {
-        // Erreur réseau (pas de connexion, CORS, etc.)
-        console.error("[Airtable] Erreur réseau:", {
-          message: networkError.message,
-          name: networkError.name,
-          timestamp: new Date().toISOString(),
-          formData: { ...data, email: "***" } // Masquer l'email dans les logs
-        });
-        throw { 
-          originalError: networkError, 
-          statusCode: 0, 
-          type: "NETWORK_ERROR" 
-        };
-      }
-
-      if (!response.ok) {
-        let errorDetails;
-        try {
-          errorDetails = await response.json();
-        } catch {
-          errorDetails = { message: "Impossible de parser la réponse d'erreur" };
-        }
-        
-        // Log détaillé pour le débogage
-        console.error("[Airtable] Erreur API:", {
-          status: response.status,
-          statusText: response.statusText,
-          errorType: errorDetails.error?.type,
-          errorMessage: errorDetails.error?.message,
-          timestamp: new Date().toISOString(),
-          requestData: { 
-            restaurant: data.restaurant_name,
-            service: data.service_type,
-            urgency: data.urgency
-          }
-        });
-        
-        throw { 
-          originalError: errorDetails, 
-          statusCode: response.status, 
-          type: "API_ERROR" 
-        };
-      }
-
-      return response.json();
+      return await base44.functions.submitContactForm(data);
     },
-    onSuccess: (data) => {
-      console.log("[Airtable] Enregistrement créé avec succès:", {
-        recordId: data.records?.[0]?.id,
-        timestamp: new Date().toISOString()
-      });
+    onSuccess: () => {
       setSubmitted(true);
       setErrorMessage("");
     },
     onError: (error) => {
-      console.error("[Contact Form] Erreur complète:", {
-        type: error.type,
-        statusCode: error.statusCode,
-        details: error.originalError,
-        timestamp: new Date().toISOString()
-      });
-      
-      const userMessage = getErrorMessage(error.originalError, error.statusCode);
-      setErrorMessage(userMessage);
+      console.error("[Contact Form] Erreur:", error);
+      setErrorMessage("Erreur lors de l'envoi du formulaire. Veuillez réessayer ou nous contacter par téléphone au 06 80 95 25 89.");
     }
   });
 
