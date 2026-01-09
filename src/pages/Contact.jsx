@@ -115,6 +115,11 @@ export default function Contact() {
         typecast: true
       };
 
+      // Debug logs
+      console.log("Mon Token est :", import.meta.env.VITE_AIRTABLE_TOKEN);
+      console.log("Header envoyé :", `Bearer ${import.meta.env.VITE_AIRTABLE_TOKEN}`);
+      console.log("Données envoyées à Airtable :", JSON.stringify(airtableData, null, 2));
+
       let response;
       try {
         response = await fetch(
