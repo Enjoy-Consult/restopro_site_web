@@ -145,92 +145,91 @@ export default function Contact() {
         </div>
       </section>
 
-      <div className="container mx-auto px-6 lg:px-12 py-16">
-        <div className="grid lg:grid-cols-3 gap-12">
-          {/* Contact Info */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-12 py-8 lg:py-16">
+        <div className="grid lg:grid-cols-3 gap-6 lg:gap-12">
+          {/* Contact Info - Affiché après le formulaire sur mobile */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="space-y-6"
+            className="space-y-4 lg:space-y-6 order-2 lg:order-1"
           >
-            <div className="bg-white rounded-2xl p-10 shadow-sm border border-slate-100">
-              <h3 className="text-xl font-bold text-slate-900 mb-6">Coordonnées</h3>
+            <div className="bg-white rounded-2xl p-6 lg:p-10 shadow-sm border border-slate-100">
+              <h3 className="text-lg lg:text-xl font-bold text-slate-900 mb-4 lg:mb-6">Coordonnées</h3>
               
-              <div className="space-y-6">
-                <a href="tel:0680952589" className="flex items-start gap-4 group">
-                  <div className="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-200 transition-colors">
-                    <Phone className="w-5 h-5 text-emerald-600" />
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 lg:gap-6">
+                <a href="tel:0680952589" className="flex items-center lg:items-start gap-3 group">
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-200 transition-colors">
+                    <Phone className="w-4 h-4 lg:w-5 lg:h-5 text-emerald-600" />
                   </div>
-                  <div>
-                    <p className="font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors text-lg md:text-base">Téléphone</p>
-                    <p className="text-slate-600 text-lg md:text-base">06 80 95 25 89</p>
-                  </div>
-                </a>
-
-                <a href="mailto:contact@restoclair.fr" className="flex items-start gap-4 group">
-                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
-                    <Mail className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors text-lg md:text-base">Email</p>
-                    <p className="text-slate-600 text-base md:text-base break-all">contact@restoclair.fr</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors text-sm lg:text-base">Téléphone</p>
+                    <p className="text-slate-600 text-xs lg:text-base truncate">06 80 95 25 89</p>
                   </div>
                 </a>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-5 h-5 text-purple-600" />
+                <a href="mailto:contact@restoclair.fr" className="flex items-center lg:items-start gap-3 group">
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
+                    <Mail className="w-4 h-4 lg:w-5 lg:h-5 text-blue-600" />
                   </div>
-                  <div>
-                    <p className="font-semibold text-slate-900 text-lg md:text-base">Zone d'intervention</p>
-                    <p className="text-slate-600 text-lg md:text-base">Île-de-France</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-900 group-hover:text-blue-600 transition-colors text-sm lg:text-base">Email</p>
+                    <p className="text-slate-600 text-xs lg:text-base truncate">contact@restoclair.fr</p>
+                  </div>
+                </a>
+
+                <div className="flex items-center lg:items-start gap-3">
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-purple-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <MapPin className="w-4 h-4 lg:w-5 lg:h-5 text-purple-600" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-900 text-sm lg:text-base">Zone</p>
+                    <p className="text-slate-600 text-xs lg:text-base">Île-de-France</p>
                   </div>
                 </div>
 
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <Clock className="w-5 h-5 text-amber-600" />
+                <div className="flex items-center lg:items-start gap-3">
+                  <div className="w-10 h-10 lg:w-12 lg:h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Clock className="w-4 h-4 lg:w-5 lg:h-5 text-amber-600" />
                   </div>
-                  <div>
-                    <p className="font-semibold text-slate-900 text-lg md:text-base">Disponibilité</p>
-                    <p className="text-slate-600 text-lg md:text-base">Lun-Sam : 8h-20h</p>
-                    <p className="text-base md:text-sm text-emerald-600 font-medium">Urgence 7j/7</p>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-slate-900 text-sm lg:text-base">Horaires</p>
+                    <p className="text-slate-600 text-xs lg:text-base">Lun-Sam : 8h-20h</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Quick Contact */}
-            <div className="bg-emerald-600 rounded-2xl p-8 text-white">
-              <h3 className="text-2xl md:text-xl font-bold mb-4">Urgence DDPP ?</h3>
-              <p className="text-emerald-100 mb-6 text-lg md:text-base leading-relaxed">
-                En cas de contrôle sanitaire ou de mise en demeure, appelez-nous immédiatement.
+            <div className="bg-emerald-600 rounded-2xl p-5 lg:p-8 text-white">
+              <h3 className="text-lg lg:text-xl font-bold mb-2 lg:mb-4">Urgence DDPP ?</h3>
+              <p className="text-emerald-100 mb-4 lg:mb-6 text-sm lg:text-base leading-relaxed">
+                En cas de contrôle sanitaire, appelez-nous immédiatement.
               </p>
               <a href="tel:0680952589">
-                <Button className="w-full bg-white text-emerald-600 hover:bg-emerald-50 py-6 text-lg md:text-base">
-                  <Phone className="mr-2 w-5 h-5" />
+                <Button className="w-full bg-white text-emerald-600 hover:bg-emerald-50 h-12 lg:h-14 text-base">
+                  <Phone className="mr-2 w-4 h-4 lg:w-5 lg:h-5" />
                   Appeler maintenant
                 </Button>
               </a>
             </div>
           </motion.div>
 
-          {/* Contact Form */}
+          {/* Contact Form - Affiché en premier sur mobile */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="lg:col-span-2"
+            className="lg:col-span-2 order-1 lg:order-2"
           >
-            <div className="bg-white rounded-2xl p-8 md:p-10 shadow-sm border border-slate-100">
+            <div className="bg-white rounded-2xl p-5 sm:p-8 md:p-10 shadow-sm border border-slate-100">
               <h3 className="text-2xl md:text-xl font-bold text-slate-900 mb-8">Formulaire de contact</h3>
 
-              <form onSubmit={handleSubmit} className="space-y-8">
+              <form onSubmit={handleSubmit} className="space-y-6 lg:space-y-8">
                 {/* Service Type */}
-                <div className="space-y-4">
-                  <Label className="text-xl md:text-base font-semibold">Type de demande *</Label>
-                  <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-3 lg:space-y-4">
+                  <Label className="text-base lg:text-base font-semibold">Type de demande *</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
                     {serviceTypes.map((service) => {
                       const Icon = service.icon;
                       const isSelected = formData.service_type === service.value;
@@ -238,19 +237,19 @@ export default function Contact() {
                         <div
                         key={service.value}
                         onClick={() => handleChange("service_type", service.value)}
-                        className={`p-5 md:p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all ${
                           isSelected 
                             ? "border-emerald-500 bg-emerald-50" 
                             : "border-slate-200 hover:border-slate-300"
                         }`}
                         >
-                        <div className="flex items-start gap-3">
-                          <Icon className={`w-6 h-6 md:w-5 md:h-5 mt-0.5 ${isSelected ? "text-emerald-600" : "text-slate-400"}`} />
-                          <div>
-                            <p className={`font-semibold text-lg md:text-base ${isSelected ? "text-emerald-700" : "text-slate-700"}`}>
+                        <div className="flex items-center gap-3">
+                          <Icon className={`w-5 h-5 flex-shrink-0 ${isSelected ? "text-emerald-600" : "text-slate-400"}`} />
+                          <div className="min-w-0">
+                            <p className={`font-semibold text-sm lg:text-base ${isSelected ? "text-emerald-700" : "text-slate-700"}`}>
                               {service.label}
                             </p>
-                            <p className="text-base md:text-sm text-slate-500">{service.desc}</p>
+                            <p className="text-xs lg:text-sm text-slate-500 truncate">{service.desc}</p>
                           </div>
                         </div>
                         </div>
@@ -260,54 +259,54 @@ export default function Contact() {
                 </div>
 
                 {/* Urgency */}
-                <div className="space-y-4">
-                  <Label className="text-xl md:text-base font-semibold">Niveau d'urgence</Label>
+                <div className="space-y-3 lg:space-y-4">
+                  <Label className="text-base font-semibold">Niveau d'urgence</Label>
                   <RadioGroup 
                     value={formData.urgency} 
                     onValueChange={(value) => handleChange("urgency", value)}
-                    className="flex flex-col sm:flex-row gap-4 sm:gap-6"
+                    className="flex flex-col gap-3 sm:flex-row sm:gap-6"
                   >
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem value="urgent" id="urgent" className="w-5 h-5" />
-                      <Label htmlFor="urgent" className="text-red-600 font-medium cursor-pointer text-lg md:text-base">Urgent (contrôle en cours)</Label>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="urgent" id="urgent" className="w-4 h-4" />
+                      <Label htmlFor="urgent" className="text-red-600 font-medium cursor-pointer text-sm lg:text-base">Urgent (contrôle en cours)</Label>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem value="normal" id="normal" className="w-5 h-5" />
-                      <Label htmlFor="normal" className="cursor-pointer text-lg md:text-base">Normal</Label>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="normal" id="normal" className="w-4 h-4" />
+                      <Label htmlFor="normal" className="cursor-pointer text-sm lg:text-base">Normal</Label>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <RadioGroupItem value="information" id="information" className="w-5 h-5" />
-                      <Label htmlFor="information" className="cursor-pointer text-lg md:text-base">Simple renseignement</Label>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="information" id="information" className="w-4 h-4" />
+                      <Label htmlFor="information" className="cursor-pointer text-sm lg:text-base">Simple renseignement</Label>
                     </div>
                   </RadioGroup>
                 </div>
 
                 {/* Contact Info */}
-                <div className="grid sm:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="restaurant_name" className="text-lg md:text-base">Nom du restaurant *</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="restaurant_name" className="text-sm lg:text-base">Nom du restaurant *</Label>
                     <Input
                       id="restaurant_name"
                       placeholder="Ex: La Belle Assiette"
                       value={formData.restaurant_name}
                       onChange={(e) => handleChange("restaurant_name", e.target.value)}
                       required
-                      className="py-7 md:py-6 text-lg md:text-base"
+                      className="h-12 lg:h-14 text-base"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="contact_name" className="text-lg md:text-base">Votre nom *</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="contact_name" className="text-sm lg:text-base">Votre nom *</Label>
                     <Input
                       id="contact_name"
                       placeholder="Prénom Nom"
                       value={formData.contact_name}
                       onChange={(e) => handleChange("contact_name", e.target.value)}
                       required
-                      className="py-7 md:py-6 text-lg md:text-base"
+                      className="h-12 lg:h-14 text-base"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="email" className="text-lg md:text-base">Email *</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="email" className="text-sm lg:text-base">Email *</Label>
                     <Input
                       id="email"
                       type="email"
@@ -315,11 +314,11 @@ export default function Contact() {
                       value={formData.email}
                       onChange={(e) => handleChange("email", e.target.value)}
                       required
-                      className="py-7 md:py-6 text-lg md:text-base"
+                      className="h-12 lg:h-14 text-base"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="phone" className="text-lg md:text-base">Téléphone *</Label>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="phone" className="text-sm lg:text-base">Téléphone *</Label>
                     <Input
                       id="phone"
                       type="tel"
@@ -327,21 +326,21 @@ export default function Contact() {
                       value={formData.phone}
                       onChange={(e) => handleChange("phone", e.target.value)}
                       required
-                      className="py-7 md:py-6 text-lg md:text-base"
+                      className="h-12 lg:h-14 text-base"
                     />
                   </div>
                 </div>
 
                 {/* Message */}
-                <div className="space-y-2">
-                  <Label htmlFor="message" className="text-lg md:text-base">Décrivez votre situation</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="message" className="text-sm lg:text-base">Décrivez votre situation</Label>
                   <Textarea
                     id="message"
-                    placeholder="Décrivez brièvement votre besoin ou la situation actuelle de votre établissement..."
+                    placeholder="Décrivez brièvement votre besoin..."
                     value={formData.message}
                     onChange={(e) => handleChange("message", e.target.value)}
-                    rows={5}
-                    className="text-lg md:text-base"
+                    rows={4}
+                    className="text-base resize-none"
                   />
                 </div>
 
@@ -359,23 +358,23 @@ export default function Contact() {
                 <Button 
                   type="submit" 
                   size="lg" 
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 py-7 md:py-6 text-xl md:text-lg"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 h-14 text-base lg:text-lg"
                   disabled={createContactMutation.isPending}
                 >
                   {createContactMutation.isPending ? (
                     <>
-                      <Loader2 className="mr-2 w-6 h-6 animate-spin" />
+                      <Loader2 className="mr-2 w-5 h-5 animate-spin" />
                       Envoi en cours...
                     </>
                   ) : (
                     <>
-                      <Send className="mr-2 w-6 h-6" />
+                      <Send className="mr-2 w-5 h-5" />
                       Envoyer ma demande
                     </>
                   )}
                 </Button>
 
-                <p className="text-base md:text-sm text-slate-500 text-center leading-relaxed">
+                <p className="text-xs lg:text-sm text-slate-500 text-center">
                   En soumettant ce formulaire, vous acceptez d'être recontacté par nos équipes.
                 </p>
               </form>
