@@ -48,7 +48,8 @@ export default function Contact() {
   const createContactMutation = useMutation({
     mutationFn: async (data) => {
       setErrorMessage("");
-      return await base44.functions.submitContactForm(data);
+      const response = await base44.functions.invoke('submitContactForm', data);
+      return response.data;
     },
     onSuccess: () => {
       setSubmitted(true);
