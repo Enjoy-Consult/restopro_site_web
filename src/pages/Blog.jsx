@@ -17,11 +17,11 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const categories = [
-  { value: "all", label: "Tous les articles" },
-  { value: "reglementation", label: "Réglementation" },
-  { value: "bonnes_pratiques", label: "Bonnes Pratiques" },
-  { value: "actualites", label: "Actualités" },
-  { value: "conseils", label: "Conseils" }
+  { value: "all", label: "Tous", labelFull: "Tous les articles" },
+  { value: "reglementation", label: "Réglem.", labelFull: "Réglementation" },
+  { value: "bonnes_pratiques", label: "Pratiques", labelFull: "Bonnes Pratiques" },
+  { value: "actualites", label: "Actus", labelFull: "Actualités" },
+  { value: "conseils", label: "Conseils", labelFull: "Conseils" }
 ];
 
 const categoryColors = {
@@ -99,14 +99,15 @@ export default function Blog() {
 
             {/* Category Filters */}
             <Tabs value={activeCategory} onValueChange={setActiveCategory} className="w-full">
-              <TabsList className="w-full max-w-3xl mx-auto grid grid-cols-5 h-auto bg-white border border-slate-200 rounded-xl p-1.5">
+              <TabsList className="w-full max-w-3xl mx-auto flex flex-wrap justify-center gap-2 h-auto bg-white border border-slate-200 rounded-xl p-2">
                 {categories.map((category) => (
                   <TabsTrigger 
                     key={category.value} 
                     value={category.value}
-                    className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white py-2.5 px-3 rounded-lg text-xs sm:text-sm"
+                    className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white py-2 px-3 rounded-lg text-xs sm:text-sm whitespace-nowrap"
                   >
-                    {category.label}
+                    <span className="sm:hidden">{category.label}</span>
+                    <span className="hidden sm:inline">{category.labelFull}</span>
                   </TabsTrigger>
                 ))}
               </TabsList>
@@ -151,7 +152,7 @@ export default function Blog() {
                     </div>
                     <div className="p-8 md:p-12 flex flex-col justify-center">
                       <Badge className={`${categoryColors[featuredPost.category]} border-0 w-fit mb-4`}>
-                        {categories.find(c => c.value === featuredPost.category)?.label}
+                        {categories.find(c => c.value === featuredPost.category)?.labelFull}
                       </Badge>
                       <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4 leading-tight">
                         {featuredPost.title}
@@ -198,7 +199,7 @@ export default function Blog() {
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         />
                         <Badge className={`${categoryColors[post.category]} border-0 absolute top-4 left-4`}>
-                          {categories.find(c => c.value === post.category)?.label}
+                          {categories.find(c => c.value === post.category)?.labelFull}
                         </Badge>
                       </div>
                       <div className="p-6">
