@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
         // Mapping des valeurs pour Airtable
         const mapServiceType = (value) => {
             const mapping = {
-                "urgence_ddpp": "Urgence DDPP",
+                "urgence_ddpp": "Sos DDPP",
                 "audit_hygiene": "Audit Hygiène",
                 "accompagnement_administratif": "Accompagnement Administratif",
                 "autre": "Autre demande"
@@ -26,17 +26,34 @@ Deno.serve(async (req) => {
             return mapping[value] || value;
         };
 
+        // Formatage de la date au format JJ/MM/AAAA
+        const today = new Date();
+        const dateFormatted = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+
+        // Formatage du numéro de téléphone au format (+33)
+        const formatPhone = (phoneNumber) => {
+            if (!phoneNumber) return "";
+            // Nettoyer le numéro
+            let cleaned = phoneNumber.replace(/\s/g, '').replace(/\./g, '').replace(/-/g, '');
+            // Si commence par 0, remplacer par (+33)
+            if (cleaned.startsWith('0')) {
+                cleaned = '(+33) ' + cleaned.substring(1).replace(/(.{2})/g, '$1 ').trim();
+            }
+            return cleaned;
+        };
+
         const airtableData = {
             records: [
                 {
                     fields: {
-                        "Nom de l'établissement": restaurant_name,
-                        "Prénom du client": contact_name,
-                        "Adresse Mail": email,
-                        "Numéro de téléphone (contact)": phone,
+                        "Nom de l'établissement": restaurant_name || "",
+                        "Prénom du client": contact_name || "",
+                        "Date de la prise de contact": dateFormatted,
+                        "Adresse Mail": email || "",
+                        "Numéro de téléphone (contact)": formatPhone(phone),
                         "Raison de la prise de contact": mapServiceType(service_type),
-                        "Urgence": mapUrgency(urgency),
-                        "Message": message || ""
+                        "Message": message || "",
+                        "Urgence": mapUrgency(urgency)
                     }
                 }
             ],
