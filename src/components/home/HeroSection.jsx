@@ -36,6 +36,7 @@ export default function HeroSection() {
             initial={{ opacity: 0, x: -40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
+            className="text-center lg:text-left"
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-50 border border-emerald-200 rounded-full mb-6">
               <Shield className="w-4 h-4 text-emerald-600" />
@@ -47,13 +48,13 @@ export default function HeroSection() {
               <span className="block text-emerald-600">sanitaire simplifiée</span>
             </h1>
 
-            <p className="text-xl md:text-xl text-slate-600 leading-relaxed mb-8 max-w-xl">
+            <p className="text-xl md:text-xl text-slate-600 leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0">
               Accompagnement sur-mesure pour les restaurateurs. 
               Contrôles DDPP, audits hygiène et mise en conformité — 
               nous transformons vos obligations en tranquillité d'esprit.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+            <div className="flex flex-col sm:flex-row gap-4 mb-12 justify-center lg:justify-start">
               <Link to={createPageUrl("Contact")} className="w-full sm:w-auto">
                 <Button size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-7 text-xl rounded-xl shadow-lg shadow-emerald-600/20 transition-all hover:shadow-xl hover:shadow-emerald-600/30">
                   Demander une intervention
