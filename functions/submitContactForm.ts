@@ -46,14 +46,14 @@ Deno.serve(async (req) => {
             records: [
                 {
                     fields: {
-                        "Nom de l'établissement": restaurant_name || "",
-                        "Prénom du client": contact_name || "",
-                        "Date de la prise de contact": dateFormatted,
+                        "Nom du client": contact_name || "",
+                        "Date de la prise de...": dateFormatted,
                         "Adresse Mail": email || "",
-                        "Numéro de téléphone (contact)": formatPhone(phone),
-                        "Raison de la prise de contact": mapServiceType(service_type),
+                        "Numéro de...": formatPhone(phone),
+                        "Raison de la prise ...": mapServiceType(service_type),
                         "Message": message || "",
-                        "Urgence": mapUrgency(urgency)
+                        "Urgence": mapUrgency(urgency),
+                        "Demande spécifique": restaurant_name || ""
                     }
                 }
             ],
