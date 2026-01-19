@@ -26,9 +26,9 @@ Deno.serve(async (req) => {
             return mapping[value] || value;
         };
 
-        // Formatage de la date au format JJ/MM/AAAA
+        // Formatage de la date au format AAAA-MM-JJ (ISO)
         const today = new Date();
-        const dateFormatted = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+        const dateFormatted = today.toISOString().split('T')[0];
 
         // Formatage du numéro de téléphone au format (+33)
         const formatPhone = (phoneNumber) => {
