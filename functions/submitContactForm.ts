@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
         };
 
         const response = await fetch(
-            "https://api.airtable.com/v0/appL7jbLQnqVyg8kC/Base%20Stockage%20contact",
+            "https://api.airtable.com/v0/appL7jbLQnqVyg8kC/Base%20de%20donn%C3%A9e%20client",
             {
                 method: "POST",
                 headers: {
