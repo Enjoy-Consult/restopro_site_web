@@ -47,10 +47,10 @@ Deno.serve(async (req) => {
                 {
                     fields: {
                         "Nom du client": contact_name || "",
-                        "Date de la prise de...": dateFormatted,
+                        "Date de la prise de contact": dateFormatted,
                         "Adresse Mail": email || "",
-                        "Numéro de...": formatPhone(phone),
-                        "Raison de la prise ...": mapServiceType(service_type),
+                        "Numéro de téléphone (contact)": formatPhone(phone),
+                        "Raison de la prise de contact": mapServiceType(service_type),
                         "Message": message || "",
                         "Urgence": mapUrgency(urgency),
                         "Demande spécifique": restaurant_name || ""
