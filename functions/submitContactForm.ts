@@ -26,16 +26,17 @@ Deno.serve(async (req) => {
             return mapping[value] || value;
         };
 
-        // Formatage de la date au format AAAA-MM-JJ (ISO)
+        // Formatage de la date au format AAAA-MM-JJ (ISO pour Airtable)
         const today = new Date();
-        const dateFormatted = today.toISOString().split('T')[0];
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const dateFormatted = `${year}-${month}-${day}`;
 
         // Formatage du numéro de téléphone au format (+33)
         const formatPhone = (phoneNumber) => {
             if (!phoneNumber) return "";
-            // Nettoyer le numéro
             let cleaned = phoneNumber.replace(/\s/g, '').replace(/\./g, '').replace(/-/g, '');
-            // Si commence par 0, remplacer par (+33)
             if (cleaned.startsWith('0')) {
                 cleaned = '(+33) ' + cleaned.substring(1).replace(/(.{2})/g, '$1 ').trim();
             }
