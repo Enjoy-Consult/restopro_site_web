@@ -37,7 +37,10 @@ export default function Blog() {
 
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['blogPosts'],
-    queryFn: () => base44.entities.BlogPost.filter({ published: true }, '-created_date'),
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getAirtableBlogPosts');
+      return response.data.filter(post => post.published);
+    },
     initialData: [],
   });
 
