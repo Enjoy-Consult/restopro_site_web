@@ -5,7 +5,7 @@ Deno.serve(async (req) => {
         const base44 = createClientFromRequest(req);
         
         const response = await fetch(
-            "https://api.airtable.com/v0/appL7jbLQnqVyg8kC/Avis%20Site%20Web",
+            "https://api.airtable.com/v0/appL7jbLQnqVyg8kC/tblITiPeNaP3s3kOp",
             {
                 method: "GET",
                 headers: {
