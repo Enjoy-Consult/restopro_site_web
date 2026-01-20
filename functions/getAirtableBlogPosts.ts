@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
             content: record.fields.content || "",
             featured_image: record.fields.featured_image || "",
             category: record.fields.category || "",
-            tags: record.fields.tags || [],
+            tags: record.fields.tags ? (typeof record.fields.tags === 'string' ? record.fields.tags.split(',').map(t => t.trim()) : record.fields.tags) : [],
             published: record.fields.published !== false,
             seo_title: record.fields.seo_title || "",
             seo_description: record.fields.seo_description || "",
