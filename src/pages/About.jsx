@@ -43,9 +43,9 @@ export default function About() {
   return (
     <>
       <SEO 
-        title="À Propos - Thierry Bailleul, Expert Sécurité Alimentaire"
-        description="Thierry Bailleul, consultant en hygiène et sécurité alimentaire depuis 15 ans. Expert terrain en restauration, formateur HACCP certifié. Plus de 200 restaurants accompagnés en Île-de-France."
-        keywords="Thierry Bailleul, consultant hygiène alimentaire, expert sécurité alimentaire, formateur HACCP, consultant DDPP, expérience restauration, expert sanitaire Paris"
+        title="À Propos - Thierry Bailleul, Consultant Hygiène Alimentaire Île-de-France"
+        description="Thierry Bailleul, consultant expert en hygiène et sécurité alimentaire depuis 15 ans. Formateur HACCP certifié, spécialiste contrôle DDPP. Plus de 200 restaurants accompagnés à Paris et en Île-de-France. Intervention sous 24h."
+        keywords="Thierry Bailleul consultant, expert hygiène alimentaire Paris, consultant sécurité alimentaire Île-de-France, formateur HACCP certifié, spécialiste contrôle DDPP, accompagnement restaurateurs, audit sanitaire restaurant, conseil hygiène cuisine professionnelle"
         canonicalUrl={`${window.location.origin}${window.location.pathname}`}
       />
       <div className="min-h-screen bg-white">
@@ -60,7 +60,7 @@ export default function About() {
             >
               <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wider">À Propos</span>
               <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mt-4 mb-6 leading-tight">
-                Un expert terrain à vos côtés
+                Thierry Bailleul, expert hygiène alimentaire à vos côtés
               </h1>
               <p className="text-xl md:text-lg text-slate-600 leading-relaxed mb-8">
                 Fondé par Thierry Bailleul, <strong>RestOclair</strong> est né d'une conviction : 
@@ -131,7 +131,7 @@ export default function About() {
           >
             <span className="text-emerald-600 font-semibold text-sm uppercase tracking-wider">Nos Valeurs</span>
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-4 mb-6">
-              Une approche différente du conseil
+              Conseil en hygiène alimentaire : une approche humaine et efficace
             </h2>
             <p className="text-lg text-slate-600">
               Pas de jargon technique, pas de rapports interminables. 
@@ -175,7 +175,7 @@ export default function About() {
           >
             <span className="text-emerald-400 font-semibold text-sm uppercase tracking-wider">Parcours</span>
             <h2 className="text-3xl md:text-4xl font-bold text-white mt-4 mb-6">
-              15 ans d'expertise terrain
+              15 ans d'expertise en sécurité alimentaire et restauration
             </h2>
           </motion.div>
 
