@@ -39,6 +39,26 @@ const testimonials = [
 ];
 
 export default function TestimonialsSection() {
+  const { data: testimonials = [], isLoading } = useQuery({
+    queryKey: ['testimonials'],
+    queryFn: async () => {
+      const response = await base44.functions.invoke('getAirtableTestimonials');
+      return response.data.filter(t => t.is_featured).slice(0, 6);
+    },
+    initialData: [],
+  });
+
+  if (isLoading) {
+    return (
+      <section className="py-24 bg-slate-50">
+        <div className="container mx-auto px-6 lg:px-12">
+          <div className="text-center">
+            <p className="text-slate-500">Chargement des témoignages...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
   return (
     <section className="py-16 md:py-24 bg-gradient-to-b from-slate-50 to-white overflow-hidden">
       <div className="container mx-auto px-6 lg:px-12">
