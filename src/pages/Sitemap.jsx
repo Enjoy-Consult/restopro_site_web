@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { base44 } from "@/api/base44Client";
+import { getBlogPosts } from "@/api/airtableService";
 import { useQuery } from "@tanstack/react-query";
 
 export default function Sitemap() {
@@ -7,7 +7,10 @@ export default function Sitemap() {
 
   const { data: blogPosts = [] } = useQuery({
     queryKey: ['blogPosts'],
-    queryFn: () => base44.entities.BlogPost.filter({ published: true }),
+    queryFn: async () => {
+      const allPosts = await getBlogPosts();
+      return allPosts.filter(p => p.published);
+    },
   });
 
   useEffect(() => {

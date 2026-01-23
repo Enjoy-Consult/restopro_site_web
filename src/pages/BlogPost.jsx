@@ -1,7 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import SEO from "@/components/SEO";
-import { base44 } from "@/api/base44Client";
+import { getBlogPosts } from "@/api/airtableService";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -36,8 +36,8 @@ export default function BlogPost() {
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['blogPost', slug],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getAirtableBlogPosts');
-      return response.data.filter(p => p.slug === slug && p.published);
+      const allPosts = await getBlogPosts();
+      return allPosts.filter(p => p.slug === slug && p.published);
     },
     enabled: !!slug,
   });
@@ -47,8 +47,8 @@ export default function BlogPost() {
   const { data: relatedPosts = [] } = useQuery({
     queryKey: ['relatedPosts', post?.category],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getAirtableBlogPosts');
-      return response.data
+      const allPosts = await getBlogPosts();
+      return allPosts
         .filter(p => p.category === post.category && p.slug !== slug && p.published)
         .slice(0, 3);
     },

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import SEO from "@/components/SEO";
-import { base44 } from "@/api/base44Client";
+import { submitContactForm } from "@/api/airtableService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -48,8 +48,7 @@ export default function Contact() {
   const createContactMutation = useMutation({
     mutationFn: async (data) => {
       setErrorMessage("");
-      const response = await base44.functions.invoke("submitContactForm", data);
-      return response.data;
+      return await submitContactForm(data);
     },
     onSuccess: () => {
       setSubmitted(true);

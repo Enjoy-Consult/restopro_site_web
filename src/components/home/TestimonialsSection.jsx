@@ -1,15 +1,15 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { getTestimonials } from "@/api/airtableService";
 import { useQuery } from "@tanstack/react-query";
 
 export default function TestimonialsSection() {
   const { data: testimonials = [], isLoading } = useQuery({
     queryKey: ['testimonials'],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getAirtableTestimonials');
-      return response.data.filter(t => t.is_featured).slice(0, 6);
+      const allTestimonials = await getTestimonials();
+      return allTestimonials.filter(t => t.is_featured).slice(0, 6);
     },
     initialData: [],
   });

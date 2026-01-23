@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import SEO from "@/components/SEO";
-import { base44 } from "@/api/base44Client";
+import { getBlogPosts } from "@/api/airtableService";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -38,8 +38,8 @@ export default function Blog() {
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ['blogPosts'],
     queryFn: async () => {
-      const response = await base44.functions.invoke('getAirtableBlogPosts');
-      return response.data.filter(post => post.published);
+      const allPosts = await getBlogPosts();
+      return allPosts.filter(post => post.published);
     },
     initialData: [],
   });
