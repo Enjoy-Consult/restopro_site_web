@@ -114,19 +114,19 @@ export default function Services() {
   const getServiceSEO = () => {
     const seoData = {
       urgence: {
-        title: "Urgence DDPP - Intervention Rapide Contrôle Sanitaire",
-        description: "Contrôle DDPP avec non-conformités ? Intervention sous 24h pour éviter la fermeture de votre restaurant. Remise en conformité rapide et efficace par expert certifié.",
-        keywords: "urgence DDPP, contrôle sanitaire restaurant, mise en demeure DDPP, fermeture administrative, remise en conformité hygiène, intervention urgente restaurant"
+        title: "Service d'Urgence DDPP - RestOclair : Réagissez vite, restez ouvert !",
+        description: "Contrôle DDPP avec non-conformités ? RestOclair intervient en urgence sous 24h pour remettre votre restaurant en conformité. Évitez la fermeture administrative. Diagnostic rapide, solutions immédiates. 06 80 95 25 89",
+        keywords: "urgence DDPP, contrôle sanitaire restaurant, mise en demeure DDPP, fermeture administrative, remise en conformité hygiène, intervention urgente restaurant, consultant hygiène"
       },
       audit: {
-        title: "Audit Hygiène Restaurant - Inspection Préventive DDPP",
-        description: "Audit hygiène complet de votre restaurant. Anticipez les contrôles DDPP avec une inspection préventive détaillée. Rapport et plan d'action personnalisé. Tarif dès 350€.",
-        keywords: "audit hygiène restaurant, inspection cuisine professionnelle, contrôle préventif DDPP, diagnostic sanitaire, audit HACCP, vérification conformité restaurant"
+        title: "Audit Hygiène & Organisation - RestOclair : Anticipez, corrigez, maîtrisez",
+        description: "RestOclair réalise une analyse complète de votre cuisine : inspection locaux, vérification équipements, observation pratiques. Préparez-vous sereinement aux contrôles DDPP. Rapport clair et opérationnel. À partir de 350€ HT.",
+        keywords: "audit hygiène restaurant, inspection cuisine professionnelle, contrôle préventif DDPP, diagnostic sanitaire, audit HACCP, vérification conformité restaurant, consultant sécurité alimentaire"
       },
       administratif: {
-        title: "Plan Maîtrise Sanitaire (PMS) - Conformité Administrative",
-        description: "Création de votre Plan de Maîtrise Sanitaire personnalisé. Conformité CERFA, loi EGAlim, traçabilité et allergènes. Accompagnement administratif complet pour restaurants.",
-        keywords: "plan maîtrise sanitaire, PMS restaurant, CERFA restauration, loi EGAlim, conformité administrative restaurant, traçabilité alimentaire, gestion allergènes"
+        title: "Plan de Maîtrise Sanitaire & Obligations EGAlim - RestOclair : Votre restaurant en règle",
+        description: "RestOclair réalise un audit complet de votre conformité réglementaire : création PMS personnalisé, CERFA, obligations EGAlim, traçabilité, allergènes. Soyez en règle, sans stress. À partir de 500€ HT.",
+        keywords: "plan maîtrise sanitaire, PMS restaurant, CERFA restauration, loi EGAlim, conformité administrative restaurant, traçabilité alimentaire, gestion allergènes, obligations réglementaires"
       }
     };
     return seoData[activeTab] || seoData.urgence;

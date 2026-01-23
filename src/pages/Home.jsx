@@ -10,9 +10,9 @@ export default function Home() {
   return (
     <>
       <SEO 
-        title="Accueil - Conseil en Hygiène & Sécurité Alimentaire"
-        description="RestOclair accompagne les restaurateurs d'Île-de-France en hygiène alimentaire. Intervention urgence DDPP sous 24h, audits préventifs et mise en conformité PMS. Expert depuis 15 ans."
-        keywords="conseil hygiène alimentaire, sécurité alimentaire restaurant, contrôle DDPP, audit hygiène cuisine, plan maîtrise sanitaire, consultant HACCP, formation hygiène restauration, conformité sanitaire, loi EGAlim, Île-de-France"
+        title="RestOclair - Sécurité Alimentaire, transformez vos obligations en atouts"
+        description="RestOclair, consultant en hygiène et sécurité alimentaire pour restaurateurs en Île-de-France. Intervention urgence DDPP sous 24h, audits hygiène préventifs, création PMS personnalisé. Contact : 06 80 95 25 89"
+        keywords="consultant hygiène alimentaire, sécurité alimentaire restaurant, contrôle DDPP, audit hygiène cuisine, plan maîtrise sanitaire, consultant HACCP, formation hygiène restauration, conformité sanitaire, loi EGAlim, Île-de-France"
         canonicalUrl={window.location.origin}
       />
       <div className="min-h-screen">

@@ -118,9 +118,9 @@ export default function Contact() {
   return (
     <>
       <SEO 
-        title="Contact - Demande d'Intervention ou Devis Gratuit"
-        description="Contactez RestOclair pour une urgence DDPP, un audit hygiène ou un accompagnement administratif. Réponse sous 2h, intervention sous 24h en cas d'urgence. Tél: 06 80 95 25 89"
-        keywords="contact consultant hygiène, demande intervention DDPP, devis audit restaurant, urgence sanitaire, RDV consultant alimentaire, Île-de-France"
+        title="Contact RestOclair - Demande d'Intervention Hygiène Restaurant"
+        description="Contactez RestOclair, consultant en hygiène et sécurité alimentaire. Urgence DDPP, audit hygiène, création PMS. Réponse sous 2h, intervention sous 24h en cas d'urgence. Île-de-France. Tél: 06 80 95 25 89"
+        keywords="contact consultant hygiène, demande intervention DDPP, devis audit restaurant, urgence sanitaire, RDV consultant alimentaire, Île-de-France, sécurité alimentaire"
         canonicalUrl={`${window.location.origin}${window.location.pathname}`}
       />
       <div className="min-h-screen bg-slate-50">

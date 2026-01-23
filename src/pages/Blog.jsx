@@ -57,9 +57,9 @@ export default function Blog() {
   return (
     <>
       <SEO 
-        title="Blog - Conseils Hygiène & Actualités Restauration"
-        description="Retrouvez nos articles sur la réglementation sanitaire, les bonnes pratiques HACCP, l'actualité DDPP et nos conseils d'expert pour gérer l'hygiène de votre restaurant."
-        keywords="blog hygiène alimentaire, actualités DDPP, réglementation restaurant, conseils HACCP, bonnes pratiques cuisine, sécurité alimentaire, normes sanitaires"
+        title="Blog RestOclair - Conseils Hygiène & Actualités Restauration"
+        description="Retrouvez les articles de RestOclair sur la réglementation sanitaire, les bonnes pratiques HACCP, l'actualité DDPP et nos conseils d'expert pour gérer l'hygiène de votre restaurant. Transformez vos obligations en atouts."
+        keywords="blog hygiène alimentaire, actualités DDPP, réglementation restaurant, conseils HACCP, bonnes pratiques cuisine, sécurité alimentaire, normes sanitaires, RestOclair"
         canonicalUrl={`${window.location.origin}${window.location.pathname}`}
       />
       
