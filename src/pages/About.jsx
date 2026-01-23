@@ -43,9 +43,9 @@ export default function About() {
   return (
     <>
       <SEO 
-        title="À Propos - Thierry Bailleul, Consultant Hygiène Alimentaire Île-de-France"
-        description="Thierry Bailleul, consultant expert en hygiène et sécurité alimentaire depuis 15 ans. Formateur HACCP certifié, spécialiste contrôle DDPP. Plus de 200 restaurants accompagnés à Paris et en Île-de-France. Intervention sous 24h."
-        keywords="Thierry Bailleul consultant, expert hygiène alimentaire Paris, consultant sécurité alimentaire Île-de-France, formateur HACCP certifié, spécialiste contrôle DDPP, accompagnement restaurateurs, audit sanitaire restaurant, conseil hygiène cuisine professionnelle"
+        title="À Propos de RestOclair - Thierry Bailleul, Consultant en Sécurité Alimentaire"
+        description="RestOclair, c'est Thierry Bailleul : 15 ans d'expérience en qualité et sécurité alimentaire pour l'industrie et la restauration. Accompagnement bienveillant des restaurateurs en Île-de-France. Transformez vos obligations en atouts."
+        keywords="Thierry Bailleul, RestOclair, consultant hygiène alimentaire, expert sécurité alimentaire, consultant HACCP, expérience restauration, qualité alimentaire, Île-de-France"
         canonicalUrl={`${window.location.origin}${window.location.pathname}`}
       />
       <div className="min-h-screen bg-white">
