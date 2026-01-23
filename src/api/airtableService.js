@@ -69,7 +69,7 @@ export async function submitContactForm(data) {
   const mapServiceType = (value) => {
     const mapping = {
       'urgence_ddpp': 'Sos DDPP',
-      'audit_hygiene': 'Audit Hygiene',
+      'audit_hygiene': 'Audit Hygiène',
       'accompagnement_administratif': 'Accompagnement Administratif',
       'autre': 'Autre demande'
     };
@@ -78,7 +78,7 @@ export async function submitContactForm(data) {
 
   const mapUrgency = (value) => {
     const mapping = {
-      'urgent': 'Urgent (controle en cours)',
+      'urgent': 'Urgent (contrôle en cours)',
       'normal': 'Normal',
       'information': 'Simple renseignement'
     };
@@ -100,11 +100,11 @@ export async function submitContactForm(data) {
         fields: {
           'Nom du client': data.contact_name || '',
           'Adresse Mail': data.email || '',
-          'Numero de telephone (contact)': formatPhone(data.phone),
+          'Numéro de téléphone (contact)': formatPhone(data.phone),
           'Raison de la prise de contact': mapServiceType(data.service_type),
           'Message': data.message || '',
           'Urgence': mapUrgency(data.urgency),
-          'Demande specifique': data.restaurant_name || ''
+          'Demande spécifique': data.restaurant_name || ''
         }
       }
     ],
