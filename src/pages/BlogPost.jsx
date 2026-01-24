@@ -94,12 +94,24 @@ export default function BlogPost() {
 
   return (
     <>
-      <SEO 
+      <SEO
         title={post.seo_title || post.title}
         description={post.seo_description || post.excerpt}
         keywords={post.tags?.join(", ")}
         ogImage={post.featured_image}
-        canonicalUrl={`${window.location.origin}${window.location.pathname}?slug=${post.slug}`}
+        canonicalUrl={`https://restoclair.fr/BlogPost?slug=${post.slug}`}
+        pageType="article"
+        articleData={{
+          publishedDate: post.created_date,
+          modifiedDate: post.updated_date || post.created_date,
+          category: categoryLabels[post.category] || post.category,
+          tags: post.tags
+        }}
+        breadcrumbs={[
+          { name: "Accueil", url: "https://restoclair.fr/" },
+          { name: "Blog", url: "https://restoclair.fr/Blog" },
+          { name: post.title, url: `https://restoclair.fr/BlogPost?slug=${post.slug}` }
+        ]}
       />
       
       <article className="min-h-screen bg-slate-50">
