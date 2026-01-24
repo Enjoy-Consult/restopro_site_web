@@ -89,12 +89,26 @@ export default function HeroSection() {
           >
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-3xl transform rotate-3" />
-              <img 
+              <img
                 src="https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=700&fit=crop"
                 alt="Consultant en hygiène alimentaire inspectant une cuisine professionnelle de restaurant avec un chef cuisinier"
                 className="relative rounded-3xl shadow-2xl w-full h-[600px] object-cover"
                 loading="lazy"
               />
+
+              {/* Logo Thumbnail */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+                className="absolute -top-6 -right-6 w-24 h-24 bg-white rounded-2xl shadow-xl p-3 flex items-center justify-center"
+              >
+                <img
+                  src="/img_6598.jpeg"
+                  alt="Logo RestOclair"
+                  className="w-full h-full object-contain"
+                />
+              </motion.div>
               
               {/* Floating Card */}
               <motion.div 
