@@ -1,5 +1,5 @@
 <?php
-define('AIRTABLE_BASE_ID', 'TON_BASE_ID_ICI');
+define('AIRTABLE_BASE_ID', 'appL7jbLQnqVyg8kC');
 define('AIRTABLE_TOKEN', 'TON_TOKEN_ICI');
 define('AIRTABLE_API_URL', 'https://api.airtable.com/v0/' . AIRTABLE_BASE_ID);
 
