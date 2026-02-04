@@ -1,0 +1,8 @@
+# Protection du fichier config.php
+<Files "config.php">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Activer la reecriture si necessaire
+RewriteEngine On

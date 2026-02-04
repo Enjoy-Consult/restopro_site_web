@@ -1,0 +1,33 @@
+INSTALLATION API PHP RESTOCLAIR
+===============================
+
+1. Copier le dossier entier sur ton NAS dans:
+   /web/restoclair.fr/api/
+
+   ou selon ta config:
+   /volume1/web/restoclair.fr/api/
+
+2. Modifier config.php avec tes credentials Airtable:
+   - Remplace TON_BASE_ID_ICI par ton Base ID Airtable
+   - Remplace TON_TOKEN_ICI par ton Token Airtable
+
+3. Verifier les permissions:
+   - Les fichiers PHP doivent etre lisibles par le serveur web
+   - chmod 644 pour les fichiers .php
+   - chmod 644 pour .htaccess
+
+4. Structure finale sur le serveur:
+   /api/
+     config.php      (credentials - protege par .htaccess)
+     blog.php        (GET - liste des articles)
+     testimonials.php (GET - liste des temoignages)
+     contact.php     (POST - formulaire contact)
+     .htaccess       (protection)
+
+5. Tester les endpoints:
+   - https://restoclair.fr/api/blog.php
+   - https://restoclair.fr/api/testimonials.php
+   - POST vers https://restoclair.fr/api/contact.php
+
+IMPORTANT: Les credentials Airtable sont maintenant cotes serveur,
+ils ne sont plus exposes dans le code frontend.
