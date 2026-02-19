@@ -14,7 +14,7 @@ export async function getBlogPosts() {
 }
 
 export async function getTestimonials() {
-  const response = await fetch(`${API_BASE_URL}/testimonials.php`, {
+  const response = await fetch(`${API_BASE_URL}/avis.php`, {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' }
   });
