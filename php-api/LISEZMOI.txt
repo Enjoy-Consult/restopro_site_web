@@ -25,9 +25,31 @@ INSTALLATION API PHP RESTOCLAIR
      .htaccess       (protection)
 
 5. Tester les endpoints:
+   - https://restoclair.fr/api/test.php (test PHP basique)
+   - https://restoclair.fr/api/test-airtable.php (test Airtable)
    - https://restoclair.fr/api/blog.php
    - https://restoclair.fr/api/testimonials.php
    - POST vers https://restoclair.fr/api/contact.php
+
+6. Résolution des problèmes courants:
+
+   ERREUR 500 (Internal Server Error):
+   - Vérifier que cURL est activé dans PHP
+   - Dans DSM: Panneau de configuration > Web Station > PHP Settings
+   - Cocher l'extension "curl"
+
+   ERREUR 403 (Forbidden):
+   - Vérifier les permissions des fichiers:
+     chmod 644 *.php
+     chmod 644 .htaccess
+   - Vérifier que le dossier api/ est accessible:
+     chmod 755 /volume1/web/restoclair.fr/api/
+   - Sur DSM, vérifier les permissions dans File Station
+
+   ERREUR Airtable:
+   - Tester avec test-airtable.php pour voir l'erreur exacte
+   - Vérifier que le token n'est pas expiré
+   - Vérifier que le Base ID est correct
 
 IMPORTANT: Les credentials Airtable sont maintenant cotes serveur,
 ils ne sont plus exposes dans le code frontend.
