@@ -24,11 +24,9 @@ export default function Layout({ children, currentPageName }) {
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <Link to={createPageUrl("Home")} className="flex items-center gap-3">
-              <img
-                src="/Capture_d'écran_2026-02-05_à_18.48.06.png"
-                alt="RestOclair Logo"
-                className="w-10 h-10 rounded-full object-cover"
-              />
+              <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
+                <Shield className="w-6 h-6 text-white" />
+              </div>
               <div>
                 <span className="font-bold text-xl md:text-xl text-slate-900">Rest</span>
                 <span className="font-light text-xl md:text-xl text-emerald-600">Oclair</span>
@@ -74,11 +72,9 @@ export default function Layout({ children, currentPageName }) {
                 <div className="flex flex-col h-full py-6">
                   {/* Mobile Logo */}
                   <div className="flex items-center gap-3 mb-8">
-                    <img
-                      src="/Capture_d'écran_2026-02-05_à_18.48.06.png"
-                      alt="RestOclair Logo"
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
+                    <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center">
+                      <Shield className="w-7 h-7 text-white" />
+                    </div>
                     <div>
                       <span className="font-bold text-2xl text-slate-900">Rest</span>
                       <span className="font-light text-2xl text-emerald-600">Oclair</span>
@@ -137,11 +133,9 @@ export default function Layout({ children, currentPageName }) {
             {/* Brand */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-6">
-                <img
-                  src="/Capture_d'écran_2026-02-05_à_18.48.06.png"
-                  alt="RestOclair Logo"
-                  className="w-10 h-10 rounded-full object-cover"
-                />
+                <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-white" />
+                </div>
                 <div>
                   <span className="font-bold text-xl">Rest</span>
                   <span className="font-light text-xl text-emerald-400">Oclair</span>
