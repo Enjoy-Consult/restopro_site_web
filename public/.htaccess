@@ -11,9 +11,16 @@
   # Ne pas rediriger les requetes vers l'API PHP
   RewriteCond %{REQUEST_URI} !^/api/
 
+  # Ne pas rediriger les assets statiques
+  RewriteCond %{REQUEST_URI} !\.(js|css|png|jpg|jpeg|gif|ico|svg|webp|woff|woff2|ttf|eot|map|json|txt|xml)$
+
   # Rediriger tout le reste vers index.html
   RewriteRule ^ index.html [QSA,L]
 </IfModule>
+
+# Forcer l'utilisation du .htaccess
+Options -Indexes
+Options +FollowSymLinks
 
 # Cache pour les assets statiques
 <IfModule mod_expires.c>
