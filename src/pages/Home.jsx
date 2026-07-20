@@ -12,7 +12,7 @@ export default function Home() {
     initialData: [],
   });
 
-  const featured = testimonials.find(t => t.featured) || testimonials[0];
+  const featured = testimonials.find(t => t.is_featured) || testimonials[0];
 
   return (
     <>
@@ -111,17 +111,49 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Testimonial */}
+        {/* Témoignages */}
         {featured && (
           <section className="bg-bottle py-20 md:py-28">
             <div className="max-w-[800px] mx-auto px-6 text-center">
               <blockquote className="font-serif text-2xl md:text-[34px] leading-[1.3] text-bottle-text mb-8">
-                "{featured.quote || featured.text}"
+                "{featured.content}"
               </blockquote>
               <p className="text-bottle-muted text-base">
-                {featured.author || featured.name}
-                {featured.establishment && ` — ${featured.establishment}`}
+                {featured.author_name}
+                {featured.restaurant_name && ` — ${featured.restaurant_name}`}
+                {featured.location && ` (${featured.location})`}
               </p>
+            </div>
+          </section>
+        )}
+
+        {/* Autres témoignages */}
+        {testimonials.length > 1 && (
+          <section className="py-16 md:py-24 bg-[#faf9f6]">
+            <div className="max-w-[1200px] mx-auto px-6">
+              <h2 className="text-ink text-center mb-12">Ce que disent mes clients</h2>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {testimonials
+                  .filter(t => t !== featured)
+                  .slice(0, 6)
+                  .map((t) => (
+                    <div key={t.id} className="bg-paper p-6 border border-[#d8d4c4]">
+                      <div className="flex gap-1 mb-4">
+                        {Array.from({ length: t.rating || 5 }).map((_, i) => (
+                          <span key={i} className="text-[#b8860b] text-sm">&#9733;</span>
+                        ))}
+                      </div>
+                      <p className="text-muted leading-relaxed mb-4">"{t.content}"</p>
+                      <p className="text-ink font-medium text-[15px]">
+                        {t.author_name}
+                        {t.restaurant_name && <span className="text-faint font-normal"> — {t.restaurant_name}</span>}
+                      </p>
+                      {t.location && (
+                        <p className="text-faint text-sm mt-1">{t.location}</p>
+                      )}
+                    </div>
+                  ))}
+              </div>
             </div>
           </section>
         )}
