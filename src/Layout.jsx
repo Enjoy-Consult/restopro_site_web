@@ -40,12 +40,20 @@ export default function Layout({ children, currentPageName }) {
               ))}
             </nav>
 
-            <a
-              href="tel:0680952589"
-              className="hidden md:block text-[15px] font-medium text-bottle hover:text-bottle-hover transition-colors"
-            >
-              06 80 95 25 89
-            </a>
+            <div className="hidden md:flex items-center gap-4">
+              <a
+                href="tel:0680952589"
+                className="text-[15px] font-medium text-bottle hover:text-bottle-hover transition-colors"
+              >
+                06 80 95 25 89
+              </a>
+              <Link
+                to={createPageUrl("Contact")}
+                className="btn-primary text-[14px] px-4 py-2"
+              >
+                Prendre contact
+              </Link>
+            </div>
 
             <button
               className="md:hidden p-2 text-ink"
