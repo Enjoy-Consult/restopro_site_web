@@ -8,7 +8,7 @@ const services = [
     number: "01",
     title: "Urgence après contrôle DDPP",
     subtitle: "Intervention sous 24 h",
-    description: `Vous venez de recevoir un rapport défavorable, une mise en demeure, ou une menace de fermeture administrative. Chaque jour compte.`,
+    description: "Vous venez de recevoir un rapport défavorable, une mise en demeure, ou une menace de fermeture administrative. Chaque jour compte.",
     details: [
       "J'interviens sur site sous 24 h après votre appel.",
       "Je rédige le plan d'actions correctives exigé par la DDPP.",
@@ -23,7 +23,7 @@ const services = [
     number: "02",
     title: "Audit hygiène préventif",
     subtitle: "Avant que l'inspecteur ne vienne",
-    description: `Un contrôle sanitaire, ça ne se prépare pas la veille. Un audit préventif vous donne une photographie précise de votre situation et un plan d'action clair.`,
+    description: "Un contrôle sanitaire, ça ne se prépare pas la veille. Un audit préventif vous donne une photographie précise de votre situation et un plan d'action clair.",
     details: [
       "Visite complète de votre établissement (cuisine, stockage, vestiaires, sanitaires).",
       "Vérification des températures, de la traçabilité, des procédures de nettoyage.",
@@ -38,7 +38,7 @@ const services = [
     number: "03",
     title: "Dossiers obligatoires (PMS, CERFA, EGAlim)",
     subtitle: "Vos documents réglementaires à jour",
-    description: `La paperasse réglementaire n'est pas votre métier — c'est le mien. Je crée ou remets à jour les documents que la DDPP exige lors d'un contrôle.`,
+    description: "La paperasse réglementaire n'est pas votre métier — c'est le mien. Je crée ou remets à jour les documents que la DDPP exige lors d'un contrôle.",
     details: [
       "Plan de Maîtrise Sanitaire (PMS) complet et adapté à votre établissement.",
       "Fiches CERFA et déclarations obligatoires.",
@@ -61,7 +61,6 @@ export default function Services() {
         canonicalUrl={`${window.location.origin}/Services`}
       />
       <div>
-        {/* Header */}
         <section className="pt-16 pb-12 md:pt-24 md:pb-16">
           <div className="max-w-[1200px] mx-auto px-6">
             <div className="max-w-[600px]">
@@ -76,7 +75,6 @@ export default function Services() {
 
         <hr className="rule" />
 
-        {/* Services list */}
         {services.map((service, index) => (
           <React.Fragment key={service.number}>
             <section className="py-16 md:py-24">
@@ -91,7 +89,7 @@ export default function Services() {
                     <p className="text-muted text-lg leading-relaxed mb-6">{service.description}</p>
                     <ul className="space-y-3 mb-6">
                       {service.details.map((detail, i) => (
-                        <li key={i} className="text-muted leading-relaxed pl-4 border-l-2 border-border">
+                        <li key={i} className="text-muted leading-relaxed pl-4 border-l-2 border-[#d8d4c4]">
                           {detail}
                         </li>
                       ))}
@@ -115,7 +113,6 @@ export default function Services() {
 
         <hr className="rule" />
 
-        {/* CTA */}
         <section className="py-20 md:py-28">
           <div className="max-w-[1200px] mx-auto px-6 text-center">
             <h2 className="text-ink mb-4">Besoin d'une intervention ?</h2>
@@ -137,3 +134,6 @@ export default function Services() {
     </>
   );
 }
+
+
+export default Services

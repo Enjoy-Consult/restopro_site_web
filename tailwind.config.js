@@ -16,6 +16,7 @@ export default {
           muted: '#b9cfc2',
         },
         border: '#d8d4c4',
+        line: '#d8d4c4',
         number: '#8a9188',
       },
       fontFamily: {
