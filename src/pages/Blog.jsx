@@ -9,9 +9,9 @@ import { fr } from "date-fns/locale";
 
 const categories = [
   { value: "all", label: "Tous" },
-  { value: "reglementation", label: "Reglementation" },
+  { value: "reglementation", label: "Réglementation" },
   { value: "bonnes_pratiques", label: "Bonnes pratiques" },
-  { value: "actualites", label: "Actualites" },
+  { value: "actualites", label: "Actualités" },
   { value: "conseils", label: "Conseils" }
 ];
 
@@ -38,9 +38,9 @@ export default function Blog() {
   return (
     <>
       <SEO
-        title="Blog — RestOclair | Hygiene alimentaire et reglementation"
-        description="Articles sur la reglementation sanitaire, les bonnes pratiques HACCP et l'actualite DDPP pour les restaurateurs."
-        keywords="blog hygiene alimentaire, actualites DDPP, reglementation restaurant, conseils HACCP"
+        title="Blog — RestOclair | Hygiène alimentaire et réglementation"
+        description="Articles sur la réglementation sanitaire, les bonnes pratiques HACCP et l'actualité DDPP pour les restaurateurs."
+        keywords="blog hygiène alimentaire, actualités DDPP, réglementation restaurant, conseils HACCP"
         canonicalUrl={`${window.location.origin}/Blog`}
       />
       <div>
@@ -50,8 +50,8 @@ export default function Blog() {
             <div className="max-w-[600px]">
               <h1 className="text-ink mb-6">Articles.</h1>
               <p className="text-muted text-lg leading-relaxed">
-                Reglementation, retours d'experience, conseils pratiques —
-                ce que je constate sur le terrain et ce que ca implique pour vous.
+                Réglementation, retours d'expérience, conseils pratiques —
+                ce que je constate sur le terrain et ce que ça implique pour vous.
               </p>
             </div>
           </div>
@@ -98,7 +98,7 @@ export default function Blog() {
               <p className="text-faint py-12">Chargement...</p>
             ) : filteredPosts.length === 0 ? (
               <p className="text-muted py-12">
-                {searchTerm ? "Aucun article ne correspond a votre recherche." : "Les articles arrivent bientot."}
+                {searchTerm ? "Aucun article ne correspond à votre recherche." : "Les articles arrivent bientôt."}
               </p>
             ) : (
               <div className="divide-y divide-border">

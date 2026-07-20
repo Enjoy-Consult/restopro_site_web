@@ -9,9 +9,9 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const categoryLabels = {
-  reglementation: "Reglementation",
+  reglementation: "Réglementation",
   bonnes_pratiques: "Bonnes Pratiques",
-  actualites: "Actualites",
+  actualites: "Actualités",
   conseils: "Conseils"
 };
 
@@ -53,7 +53,7 @@ export default function BlogPost() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
-          <h2 className="font-serif text-2xl text-ink mb-4">Article non trouve</h2>
+          <h2 className="font-serif text-2xl text-ink mb-4">Article non trouvé</h2>
           <Link to={createPageUrl("Blog")} className="link-underline">
             ← Retour au blog
           </Link>
@@ -150,7 +150,7 @@ export default function BlogPost() {
         {relatedPosts.filter(p => p.id !== post.id).length > 0 && (
           <section className="py-12 md:py-16">
             <div className="max-w-[720px] mx-auto px-6">
-              <h2 className="text-ink mb-8">Articles lies</h2>
+              <h2 className="text-ink mb-8">Articles liés</h2>
               <div className="divide-y divide-border">
                 {relatedPosts.filter(p => p.id !== post.id).slice(0, 3).map((related) => (
                   <article key={related.id} className="py-6">
@@ -174,7 +174,7 @@ export default function BlogPost() {
           <div className="max-w-[720px] mx-auto px-6 text-center">
             <h2 className="text-bottle-text mb-4">Besoin d'un accompagnement ?</h2>
             <p className="text-bottle-muted text-lg mb-8">
-              Premier echange gratuit. Je vous dis ce que je peux faire pour vous.
+              Premier échange gratuit. Je vous dis ce que je peux faire pour vous.
             </p>
             <Link to={createPageUrl("Contact")} className="inline-block bg-paper text-ink px-8 py-4 font-medium text-[15px] hover:bg-white transition-colors">
               Prendre contact

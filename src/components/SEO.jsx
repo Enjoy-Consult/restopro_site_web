@@ -95,7 +95,7 @@ export default function SEO({
       "@type": "ProfessionalService",
       "@id": `${baseUrl}/#localbusiness`,
       "name": "RestOclair",
-      "description": "Conseil en hygiene et securite alimentaire pour les restaurateurs partout en France. Urgence DDPP, audit hygiene, creation PMS.",
+      "description": "Conseil en hygiène et sécurité alimentaire pour les restaurateurs partout en France. Urgence DDPP, audit hygiène, création PMS.",
       "url": baseUrl,
       "telephone": "+33680952589",
       "email": "contact@restoclair.fr",

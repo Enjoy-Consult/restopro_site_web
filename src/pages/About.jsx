@@ -7,9 +7,9 @@ export default function About() {
   return (
     <>
       <SEO
-        title="A propos — Thierry Bailleul | RestOclair"
-        description="Thierry Bailleul, 20 ans de restauration avant de fonder RestOclair en 2025. Consultant hygiene et securite alimentaire partout en France."
-        keywords="Thierry Bailleul, consultant hygiene alimentaire, RestOclair, parcours restauration"
+        title="À propos — Thierry Bailleul | RestOclair"
+        description="Thierry Bailleul, 20 ans de restauration avant de fonder RestOclair en 2025. Consultant hygiène et sécurité alimentaire partout en France."
+        keywords="Thierry Bailleul, consultant hygiène alimentaire, RestOclair, parcours restauration"
         canonicalUrl={`${window.location.origin}/About`}
       />
       <div>
@@ -22,21 +22,21 @@ export default function About() {
                   Je suis Thierry Bailleul.
                 </h1>
                 <p className="text-muted text-lg leading-relaxed mb-6">
-                  Pendant 20 ans, j'ai travaille en restauration. D'abord derriere les fourneaux,
-                  puis en gestion d'etablissement. J'ai vecu les controles sanitaires — des deux cotes
+                  Pendant 20 ans, j'ai travaillé en restauration. D'abord derrière les fourneaux,
+                  puis en gestion d'établissement. J'ai vécu les contrôles sanitaires — des deux côtés
                   du comptoir. Je connais la pression du service, je connais aussi les exigences des
-                  inspecteurs. C'est cette double experience qui m'a pousse a creer RestOclair en 2025.
+                  inspecteurs. C'est cette double expérience qui m'a poussé à créer RestOclair en 2025.
                 </p>
                 <p className="text-muted text-lg leading-relaxed mb-6">
                   Mon approche est simple : je ne vends pas de la paperasse. Je viens dans votre cuisine,
-                  je regarde comment votre equipe travaille, et je vous donne des recommandations
-                  que vous pouvez appliquer des le lendemain matin. Pas de jugement, pas de jargon —
-                  juste l'experience du terrain.
+                  je regarde comment votre équipe travaille, et je vous donne des recommandations
+                  que vous pouvez appliquer dès le lendemain matin. Pas de jugement, pas de jargon —
+                  juste l'expérience du terrain.
                 </p>
                 <p className="text-muted text-lg leading-relaxed">
-                  Quand un restaurateur m'appelle en urgence apres un controle, je decroche en moins
-                  de 2 h. Et quand je redige un plan d'actions correctives, je sais qu'il sera
-                  realiste parce que j'ai moi-meme applique ces procedures pendant deux decennies.
+                  Quand un restaurateur m'appelle en urgence après un contrôle, je décroche en moins
+                  de 2 h. Et quand je rédige un plan d'actions correctives, je sais qu'il sera
+                  réaliste parce que j'ai moi-même appliqué ces procédures pendant deux décennies.
                 </p>
               </div>
               <div className="md:col-span-5">
@@ -67,9 +67,9 @@ export default function About() {
               <div className="md:col-span-8">
                 <div className="divide-y divide-border border-t border-border">
                   <TimelineRow year="2003" text="Premier poste en cuisine — apprentissage des bases HACCP sur le terrain." />
-                  <TimelineRow year="2010" text="Responsable d'etablissement. Gestion des controles, formation des equipes." />
-                  <TimelineRow year="2020" text="Formation en securite alimentaire et accompagnement reglementaire." />
-                  <TimelineRow year="2025" text="Creation de RestOclair. Premier client : un restaurant menace de fermeture apres controle DDPP. Reouverture en 10 jours." />
+                  <TimelineRow year="2010" text="Responsable d'établissement. Gestion des contrôles, formation des équipes." />
+                  <TimelineRow year="2020" text="Formation en sécurité alimentaire et accompagnement réglementaire." />
+                  <TimelineRow year="2025" text="Création de RestOclair. Premier client : un restaurant menacé de fermeture après contrôle DDPP. Réouverture en 10 jours." />
                 </div>
               </div>
             </div>
@@ -91,19 +91,19 @@ export default function About() {
                   <ul className="space-y-3 text-muted">
                     <li>Intervention urgence sous 24 h</li>
                     <li>Audit terrain dans votre cuisine</li>
-                    <li>Redaction PMS, CERFA, plans d'actions</li>
-                    <li>Representation aupres de la DDPP</li>
-                    <li>Formation de vos equipes sur place</li>
-                    <li>Suivi post-controle jusqu'a la conformite</li>
+                    <li>Rédaction PMS, CERFA, plans d'actions</li>
+                    <li>Représentation auprès de la DDPP</li>
+                    <li>Formation de vos équipes sur place</li>
+                    <li>Suivi post-contrôle jusqu'à la conformité</li>
                   </ul>
                 </div>
                 <div>
                   <h3 className="text-ink font-sans font-semibold text-lg mb-4">Je ne fais pas</h3>
                   <ul className="space-y-3 text-muted">
-                    <li>Des audits a distance sans venir en cuisine</li>
+                    <li>Des audits à distance sans venir en cuisine</li>
                     <li>Des rapports de 80 pages inapplicables</li>
-                    <li>Du conseil generique sans suivi</li>
-                    <li>Du commercial agressif ou des engagements longue duree</li>
+                    <li>Du conseil générique sans suivi</li>
+                    <li>Du commercial agressif ou des engagements longue durée</li>
                   </ul>
                 </div>
               </div>
@@ -118,7 +118,7 @@ export default function About() {
           <div className="max-w-[1200px] mx-auto px-6 text-center">
             <h2 className="text-ink mb-4">On en discute ?</h2>
             <p className="text-muted text-lg mb-8 max-w-[480px] mx-auto">
-              Premier echange telephonique gratuit. Je vous dis clairement ce que je peux faire pour vous — et ce qui ne releve pas de mon champ.
+              Premier échange téléphonique gratuit. Je vous dis clairement ce que je peux faire pour vous — et ce qui ne relève pas de mon champ.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to={createPageUrl("Contact")} className="btn-primary">

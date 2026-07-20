@@ -17,7 +17,7 @@ export default function PageNotFound() {
                     onClick={() => window.location.href = '/'}
                     className="btn-primary"
                 >
-                    Retour a l'accueil
+                    Retour à l'accueil
                 </button>
             </div>
         </div>

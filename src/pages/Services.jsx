@@ -6,48 +6,48 @@ import { createPageUrl } from "@/utils";
 const services = [
   {
     number: "01",
-    title: "Urgence apres controle DDPP",
+    title: "Urgence après contrôle DDPP",
     subtitle: "Intervention sous 24 h",
-    description: `Vous venez de recevoir un rapport defavorable, une mise en demeure, ou une menace de fermeture administrative. Chaque jour compte.`,
+    description: `Vous venez de recevoir un rapport défavorable, une mise en demeure, ou une menace de fermeture administrative. Chaque jour compte.`,
     details: [
-      "J'interviens sur site sous 24 h apres votre appel.",
-      "Je redige le plan d'actions correctives exige par la DDPP.",
-      "Je vous represente aupres de l'administration si necessaire.",
-      "Je supervise la mise en conformite jusqu'a la levee des reserves.",
+      "J'interviens sur site sous 24 h après votre appel.",
+      "Je rédige le plan d'actions correctives exigé par la DDPP.",
+      "Je vous représente auprès de l'administration si nécessaire.",
+      "Je supervise la mise en conformité jusqu'à la levée des réserves.",
     ],
-    result: "Objectif : eviter la fermeture et obtenir la levee des non-conformites dans les delais impartis.",
+    result: "Objectif : éviter la fermeture et obtenir la levée des non-conformités dans les délais impartis.",
     image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=640&h=400&fit=crop",
     imageCaption: "Cuisine professionnelle — intervention terrain",
   },
   {
     number: "02",
-    title: "Audit hygiene preventif",
+    title: "Audit hygiène préventif",
     subtitle: "Avant que l'inspecteur ne vienne",
-    description: `Un controle sanitaire, ca ne se prepare pas la veille. Un audit preventif vous donne une photographie precise de votre situation et un plan d'action clair.`,
+    description: `Un contrôle sanitaire, ça ne se prépare pas la veille. Un audit préventif vous donne une photographie précise de votre situation et un plan d'action clair.`,
     details: [
-      "Visite complete de votre etablissement (cuisine, stockage, vestiaires, sanitaires).",
-      "Verification des temperatures, de la tracabilite, des procedures de nettoyage.",
-      "Rapport ecrit avec priorites classees : urgent / a corriger / recommandation.",
-      "Debrief avec votre equipe pour expliquer les points cles.",
+      "Visite complète de votre établissement (cuisine, stockage, vestiaires, sanitaires).",
+      "Vérification des températures, de la traçabilité, des procédures de nettoyage.",
+      "Rapport écrit avec priorités classées : urgent / à corriger / recommandation.",
+      "Débrief avec votre équipe pour expliquer les points clés.",
     ],
-    result: "Objectif : passer le prochain controle DDPP sereinement, sans surprise.",
+    result: "Objectif : passer le prochain contrôle DDPP sereinement, sans surprise.",
     image: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=640&h=400&fit=crop",
-    imageCaption: "Verification des procedures en cuisine",
+    imageCaption: "Vérification des procédures en cuisine",
   },
   {
     number: "03",
     title: "Dossiers obligatoires (PMS, CERFA, EGAlim)",
-    subtitle: "Vos documents reglementaires a jour",
-    description: `La paperasse reglementaire n'est pas votre metier — c'est le mien. Je cree ou remets a jour les documents que la DDPP exige lors d'un controle.`,
+    subtitle: "Vos documents réglementaires à jour",
+    description: `La paperasse réglementaire n'est pas votre métier — c'est le mien. Je crée ou remets à jour les documents que la DDPP exige lors d'un contrôle.`,
     details: [
-      "Plan de Maitrise Sanitaire (PMS) complet et adapte a votre etablissement.",
-      "Fiches CERFA et declarations obligatoires.",
-      "Mise en conformite EGAlim (affichage, approvisionnement, informations).",
-      "Classeur de tracabilite operationnel et simple a maintenir par votre equipe.",
+      "Plan de Maîtrise Sanitaire (PMS) complet et adapté à votre établissement.",
+      "Fiches CERFA et déclarations obligatoires.",
+      "Mise en conformité EGAlim (affichage, approvisionnement, informations).",
+      "Classeur de traçabilité opérationnel et simple à maintenir par votre équipe.",
     ],
-    result: "Objectif : des documents que votre equipe utilise vraiment, pas un classeur oublie sur une etagere.",
+    result: "Objectif : des documents que votre équipe utilise vraiment, pas un classeur oublié sur une étagère.",
     image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=640&h=400&fit=crop",
-    imageCaption: "Documentation reglementaire",
+    imageCaption: "Documentation réglementaire",
   },
 ];
 
@@ -56,8 +56,8 @@ export default function Services() {
     <>
       <SEO
         title="Services — RestOclair | Urgence DDPP, Audit, Dossiers"
-        description="Trois interventions pour les restaurateurs partout en France : urgence apres controle DDPP, audit hygiene preventif, creation de dossiers obligatoires (PMS, EGAlim)."
-        keywords="urgence DDPP, audit hygiene restaurant, plan maitrise sanitaire, PMS, EGAlim, CERFA, consultant restauration"
+        description="Trois interventions pour les restaurateurs partout en France : urgence après contrôle DDPP, audit hygiène préventif, création de dossiers obligatoires (PMS, EGAlim)."
+        keywords="urgence DDPP, audit hygiène restaurant, plan maîtrise sanitaire, PMS, EGAlim, CERFA, consultant restauration"
         canonicalUrl={`${window.location.origin}/Services`}
       />
       <div>
@@ -68,7 +68,7 @@ export default function Services() {
               <h1 className="text-ink mb-6">Mes services.</h1>
               <p className="text-muted text-lg leading-relaxed">
                 Trois interventions, un seul objectif : que votre restaurant reste ouvert
-                et conforme, sans que ca devienne votre probleme principal.
+                et conforme, sans que ça devienne votre problème principal.
               </p>
             </div>
           </div>
@@ -121,7 +121,7 @@ export default function Services() {
             <h2 className="text-ink mb-4">Besoin d'une intervention ?</h2>
             <p className="text-muted text-lg mb-8 max-w-[480px] mx-auto">
               Appelez-moi directement ou remplissez le formulaire de contact.
-              Reponse sous 2 h en semaine.
+              Réponse sous 2 h en semaine.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to={createPageUrl("Contact")} className="btn-primary">

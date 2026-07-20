@@ -17,9 +17,9 @@ export default function Home() {
   return (
     <>
       <SEO
-        title="RestOclair - Consultant hygiene et securite alimentaire"
-        description="Consultant en hygiene et securite alimentaire pour restaurateurs partout en France. Intervention urgence DDPP sous 24h, audits preventifs, dossiers obligatoires. 06 80 95 25 89"
-        keywords="consultant hygiene alimentaire, securite alimentaire restaurant, controle DDPP, audit hygiene cuisine, plan maitrise sanitaire, consultant HACCP, France"
+        title="RestOclair - Consultant hygiène et sécurité alimentaire"
+        description="Consultant en hygiène et sécurité alimentaire pour restaurateurs partout en France. Intervention urgence DDPP sous 24h, audits préventifs, dossiers obligatoires. 06 80 95 25 89"
+        keywords="consultant hygiène alimentaire, sécurité alimentaire restaurant, contrôle DDPP, audit hygiène cuisine, plan maîtrise sanitaire, consultant HACCP, France"
         canonicalUrl={window.location.origin}
       />
       <div>
@@ -29,12 +29,12 @@ export default function Home() {
             <div className="grid md:grid-cols-12 gap-12 md:gap-16 items-start">
               <div className="md:col-span-7">
                 <h1 className="text-ink mb-6">
-                  Un controle sanitaire ne devrait jamais fermer votre restaurant.
+                  Un contrôle sanitaire ne devrait jamais fermer votre restaurant.
                 </h1>
                 <p className="text-muted text-lg leading-relaxed mb-8 max-w-[520px]">
                   Depuis 20 ans en restauration, j'aide les restaurateurs partout en France
-                  a passer les controles DDPP sans stress — ou a rattraper la situation
-                  quand l'inspecteur est deja venu.
+                  à passer les contrôles DDPP sans stress — ou à rattraper la situation
+                  quand l'inspecteur est déjà venu.
                 </p>
                 <div className="flex flex-col sm:flex-row items-start gap-4">
                   <Link to={createPageUrl("Contact")} className="btn-primary">
@@ -49,7 +49,7 @@ export default function Home() {
                 <figure>
                   <img
                     src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=640&h=800&fit=crop"
-                    alt="Cuisine professionnelle en activite"
+                    alt="Cuisine professionnelle en activité"
                     className="w-full aspect-[4/5] object-cover"
                   />
                   <figcaption className="text-faint text-sm mt-3">
@@ -66,7 +66,7 @@ export default function Home() {
         <section className="py-8">
           <div className="max-w-[1200px] mx-auto px-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-12 text-[15px]">
-              <p><strong className="text-ink">200</strong> <span className="text-muted">restaurants accompagnes</span></p>
+              <p><strong className="text-ink">200</strong> <span className="text-muted">restaurants accompagnés</span></p>
               <span className="hidden md:block text-border">·</span>
               <p><strong className="text-ink">20 ans</strong> <span className="text-muted">de terrain en restauration</span></p>
               <span className="hidden md:block text-border">·</span>
@@ -89,20 +89,20 @@ export default function Home() {
                 <div className="divide-y divide-border border-t border-border">
                   <ServiceRow
                     number="01"
-                    title="Urgence apres controle DDPP"
-                    description="Vous venez de recevoir un rapport defavorable ou une mise en demeure. J'interviens sous 24 h pour rediger le plan d'actions correctives et vous representer aupres de l'administration."
+                    title="Urgence après contrôle DDPP"
+                    description="Vous venez de recevoir un rapport défavorable ou une mise en demeure. J'interviens sous 24 h pour rédiger le plan d'actions correctives et vous représenter auprès de l'administration."
                     link="Services"
                   />
                   <ServiceRow
                     number="02"
-                    title="Audit hygiene preventif"
-                    description="Avant qu'un inspecteur ne vienne, je realise un audit complet de votre etablissement. Vous repartez avec un rapport detaille et des recommandations applicables immediatement en cuisine."
+                    title="Audit hygiène préventif"
+                    description="Avant qu'un inspecteur ne vienne, je réalise un audit complet de votre établissement. Vous repartez avec un rapport détaillé et des recommandations applicables immédiatement en cuisine."
                     link="Services"
                   />
                   <ServiceRow
                     number="03"
                     title="Dossiers obligatoires (PMS, CERFA, EGAlim)"
-                    description="Plan de maitrise sanitaire, fiches de tracabilite, conformite EGAlim — je cree ou remets a jour vos documents reglementaires pour que tout soit en ordre le jour du controle."
+                    description="Plan de maîtrise sanitaire, fiches de traçabilité, conformité EGAlim — je crée ou remets à jour vos documents réglementaires pour que tout soit en ordre le jour du contrôle."
                     link="Services"
                   />
                 </div>
@@ -144,16 +144,16 @@ export default function Home() {
               </div>
               <div className="md:col-span-7">
                 <h2 className="text-ink mb-6">
-                  20 ans en cuisine avant de passer de l'autre cote du passe.
+                  20 ans en cuisine avant de passer de l'autre côté du passe.
                 </h2>
                 <p className="text-muted text-lg leading-relaxed mb-4">
-                  Avant de creer RestOclair en 2025, j'ai passe deux decennies en restauration —
-                  du commis au chef d'etablissement. Quand je recommande une procedure,
-                  je sais si elle est applicable a 6h du matin avec un service complet qui arrive.
+                  Avant de créer RestOclair en 2025, j'ai passé deux décennies en restauration —
+                  du commis au chef d'établissement. Quand je recommande une procédure,
+                  je sais si elle est applicable à 6h du matin avec un service complet qui arrive.
                 </p>
                 <p className="text-muted text-lg leading-relaxed mb-8">
                   Les restaurateurs qui travaillent avec moi gardent un seul interlocuteur,
-                  joignable 7j/7, qui repond sous 2 h et qui connait leur cuisine aussi bien qu'eux.
+                  joignable 7j/7, qui répond sous 2 h et qui connaît leur cuisine aussi bien qu'eux.
                 </p>
                 <Link to={createPageUrl("About")} className="link-underline text-[15px]">
                   Rencontrer Thierry →
@@ -170,8 +170,8 @@ export default function Home() {
           <div className="max-w-[1200px] mx-auto px-6 text-center">
             <h2 className="text-ink mb-4">Parlons de votre situation.</h2>
             <p className="text-muted text-lg mb-8 max-w-[480px] mx-auto">
-              Un controle a venir, un rapport defavorable, ou simplement besoin d'un avis ?
-              Premier echange gratuit et sans engagement.
+              Un contrôle à venir, un rapport défavorable, ou simplement besoin d'un avis ?
+              Premier échange gratuit et sans engagement.
             </p>
             <Link to={createPageUrl("Contact")} className="btn-primary">
               Prendre contact

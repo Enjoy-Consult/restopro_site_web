@@ -62,7 +62,7 @@ ${allPages.map(page => `  <url>
           <ul className="space-y-2 text-muted text-[15px]">
             <li>Accueil</li>
             <li>Services</li>
-            <li>A propos</li>
+            <li>À propos</li>
             <li>Contact</li>
             <li>Blog ({blogPosts.length} articles)</li>
           </ul>

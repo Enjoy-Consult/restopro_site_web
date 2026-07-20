@@ -37,8 +37,8 @@ export default function Contact() {
     <>
       <SEO
         title="Contact — RestOclair | 06 80 95 25 89"
-        description="Contactez Thierry Bailleul pour une intervention urgence DDPP, un audit hygiene ou une question reglementaire. Reponse sous 2 h en semaine."
-        keywords="contact RestOclair, consultant hygiene alimentaire, rendez-vous DDPP"
+        description="Contactez Thierry Bailleul pour une intervention urgence DDPP, un audit hygiène ou une question réglementaire. Réponse sous 2 h en semaine."
+        keywords="contact RestOclair, consultant hygiène alimentaire, rendez-vous DDPP"
         canonicalUrl={`${window.location.origin}/Contact`}
       />
       <div>
@@ -50,11 +50,11 @@ export default function Contact() {
                 <h1 className="text-ink mb-8">Parlons de votre situation.</h1>
 
                 <div className="mb-10">
-                  <p className="text-faint text-sm mb-2">Telephone</p>
+                  <p className="text-faint text-sm mb-2">Téléphone</p>
                   <a href="tel:0680952589" className="font-serif text-3xl md:text-4xl text-ink block mb-1">
                     06 80 95 25 89
                   </a>
-                  <p className="text-faint text-sm">Reponse sous 2 h en semaine</p>
+                  <p className="text-faint text-sm">Réponse sous 2 h en semaine</p>
                 </div>
 
                 <div className="mb-10">
@@ -66,14 +66,14 @@ export default function Contact() {
 
                 <div className="mb-10">
                   <p className="text-faint text-sm mb-2">Zone d'intervention</p>
-                  <p className="text-ink text-lg">France entiere</p>
+                  <p className="text-ink text-lg">France entière</p>
                   <p className="text-muted text-[15px] mt-1">Intervention sur tout le territoire</p>
                 </div>
 
                 <div>
-                  <p className="text-faint text-sm mb-2">Delais</p>
+                  <p className="text-faint text-sm mb-2">Délais</p>
                   <p className="text-muted text-[15px]">Urgence DDPP : intervention sous 24 h</p>
-                  <p className="text-muted text-[15px]">Audit preventif : rendez-vous sous 5 jours</p>
+                  <p className="text-muted text-[15px]">Audit préventif : rendez-vous sous 5 jours</p>
                 </div>
               </div>
 
@@ -113,7 +113,7 @@ export default function Contact() {
                       required
                     />
                     <InputField
-                      label="Telephone"
+                      label="Téléphone"
                       name="phone"
                       type="tel"
                       value={formData.phone}
@@ -129,8 +129,8 @@ export default function Contact() {
                       className="w-full border border-border bg-paper px-4 py-3 text-ink text-[15px] focus:outline-none focus:border-bottle"
                     >
                       <option value="">Choisir un sujet</option>
-                      <option value="urgence">Urgence apres controle DDPP</option>
-                      <option value="audit">Audit hygiene preventif</option>
+                      <option value="urgence">Urgence après contrôle DDPP</option>
+                      <option value="audit">Audit hygiène préventif</option>
                       <option value="dossiers">Dossiers obligatoires (PMS, EGAlim)</option>
                       <option value="autre">Autre question</option>
                     </select>
@@ -143,13 +143,13 @@ export default function Contact() {
                       onChange={handleChange}
                       rows={5}
                       className="w-full border border-border bg-paper px-4 py-3 text-ink text-[15px] leading-relaxed resize-y focus:outline-none focus:border-bottle"
-                      placeholder="Decrivez brievement votre situation..."
+                      placeholder="Décrivez brièvement votre situation..."
                     />
                   </div>
 
                   {status === "success" && (
                     <p className="text-bottle font-medium text-[15px]">
-                      Message envoye. Je vous recontacte sous 2 h en semaine.
+                      Message envoyé. Je vous recontacte sous 2 h en semaine.
                     </p>
                   )}
                   {status === "error" && (
