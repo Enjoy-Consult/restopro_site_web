@@ -42,7 +42,7 @@ export default function SEO({
       { name: "twitter:image", content: ogImage || defaultImage },
 
       { name: "geo.region", content: "FR-IDF" },
-      { name: "geo.placename", content: "Ile-de-France" },
+      { name: "geo.placename", content: "France" },
     ];
 
     if (articleData) {
@@ -95,7 +95,7 @@ export default function SEO({
       "@type": "ProfessionalService",
       "@id": `${baseUrl}/#localbusiness`,
       "name": "RestOclair",
-      "description": "Conseil en hygiene et securite alimentaire pour les restaurateurs en Ile-de-France. Urgence DDPP, audit hygiene, creation PMS.",
+      "description": "Conseil en hygiene et securite alimentaire pour les restaurateurs partout en France. Urgence DDPP, audit hygiene, creation PMS.",
       "url": baseUrl,
       "telephone": "+33680952589",
       "email": "contact@restoclair.fr",
@@ -106,7 +106,7 @@ export default function SEO({
       },
       "address": {
         "@type": "PostalAddress",
-        "addressRegion": "Ile-de-France",
+        "addressRegion": "France",
         "addressCountry": "FR"
       },
       "areaServed": {
@@ -163,7 +163,7 @@ export default function SEO({
         "provider": {
           "@id": `${baseUrl}/#localbusiness`
         },
-        "areaServed": "Ile-de-France",
+        "areaServed": "France",
         "serviceType": serviceData.type
       });
     }

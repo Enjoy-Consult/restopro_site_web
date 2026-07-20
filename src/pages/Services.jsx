@@ -56,7 +56,7 @@ export default function Services() {
     <>
       <SEO
         title="Services — RestOclair | Urgence DDPP, Audit, Dossiers"
-        description="Trois interventions pour les restaurateurs d'Ile-de-France : urgence apres controle DDPP, audit hygiene preventif, creation de dossiers obligatoires (PMS, EGAlim)."
+        description="Trois interventions pour les restaurateurs partout en France : urgence apres controle DDPP, audit hygiene preventif, creation de dossiers obligatoires (PMS, EGAlim)."
         keywords="urgence DDPP, audit hygiene restaurant, plan maitrise sanitaire, PMS, EGAlim, CERFA, consultant restauration"
         canonicalUrl={`${window.location.origin}/Services`}
       />

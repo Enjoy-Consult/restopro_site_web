@@ -18,8 +18,8 @@ export default function Home() {
     <>
       <SEO
         title="RestOclair - Consultant hygiene et securite alimentaire"
-        description="Consultant en hygiene et securite alimentaire pour restaurateurs en Ile-de-France. Intervention urgence DDPP sous 24h, audits preventifs, dossiers obligatoires. 06 80 95 25 89"
-        keywords="consultant hygiene alimentaire, securite alimentaire restaurant, controle DDPP, audit hygiene cuisine, plan maitrise sanitaire, consultant HACCP, Ile-de-France"
+        description="Consultant en hygiene et securite alimentaire pour restaurateurs partout en France. Intervention urgence DDPP sous 24h, audits preventifs, dossiers obligatoires. 06 80 95 25 89"
+        keywords="consultant hygiene alimentaire, securite alimentaire restaurant, controle DDPP, audit hygiene cuisine, plan maitrise sanitaire, consultant HACCP, France"
         canonicalUrl={window.location.origin}
       />
       <div>
@@ -32,7 +32,7 @@ export default function Home() {
                   Un controle sanitaire ne devrait jamais fermer votre restaurant.
                 </h1>
                 <p className="text-muted text-lg leading-relaxed mb-8 max-w-[520px]">
-                  Depuis 20 ans en restauration, j'aide les restaurateurs d'Ile-de-France
+                  Depuis 20 ans en restauration, j'aide les restaurateurs partout en France
                   a passer les controles DDPP sans stress — ou a rattraper la situation
                   quand l'inspecteur est deja venu.
                 </p>
@@ -53,7 +53,7 @@ export default function Home() {
                     className="w-full aspect-[4/5] object-cover"
                   />
                   <figcaption className="text-faint text-sm mt-3">
-                    Inspection en cuisine — Ile-de-France
+                    Inspection en cuisine
                   </figcaption>
                 </figure>
               </div>

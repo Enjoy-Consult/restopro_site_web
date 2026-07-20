@@ -8,7 +8,7 @@ export default function About() {
     <>
       <SEO
         title="A propos — Thierry Bailleul | RestOclair"
-        description="Thierry Bailleul, 20 ans de restauration avant de fonder RestOclair en 2025. Consultant hygiene et securite alimentaire en Ile-de-France."
+        description="Thierry Bailleul, 20 ans de restauration avant de fonder RestOclair en 2025. Consultant hygiene et securite alimentaire partout en France."
         keywords="Thierry Bailleul, consultant hygiene alimentaire, RestOclair, parcours restauration"
         canonicalUrl={`${window.location.origin}/About`}
       />

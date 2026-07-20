@@ -66,8 +66,8 @@ export default function Contact() {
 
                 <div className="mb-10">
                   <p className="text-faint text-sm mb-2">Zone d'intervention</p>
-                  <p className="text-ink text-lg">Ile-de-France</p>
-                  <p className="text-muted text-[15px] mt-1">Paris et toute la petite/grande couronne</p>
+                  <p className="text-ink text-lg">France entiere</p>
+                  <p className="text-muted text-[15px] mt-1">Intervention sur tout le territoire</p>
                 </div>
 
                 <div>

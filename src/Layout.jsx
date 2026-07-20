@@ -110,7 +110,7 @@ export default function Layout({ children, currentPageName }) {
             <span className="font-serif font-semibold text-lg text-ink">RestOclair</span>
           </Link>
           <p className="text-faint text-sm text-center md:text-right">
-            Hygiene et securite alimentaire · Ile-de-France · 06 80 95 25 89 · © {new Date().getFullYear()}
+            Hygiene et securite alimentaire · France entiere · 06 80 95 25 89 · © {new Date().getFullYear()}
           </p>
         </div>
       </footer>
