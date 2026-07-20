@@ -1,0 +1,55 @@
+INSTALLATION API PHP RESTOCLAIR
+===============================
+
+1. Copier le dossier entier sur ton NAS dans:
+   /web/restoclair.fr/api/
+
+   ou selon ta config:
+   /volume1/web/restoclair.fr/api/
+
+2. Modifier config.php avec tes credentials Airtable:
+   - Remplace TON_BASE_ID_ICI par ton Base ID Airtable
+   - Remplace TON_TOKEN_ICI par ton Token Airtable
+
+3. Verifier les permissions:
+   - Les fichiers PHP doivent etre lisibles par le serveur web
+   - chmod 644 pour les fichiers .php
+   - chmod 644 pour .htaccess
+
+4. Structure finale sur le serveur:
+   /api/
+     config.php      (credentials - protege par .htaccess)
+     blog.php        (GET - liste des articles)
+     testimonials.php (GET - liste des temoignages)
+     contact.php     (POST - formulaire contact)
+     .htaccess       (protection)
+
+5. Tester les endpoints:
+   - https://restoclair.fr/api/test.php (test PHP basique)
+   - https://restoclair.fr/api/test-airtable.php (test Airtable)
+   - https://restoclair.fr/api/blog.php
+   - https://restoclair.fr/api/testimonials.php
+   - POST vers https://restoclair.fr/api/contact.php
+
+6. Résolution des problèmes courants:
+
+   ERREUR 500 (Internal Server Error):
+   - Vérifier que cURL est activé dans PHP
+   - Dans DSM: Panneau de configuration > Web Station > PHP Settings
+   - Cocher l'extension "curl"
+
+   ERREUR 403 (Forbidden):
+   - Vérifier les permissions des fichiers:
+     chmod 644 *.php
+     chmod 644 .htaccess
+   - Vérifier que le dossier api/ est accessible:
+     chmod 755 /volume1/web/restoclair.fr/api/
+   - Sur DSM, vérifier les permissions dans File Station
+
+   ERREUR Airtable:
+   - Tester avec test-airtable.php pour voir l'erreur exacte
+   - Vérifier que le token n'est pas expiré
+   - Vérifier que le Base ID est correct
+
+IMPORTANT: Les credentials Airtable sont maintenant cotes serveur,
+ils ne sont plus exposes dans le code frontend.

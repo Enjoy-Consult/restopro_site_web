@@ -1,0 +1,6 @@
+.DS_Store
+php-api/config.php
+php-api/.htaccess
+.claude/
+_to_delete/
+restopro_site_web/
