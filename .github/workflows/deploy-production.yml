@@ -1,0 +1,49 @@
+name: Deploiement production
+
+# A chaque modification du code sur main (par bolt.new ou autre),
+# ce workflow compile le site et publie le resultat dans la branche
+# "production". Le dossier du site web n'a plus qu'a faire un Pull.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Installer les dependances
+        run: npm ci
+
+      - name: Compiler le site
+        run: npm run build
+
+      - name: Assembler les fichiers a deployer
+        run: |
+          mkdir -p deploy/php-api
+          cp -R dist/. deploy/
+          # Copier l'API PHP en EXCLUANT config.php (contient le token en prod)
+          find php-api -maxdepth 1 -type f ! -name 'config.php' -exec cp {} deploy/php-api/ \;
+          # .gitignore de la branche production : protege les fichiers locaux du serveur
+          printf '%s\n' '.DS_Store' 'php-api/config.php' 'php-api/.htaccess' '.claude/' '_to_delete/' 'restopro_site_web/' > deploy/.gitignore
+
+      - name: Publier dans la branche production
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: production
+          publish_dir: ./deploy
+          enable_jekyll: true

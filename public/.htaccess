@@ -1,3 +1,11 @@
+# Securite : bloquer l'acces web aux fichiers Git et dossiers techniques
+<IfModule mod_alias.c>
+  RedirectMatch 404 /\.git
+  RedirectMatch 404 /_to_delete
+  RedirectMatch 404 /\.claude
+  RedirectMatch 404 /restopro_site_web
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
