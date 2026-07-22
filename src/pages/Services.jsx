@@ -64,7 +64,7 @@ export default function Services() {
         <section className="pt-16 pb-12 md:pt-24 md:pb-16">
           <div className="max-w-[1200px] mx-auto px-6">
             <div className="max-w-[600px]">
-              <h1 className="text-ink mb-6">Mes services.</h1>
+              <h1 className="text-ink mb-6">Nos services.</h1>
               <p className="text-muted text-lg leading-relaxed">
                 Trois interventions, un seul objectif : que votre restaurant reste ouvert
                 et conforme, sans que ça devienne votre problème principal.
