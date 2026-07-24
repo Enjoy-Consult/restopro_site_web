@@ -44,7 +44,7 @@ export default function SEO({
       { name: "twitter:description", content: description },
       { name: "twitter:image", content: ogImage || defaultImage },
 
-      { name: "geo.region", content: "FR-IDF" },
+      { name: "geo.region", content: "FR-HDF" },
       { name: "geo.placename", content: BUSINESS.address.city },
       { name: "geo.position", content: `${BUSINESS.geo.latitude};${BUSINESS.geo.longitude}` },
       { name: "ICBM", content: `${BUSINESS.geo.latitude}, ${BUSINESS.geo.longitude}` },
