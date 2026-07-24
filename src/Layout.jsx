@@ -109,7 +109,7 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       <footer style={{ backgroundColor: '#16211b' }} itemScope itemType="https://schema.org/ProfessionalService">
-        <div className="max-w-[1200px] mx-auto px-6 pt-14 pb-8">
+        <div className="max-w-[1200px] mx-auto px-6 pt-20 pb-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8">
             {/* Brand + description */}
             <div className="md:col-span-5 flex flex-col gap-4">
