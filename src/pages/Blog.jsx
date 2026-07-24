@@ -25,7 +25,6 @@ export default function Blog() {
       const allPosts = await getBlogPosts();
       return allPosts.filter(post => post.published);
     },
-    initialData: [],
   });
 
   const filteredPosts = posts.filter(post => {
