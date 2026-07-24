@@ -108,7 +108,7 @@ export default function Layout({ children, currentPageName }) {
         {children}
       </main>
 
-      <footer className="bg-ink" itemScope itemType="https://schema.org/ProfessionalService">
+      <footer style={{ backgroundColor: '#16211b' }} itemScope itemType="https://schema.org/ProfessionalService">
         <div className="max-w-[1200px] mx-auto px-6 pt-14 pb-8">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8">
             {/* Brand + description */}
@@ -119,22 +119,24 @@ export default function Layout({ children, currentPageName }) {
                   alt="RestOclair"
                   style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }}
                 />
-                <span className="font-serif font-semibold text-xl text-paper" itemProp="name">RestOclair</span>
+                <span className="font-serif font-semibold text-xl" style={{ color: '#f6f4ec' }} itemProp="name">RestOclair</span>
               </Link>
-              <p className="text-paper/50 text-sm leading-relaxed max-w-xs" itemProp="description">
+              <p className="text-sm leading-relaxed max-w-xs" style={{ color: '#a0a89d' }} itemProp="description">
                 Conseil en hygiene et securite alimentaire pour les professionnels de la restauration.
               </p>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-1">
                 <a
                   href={BUSINESS.phone.href}
-                  className="text-paper/70 text-sm hover:text-paper transition-colors"
+                  className="text-sm hover:underline transition-colors"
+                  style={{ color: '#c8cec6' }}
                   itemProp="telephone"
                 >
                   {BUSINESS.phone.display}
                 </a>
                 <a
                   href={`mailto:${BUSINESS.email}`}
-                  className="text-paper/70 text-sm hover:text-paper transition-colors"
+                  className="text-sm hover:underline transition-colors"
+                  style={{ color: '#c8cec6' }}
                 >
                   <span itemProp="email">{BUSINESS.email}</span>
                 </a>
@@ -143,13 +145,14 @@ export default function Layout({ children, currentPageName }) {
 
             {/* Nav links */}
             <div className="md:col-span-3">
-              <p className="text-paper/40 text-xs font-medium uppercase tracking-wider mb-4">Navigation</p>
+              <p className="text-xs font-medium uppercase tracking-wider mb-4" style={{ color: '#6b7268' }}>Navigation</p>
               <nav className="flex flex-col gap-2.5">
                 {navigation.map(item => (
                   <Link
                     key={item.page}
                     to={createPageUrl(item.page)}
-                    className="text-paper/70 text-sm hover:text-paper transition-colors w-fit"
+                    className="text-sm hover:underline transition-colors w-fit"
+                    style={{ color: '#c8cec6' }}
                   >
                     {item.name}
                   </Link>
@@ -159,29 +162,29 @@ export default function Layout({ children, currentPageName }) {
 
             {/* Address + zones */}
             <div className="md:col-span-4" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
-              <p className="text-paper/40 text-xs font-medium uppercase tracking-wider mb-4">Adresse</p>
-              <p className="text-paper/70 text-sm leading-relaxed">
+              <p className="text-xs font-medium uppercase tracking-wider mb-4" style={{ color: '#6b7268' }}>Adresse</p>
+              <p className="text-sm leading-relaxed" style={{ color: '#c8cec6' }}>
                 <span itemProp="streetAddress">{BUSINESS.address.streetAddress}</span><br />
                 <span itemProp="postalCode">{BUSINESS.address.postalCode}</span>{" "}
                 <span itemProp="addressLocality">{BUSINESS.address.city}</span>
               </p>
               <meta itemProp="addressCountry" content="FR" />
-              <p className="text-paper/40 text-xs font-medium uppercase tracking-wider mt-6 mb-3">Intervention</p>
-              <p className="text-paper/50 text-sm leading-relaxed">
+              <p className="text-xs font-medium uppercase tracking-wider mt-6 mb-3" style={{ color: '#6b7268' }}>Intervention</p>
+              <p className="text-sm leading-relaxed" style={{ color: '#a0a89d' }}>
                 {BUSINESS.serviceAreas.join(" \u00B7 ")}
               </p>
             </div>
           </div>
 
           {/* Bottom bar */}
-          <div className="mt-12 pt-5 border-t border-paper/10 flex flex-col md:flex-row items-center justify-between gap-3">
-            <p className="text-paper/30 text-xs">
+          <div className="mt-12 pt-5 flex flex-col md:flex-row items-center justify-between gap-3" style={{ borderTop: '1px solid #2d3b33' }}>
+            <p className="text-xs" style={{ color: '#6b7268' }}>
               &copy; {new Date().getFullYear()} {BUSINESS.name}
             </p>
             <nav className="flex flex-wrap gap-5 text-xs">
-              <Link to={createPageUrl("MentionsLegales")} className="text-paper/40 hover:text-paper/70 transition-colors">Mentions legales</Link>
-              <Link to={createPageUrl("PolitiqueConfidentialite")} className="text-paper/40 hover:text-paper/70 transition-colors">Confidentialite</Link>
-              <Link to={createPageUrl("Sitemap")} className="text-paper/40 hover:text-paper/70 transition-colors">Plan du site</Link>
+              <Link to={createPageUrl("MentionsLegales")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Mentions legales</Link>
+              <Link to={createPageUrl("PolitiqueConfidentialite")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Confidentialite</Link>
+              <Link to={createPageUrl("Sitemap")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Plan du site</Link>
             </nav>
           </div>
         </div>
