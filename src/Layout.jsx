@@ -108,75 +108,82 @@ export default function Layout({ children, currentPageName }) {
         {children}
       </main>
 
-      <footer className="border-t border-border bg-white" itemScope itemType="https://schema.org/ProfessionalService">
-        <div className="max-w-[1200px] mx-auto px-6 py-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Identite */}
-            <div className="flex flex-col gap-3">
+      <footer className="border-t border-border bg-[#1a1a1a] text-white/80" itemScope itemType="https://schema.org/ProfessionalService">
+        <div className="max-w-[1200px] mx-auto px-6 py-14">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+            {/* Brand */}
+            <div className="md:col-span-1 flex flex-col gap-4">
               <Link to={createPageUrl("Home")} className="flex items-center gap-2">
                 <img
                   src="/img_6598.jpeg"
                   alt="RestOclair"
-                  className="w-[28px] h-[28px] object-cover mix-blend-multiply"
+                  className="w-[32px] h-[32px] object-cover rounded"
                 />
-                <span className="font-serif font-semibold text-lg text-ink" itemProp="name">RestOclair</span>
+                <span className="font-serif font-semibold text-lg text-white" itemProp="name">RestOclair</span>
               </Link>
-              <p className="text-muted text-sm leading-relaxed" itemProp="description">
-                Conseil en hygiène et sécurité alimentaire pour les professionnels. Intervention partout en France.
+              <p className="text-white/60 text-sm leading-relaxed" itemProp="description">
+                Conseil en hygiene et securite alimentaire pour les professionnels de la restauration.
               </p>
             </div>
 
-            {/* NAP */}
-            <div className="flex flex-col gap-2 text-sm" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
-              <p className="font-semibold text-ink mb-1">Coordonnées</p>
-              <p className="text-muted">
-                <span itemProp="streetAddress">{BUSINESS.address.streetAddress}</span>
-              </p>
-              <p className="text-muted">
-                <span itemProp="postalCode">{BUSINESS.address.postalCode}</span>{" "}
-                <span itemProp="addressLocality">{BUSINESS.address.city}</span>,{" "}
-                <span itemProp="addressRegion">{BUSINESS.address.region}</span>
-              </p>
+            {/* Navigation */}
+            <div className="flex flex-col gap-3">
+              <p className="text-white font-medium text-sm uppercase tracking-wide mb-1">Navigation</p>
+              {navigation.map(item => (
+                <Link
+                  key={item.page}
+                  to={createPageUrl(item.page)}
+                  className="text-white/60 text-sm hover:text-white transition-colors"
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </div>
+
+            {/* Contact */}
+            <div className="flex flex-col gap-3" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
+              <p className="text-white font-medium text-sm uppercase tracking-wide mb-1">Contact</p>
               <a
                 href={BUSINESS.phone.href}
-                className="text-ink font-medium hover:underline"
+                className="text-white/60 text-sm hover:text-white transition-colors"
                 itemProp="telephone"
               >
                 {BUSINESS.phone.display}
               </a>
               <a
                 href={`mailto:${BUSINESS.email}`}
-                className="text-muted hover:underline"
+                className="text-white/60 text-sm hover:text-white transition-colors"
               >
                 <span itemProp="email">{BUSINESS.email}</span>
               </a>
+              <p className="text-white/60 text-sm">
+                <span itemProp="streetAddress">{BUSINESS.address.streetAddress}</span><br />
+                <span itemProp="postalCode">{BUSINESS.address.postalCode}</span>{" "}
+                <span itemProp="addressLocality">{BUSINESS.address.city}</span>
+              </p>
               <meta itemProp="addressCountry" content="FR" />
             </div>
 
-            {/* Zones d'intervention */}
-            <div className="flex flex-col gap-2 text-sm">
-              <p className="font-semibold text-ink mb-1">Zones d'intervention</p>
-              <div className="flex flex-wrap gap-x-3 gap-y-1 text-muted">
+            {/* Zones */}
+            <div className="flex flex-col gap-3">
+              <p className="text-white font-medium text-sm uppercase tracking-wide mb-1">Intervention</p>
+              <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-white/60 text-sm">
                 {BUSINESS.serviceAreas.map(area => (
                   <span key={area}>{area}</span>
                 ))}
               </div>
-              <p className="text-faint text-xs mt-2">Lun-Ven 7h-20h · Sam 8h-18h</p>
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-border flex flex-col md:flex-row items-center justify-between gap-3">
-            <nav className="flex gap-4 text-sm text-muted">
-              {navigation.map(item => (
-                <Link key={item.page} to={createPageUrl(item.page)} className="hover:text-ink transition-colors">
-                  {item.name}
-                </Link>
-              ))}
-              <Link to={createPageUrl("Sitemap")} className="hover:text-ink transition-colors">Plan du site</Link>
-            </nav>
-            <p className="text-faint text-xs">
-              © {new Date().getFullYear()} {BUSINESS.name} · SIRET en cours · Tous droits réservés
+          <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-white/40 text-xs">
+              &copy; {new Date().getFullYear()} {BUSINESS.name} &middot; Tous droits reserves
             </p>
+            <nav className="flex flex-wrap gap-4 text-xs text-white/40">
+              <Link to={createPageUrl("MentionsLegales")} className="hover:text-white/70 transition-colors">Mentions legales</Link>
+              <Link to={createPageUrl("PolitiqueConfidentialite")} className="hover:text-white/70 transition-colors">Politique de confidentialite</Link>
+              <Link to={createPageUrl("Sitemap")} className="hover:text-white/70 transition-colors">Plan du site</Link>
+            </nav>
           </div>
         </div>
       </footer>

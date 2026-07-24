@@ -203,20 +203,20 @@ export default function Home() {
           <div className="max-w-[1200px] mx-auto px-6">
             <h2 className="text-ink text-center mb-4">Nous intervenons partout en France</h2>
             <p className="text-muted text-center text-lg mb-10 max-w-[600px] mx-auto">
-              Basés à Roye (Somme), nous nous déplaçons dans toutes les régions pour accompagner votre établissement.
+              Nous nous déplaçons dans toutes les régions pour accompagner votre établissement.
             </p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {[
-                { city: "Roye", detail: "80" },
-                { city: "Amiens", detail: "80" },
-                { city: "Compiègne", detail: "60" },
-                { city: "Saint-Quentin", detail: "02" },
-                { city: "Péronne", detail: "80" },
-                { city: "Noyon", detail: "60" },
                 { city: "Paris", detail: "75" },
+                { city: "Lyon", detail: "69" },
+                { city: "Marseille", detail: "13" },
+                { city: "Bordeaux", detail: "33" },
                 { city: "Lille", detail: "59" },
-                { city: "Reims", detail: "51" },
-                { city: "Beauvais", detail: "60" },
+                { city: "Nantes", detail: "44" },
+                { city: "Toulouse", detail: "31" },
+                { city: "Strasbourg", detail: "67" },
+                { city: "Rennes", detail: "35" },
+                { city: "Montpellier", detail: "34" },
               ].map(({ city, detail }) => (
                 <div key={city} className="bg-paper border border-[#d8d4c4] px-4 py-3 text-center">
                   <p className="text-ink font-medium text-[15px]">{city}</p>
