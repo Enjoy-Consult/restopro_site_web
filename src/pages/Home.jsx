@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { useQuery } from "@tanstack/react-query";
 import { getTestimonials } from "@/api/airtableService";
+import { BUSINESS } from "@/lib/business-info";
 
 export default function Home() {
   const { data: testimonials = [] } = useQuery({
@@ -196,6 +197,38 @@ export default function Home() {
         </section>
 
         <hr className="rule" />
+
+        {/* Zones d'intervention - SEO local */}
+        <section className="py-16 md:py-24 bg-[#faf9f6]">
+          <div className="max-w-[1200px] mx-auto px-6">
+            <h2 className="text-ink text-center mb-4">Nous intervenons partout en France</h2>
+            <p className="text-muted text-center text-lg mb-10 max-w-[600px] mx-auto">
+              Basés en Île-de-France, nous nous déplaçons dans toutes les régions pour accompagner votre établissement.
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {[
+                { city: "Paris", detail: "75" },
+                { city: "Vanves", detail: "92" },
+                { city: "Boulogne-Billancourt", detail: "92" },
+                { city: "Lyon", detail: "69" },
+                { city: "Marseille", detail: "13" },
+                { city: "Bordeaux", detail: "33" },
+                { city: "Lille", detail: "59" },
+                { city: "Nantes", detail: "44" },
+                { city: "Toulouse", detail: "31" },
+                { city: "Strasbourg", detail: "67" },
+              ].map(({ city, detail }) => (
+                <div key={city} className="bg-paper border border-[#d8d4c4] px-4 py-3 text-center">
+                  <p className="text-ink font-medium text-[15px]">{city}</p>
+                  <p className="text-faint text-xs">{detail}</p>
+                </div>
+              ))}
+            </div>
+            <p className="text-faint text-sm text-center mt-6">
+              Et toutes les villes de France — contactez-nous pour confirmer notre disponibilité dans votre secteur.
+            </p>
+          </div>
+        </section>
 
         {/* CTA */}
         <section className="py-20 md:py-28">

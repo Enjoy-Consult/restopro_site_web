@@ -1,0 +1,41 @@
+export const BUSINESS = {
+  name: "RestOclair",
+  legalName: "RestOclair",
+  founder: "Thierry Bailleul",
+  founderTitle: "Consultant en Hygiène et Sécurité Alimentaire",
+  description:
+    "Conseil en hygiène et sécurité alimentaire pour les professionnels partout en France. Urgence DDPP, audit hygiène, création PMS.",
+  url: "https://restoclair.fr",
+  email: "contact@restoclair.fr",
+  phone: {
+    display: "06 80 95 25 89",
+    href: "tel:+33680952589",
+    e164: "+33680952589",
+  },
+  address: {
+    streetAddress: "38 Boulevard de la République",
+    postalCode: "92170",
+    city: "Vanves",
+    region: "Île-de-France",
+    country: "FR",
+  },
+  geo: {
+    latitude: 48.8203,
+    longitude: 2.2906,
+  },
+  openingHours: ["Mo-Fr 07:00-20:00", "Sa 08:00-18:00"],
+  serviceAreas: [
+    "Paris",
+    "Île-de-France",
+    "Lyon",
+    "Marseille",
+    "Bordeaux",
+    "Lille",
+    "Nantes",
+    "Toulouse",
+    "France entière",
+  ],
+  foundingYear: 2025,
+  priceRange: "$$",
+  sameAs: [],
+};
