@@ -108,81 +108,81 @@ export default function Layout({ children, currentPageName }) {
         {children}
       </main>
 
-      <footer className="border-t border-border bg-[#1a1a1a] text-white/80" itemScope itemType="https://schema.org/ProfessionalService">
-        <div className="max-w-[1200px] mx-auto px-6 py-14">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-            {/* Brand */}
-            <div className="md:col-span-1 flex flex-col gap-4">
-              <Link to={createPageUrl("Home")} className="flex items-center gap-2">
+      <footer className="bg-ink" itemScope itemType="https://schema.org/ProfessionalService">
+        <div className="max-w-[1200px] mx-auto px-6 pt-16 pb-8">
+          {/* Top row */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">
+            {/* Brand + description */}
+            <div className="md:col-span-5 flex flex-col gap-5">
+              <Link to={createPageUrl("Home")} className="flex items-center gap-2.5">
                 <img
                   src="/img_6598.jpeg"
                   alt="RestOclair"
-                  className="w-[32px] h-[32px] object-cover rounded"
+                  className="w-[36px] h-[36px] object-cover rounded-sm brightness-110"
                 />
-                <span className="font-serif font-semibold text-lg text-white" itemProp="name">RestOclair</span>
+                <span className="font-serif font-semibold text-xl text-paper" itemProp="name">RestOclair</span>
               </Link>
-              <p className="text-white/60 text-sm leading-relaxed" itemProp="description">
-                Conseil en hygiene et securite alimentaire pour les professionnels de la restauration.
+              <p className="text-paper/50 text-sm leading-relaxed max-w-[320px]" itemProp="description">
+                Conseil en hygiene et securite alimentaire pour les professionnels de la restauration. Intervention partout en France.
               </p>
-            </div>
-
-            {/* Navigation */}
-            <div className="flex flex-col gap-3">
-              <p className="text-white font-medium text-sm uppercase tracking-wide mb-1">Navigation</p>
-              {navigation.map(item => (
-                <Link
-                  key={item.page}
-                  to={createPageUrl(item.page)}
-                  className="text-white/60 text-sm hover:text-white transition-colors"
+              <div className="flex gap-5 mt-1">
+                <a
+                  href={BUSINESS.phone.href}
+                  className="text-paper/70 text-sm hover:text-paper transition-colors"
+                  itemProp="telephone"
                 >
-                  {item.name}
-                </Link>
-              ))}
+                  {BUSINESS.phone.display}
+                </a>
+                <a
+                  href={`mailto:${BUSINESS.email}`}
+                  className="text-paper/70 text-sm hover:text-paper transition-colors"
+                >
+                  <span itemProp="email">{BUSINESS.email}</span>
+                </a>
+              </div>
             </div>
 
-            {/* Contact */}
-            <div className="flex flex-col gap-3" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
-              <p className="text-white font-medium text-sm uppercase tracking-wide mb-1">Contact</p>
-              <a
-                href={BUSINESS.phone.href}
-                className="text-white/60 text-sm hover:text-white transition-colors"
-                itemProp="telephone"
-              >
-                {BUSINESS.phone.display}
-              </a>
-              <a
-                href={`mailto:${BUSINESS.email}`}
-                className="text-white/60 text-sm hover:text-white transition-colors"
-              >
-                <span itemProp="email">{BUSINESS.email}</span>
-              </a>
-              <p className="text-white/60 text-sm">
+            {/* Nav links */}
+            <div className="md:col-span-3">
+              <p className="text-paper/40 text-xs font-medium uppercase tracking-wider mb-4">Navigation</p>
+              <nav className="flex flex-col gap-2.5">
+                {navigation.map(item => (
+                  <Link
+                    key={item.page}
+                    to={createPageUrl(item.page)}
+                    className="text-paper/70 text-sm hover:text-paper transition-colors w-fit"
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+
+            {/* Address */}
+            <div className="md:col-span-4" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
+              <p className="text-paper/40 text-xs font-medium uppercase tracking-wider mb-4">Adresse</p>
+              <p className="text-paper/70 text-sm leading-relaxed">
                 <span itemProp="streetAddress">{BUSINESS.address.streetAddress}</span><br />
                 <span itemProp="postalCode">{BUSINESS.address.postalCode}</span>{" "}
                 <span itemProp="addressLocality">{BUSINESS.address.city}</span>
               </p>
               <meta itemProp="addressCountry" content="FR" />
-            </div>
-
-            {/* Zones */}
-            <div className="flex flex-col gap-3">
-              <p className="text-white font-medium text-sm uppercase tracking-wide mb-1">Intervention</p>
-              <div className="flex flex-wrap gap-x-3 gap-y-1.5 text-white/60 text-sm">
-                {BUSINESS.serviceAreas.map(area => (
-                  <span key={area}>{area}</span>
-                ))}
-              </div>
+              <p className="text-paper/40 text-xs font-medium uppercase tracking-wider mb-4 mt-8">Zones d'intervention</p>
+              <p className="text-paper/70 text-sm leading-relaxed">
+                {BUSINESS.serviceAreas.join(" \u00B7 ")}
+              </p>
             </div>
           </div>
 
-          <div className="mt-12 pt-6 border-t border-white/10 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-white/40 text-xs">
-              &copy; {new Date().getFullYear()} {BUSINESS.name} &middot; Tous droits reserves
+          {/* Bottom bar */}
+          <div className="mt-14 pt-6 border-t border-paper/10 flex flex-col md:flex-row items-center justify-between gap-3">
+            <p className="text-paper/30 text-xs">
+              &copy; {new Date().getFullYear()} {BUSINESS.name}
             </p>
-            <nav className="flex flex-wrap gap-4 text-xs text-white/40">
-              <Link to={createPageUrl("MentionsLegales")} className="hover:text-white/70 transition-colors">Mentions legales</Link>
-              <Link to={createPageUrl("PolitiqueConfidentialite")} className="hover:text-white/70 transition-colors">Politique de confidentialite</Link>
-              <Link to={createPageUrl("Sitemap")} className="hover:text-white/70 transition-colors">Plan du site</Link>
+            <nav className="flex flex-wrap gap-5 text-xs">
+              <Link to={createPageUrl("MentionsLegales")} className="text-paper/40 hover:text-paper/70 transition-colors">Mentions legales</Link>
+              <Link to={createPageUrl("PolitiqueConfidentialite")} className="text-paper/40 hover:text-paper/70 transition-colors">Confidentialite</Link>
+              <Link to={createPageUrl("Sitemap")} className="text-paper/40 hover:text-paper/70 transition-colors">Plan du site</Link>
             </nav>
           </div>
         </div>

@@ -200,32 +200,21 @@ export default function Home() {
 
         {/* Zones d'intervention - SEO local */}
         <section className="py-16 md:py-24 bg-[#faf9f6]">
-          <div className="max-w-[1200px] mx-auto px-6">
-            <h2 className="text-ink text-center mb-4">Nous intervenons partout en France</h2>
-            <p className="text-muted text-center text-lg mb-10 max-w-[600px] mx-auto">
-              Nous nous déplaçons dans toutes les régions pour accompagner votre établissement.
+          <div className="max-w-[900px] mx-auto px-6 text-center">
+            <h2 className="text-ink mb-4">Nous intervenons partout en France</h2>
+            <p className="text-muted text-lg mb-10 max-w-[560px] mx-auto">
+              Nous nous deplacons dans toutes les regions pour accompagner votre etablissement.
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {[
-                { city: "Paris", detail: "75" },
-                { city: "Lyon", detail: "69" },
-                { city: "Marseille", detail: "13" },
-                { city: "Bordeaux", detail: "33" },
-                { city: "Lille", detail: "59" },
-                { city: "Nantes", detail: "44" },
-                { city: "Toulouse", detail: "31" },
-                { city: "Strasbourg", detail: "67" },
-                { city: "Rennes", detail: "35" },
-                { city: "Montpellier", detail: "34" },
-              ].map(({ city, detail }) => (
-                <div key={city} className="bg-paper border border-[#d8d4c4] px-4 py-3 text-center">
-                  <p className="text-ink font-medium text-[15px]">{city}</p>
-                  <p className="text-faint text-xs">{detail}</p>
-                </div>
+            <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-3">
+              {["Paris", "Lyon", "Marseille", "Bordeaux", "Lille", "Nantes", "Toulouse", "Strasbourg", "Rennes", "Montpellier"].map((city, i) => (
+                <span key={city} className="flex items-center gap-2">
+                  <span className="text-ink font-medium text-[15px]">{city}</span>
+                  {i < 9 && <span className="text-border select-none">&mdash;</span>}
+                </span>
               ))}
             </div>
-            <p className="text-faint text-sm text-center mt-6">
-              Et toutes les villes de France — contactez-nous pour confirmer notre disponibilité dans votre secteur.
+            <p className="text-faint text-sm mt-8">
+              Et dans toute la France — contactez-nous pour confirmer notre disponibilite dans votre secteur.
             </p>
           </div>
         </section>
