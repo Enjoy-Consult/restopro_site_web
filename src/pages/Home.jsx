@@ -32,7 +32,7 @@ export default function Home() {
                   Un contrôle sanitaire ne devrait jamais fermer votre établissement.
                 </h1>
                 <p className="text-muted text-lg leading-relaxed mb-8 max-w-[520px]">
-                  Depuis 20 ans en restauration, on aide les professionnels partout en France
+                  Depuis 20 ans en restauration, nous aidons les professionnels partout en France
                   à passer les contrôles DDPP sans stress — ou à rattraper la situation
                   quand l'inspecteur est déjà venu.
                 </p>
@@ -90,19 +90,19 @@ export default function Home() {
                   <ServiceRow
                     number="01"
                     title="Urgence après contrôle DDPP"
-                    description="Vous venez de recevoir un rapport défavorable ou une mise en demeure. On intervient sous 24 h pour rédiger le plan d'actions correctives et vous représenter auprès de l'administration."
+                    description="Vous venez de recevoir un rapport défavorable ou une mise en demeure. Nous intervenons sous 24 h pour rédiger le plan d'actions correctives et vous représenter auprès de l'administration."
                     link="Services"
                   />
                   <ServiceRow
                     number="02"
                     title="Audit hygiène préventif"
-                    description="Avant qu'un inspecteur ne vienne, on réalise un audit complet de votre établissement. Vous repartez avec un rapport détaillé et des recommandations applicables immédiatement en cuisine."
+                    description="Avant qu'un inspecteur ne vienne, nous réalisons un audit complet de votre établissement. Vous repartez avec un rapport détaillé et des recommandations applicables immédiatement en cuisine."
                     link="Services"
                   />
                   <ServiceRow
                     number="03"
                     title="Dossiers obligatoires (PMS, CERFA, EGAlim)"
-                    description="Plan de maîtrise sanitaire, fiches de traçabilité, conformité EGAlim — on crée ou remet à jour vos documents réglementaires pour que tout soit en ordre le jour du contrôle."
+                    description="Plan de maîtrise sanitaire, fiches de traçabilité, conformité EGAlim — nous créons ou remettons à jour vos documents réglementaires pour que tout soit en ordre le jour du contrôle."
                     link="Services"
                   />
                 </div>
@@ -179,9 +179,9 @@ export default function Home() {
                   20 ans en cuisine avant de passer de l'autre côté du passe.
                 </h2>
                 <p className="text-muted text-lg leading-relaxed mb-4">
-                  Avant de créer RestOclair en 2025, on a passé deux décennies en restauration —
-                  du commis au chef d'établissement. Quand on recommande une procédure,
-                  on sait si elle est applicable à 6h du matin avec un service complet qui arrive.
+                  Avant de créer RestOclair en 2025, nous avons passé deux décennies en restauration —
+                  du commis au chef d'établissement. Quand nous recommandons une procédure,
+                  nous savons si elle est applicable à 6h du matin avec un service complet qui arrive.
                 </p>
                 <p className="text-muted text-lg leading-relaxed mb-8">
                   Les professionnels qui travaillent avec nous gardent un seul interlocuteur,

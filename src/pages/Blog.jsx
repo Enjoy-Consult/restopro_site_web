@@ -51,7 +51,7 @@ export default function Blog() {
               <h1 className="text-ink mb-6">Articles.</h1>
               <p className="text-muted text-lg leading-relaxed">
                 Réglementation, retours d'expérience, conseils pratiques —
-                ce qu'on constate sur le terrain et ce que ça implique pour vous.
+                ce que nous constatons sur le terrain et ce que ça implique pour vous.
               </p>
             </div>
           </div>

@@ -10,10 +10,10 @@ const services = [
     subtitle: "Intervention sous 24 h",
     description: "Vous venez de recevoir un rapport défavorable, une mise en demeure, ou une menace de fermeture administrative. Chaque jour compte.",
     details: [
-      "On intervient sur site sous 24 h après votre appel.",
-      "On rédige le plan d'actions correctives exigé par la DDPP.",
-      "On vous représente auprès de l'administration si nécessaire.",
-      "On supervise la mise en conformité jusqu'à la levée des réserves.",
+      "Nous intervenons sur site sous 24 h après votre appel.",
+      "Nous rédigeons le plan d'actions correctives exigé par la DDPP.",
+      "Nous vous représentons auprès de l'administration si nécessaire.",
+      "Nous supervisons la mise en conformité jusqu'à la levée des réserves.",
     ],
     result: "Objectif : éviter la fermeture et obtenir la levée des non-conformités dans les délais impartis.",
     image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=640&h=400&fit=crop",
@@ -38,7 +38,7 @@ const services = [
     number: "03",
     title: "Dossiers obligatoires (PMS, CERFA, EGAlim)",
     subtitle: "Vos documents réglementaires à jour",
-    description: "La paperasse réglementaire n'est pas votre métier — c'est le nôtre. On crée ou remet à jour les documents que la DDPP exige lors d'un contrôle.",
+    description: "La paperasse réglementaire n'est pas votre métier — c'est le nôtre. Nous créons ou remettons à jour les documents que la DDPP exige lors d'un contrôle.",
     details: [
       "Plan de Maîtrise Sanitaire (PMS) complet et adapté à votre établissement.",
       "Fiches CERFA et déclarations obligatoires.",

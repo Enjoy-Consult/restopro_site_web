@@ -149,7 +149,7 @@ export default function Contact() {
 
                   {status === "success" && (
                     <p className="text-bottle font-medium text-[15px]">
-                      Message envoyé. On vous recontacte sous 2 h en semaine.
+                      Message envoyé. Nous vous recontactons sous 2 h en semaine.
                     </p>
                   )}
                   {status === "error" && (

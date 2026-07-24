@@ -27,15 +27,15 @@ export default function About() {
                   du comptoir. C'est cette double expérience qui a poussé à créer RestOclair en 2025.
                 </p>
                 <p className="text-muted text-lg leading-relaxed mb-6">
-                  Notre approche est simple : on ne vend pas de la paperasse. On vient dans votre cuisine,
-                  on regarde comment votre équipe travaille, et on vous donne des recommandations
+                  Notre approche est simple : nous ne vendons pas de la paperasse. Nous venons dans votre cuisine,
+                  nous regardons comment votre équipe travaille, et nous vous donnons des recommandations
                   que vous pouvez appliquer dès le lendemain matin. Pas de jugement, pas de jargon —
                   juste l'expérience du terrain.
                 </p>
                 <p className="text-muted text-lg leading-relaxed">
-                  Quand un professionnel nous appelle en urgence après un contrôle, on décroche en moins
-                  de 2 h. Et quand on rédige un plan d'actions correctives, on sait qu'il sera
-                  réaliste parce qu'on a nous-mêmes appliqué ces procédures pendant deux décennies.
+                  Quand un professionnel nous appelle en urgence après un contrôle, nous décrochons en moins
+                  de 2 h. Et quand nous rédigeons un plan d'actions correctives, nous savons qu'il sera
+                  réaliste parce que nous avons nous-mêmes appliqué ces procédures pendant deux décennies.
                 </p>
               </div>
               <div className="md:col-span-5">
@@ -77,16 +77,16 @@ export default function About() {
 
         <hr className="rule" />
 
-        {/* Ce qu'on fait / ne fait pas */}
+        {/* Ce que nous faisons / ne faisons pas */}
         <section className="py-20 md:py-28">
           <div className="max-w-[1200px] mx-auto px-6">
             <div className="grid md:grid-cols-12 gap-12 md:gap-16">
               <div className="md:col-span-4">
-                <h2 className="text-ink">Ce qu'on fait. Et ce qu'on ne fait pas.</h2>
+                <h2 className="text-ink">Ce que nous faisons. Et ce que nous ne faisons pas.</h2>
               </div>
               <div className="md:col-span-8 grid sm:grid-cols-2 gap-12">
                 <div>
-                  <h3 className="text-ink font-sans font-semibold text-lg mb-4">On fait</h3>
+                  <h3 className="text-ink font-sans font-semibold text-lg mb-4">Nous faisons</h3>
                   <ul className="space-y-3 text-muted">
                     <li>Intervention urgence sous 24 h</li>
                     <li>Audit terrain dans votre cuisine</li>
@@ -97,7 +97,7 @@ export default function About() {
                   </ul>
                 </div>
                 <div>
-                  <h3 className="text-ink font-sans font-semibold text-lg mb-4">On ne fait pas</h3>
+                  <h3 className="text-ink font-sans font-semibold text-lg mb-4">Nous ne faisons pas</h3>
                   <ul className="space-y-3 text-muted">
                     <li>Des audits à distance sans venir en cuisine</li>
                     <li>Des rapports de 80 pages inapplicables</li>
@@ -115,9 +115,9 @@ export default function About() {
         {/* CTA */}
         <section className="py-20 md:py-28">
           <div className="max-w-[1200px] mx-auto px-6 text-center">
-            <h2 className="text-ink mb-4">On en discute ?</h2>
+            <h2 className="text-ink mb-4">Discutons ?</h2>
             <p className="text-muted text-lg mb-8 max-w-[480px] mx-auto">
-              Premier échange téléphonique gratuit. On vous dit clairement ce qu'on peut faire pour vous — et ce qui ne relève pas de notre champ.
+              Premier échange téléphonique gratuit. Nous vous disons clairement ce que nous pouvons faire pour vous — et ce qui ne relève pas de notre champ.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to={createPageUrl("Contact")} className="btn-primary">
