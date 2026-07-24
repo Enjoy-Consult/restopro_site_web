@@ -10,10 +10,10 @@ const services = [
     subtitle: "Intervention sous 24 h",
     description: "Vous venez de recevoir un rapport défavorable, une mise en demeure, ou une menace de fermeture administrative. Chaque jour compte.",
     details: [
-      "J'interviens sur site sous 24 h après votre appel.",
-      "Je rédige le plan d'actions correctives exigé par la DDPP.",
-      "Je vous représente auprès de l'administration si nécessaire.",
-      "Je supervise la mise en conformité jusqu'à la levée des réserves.",
+      "On intervient sur site sous 24 h après votre appel.",
+      "On rédige le plan d'actions correctives exigé par la DDPP.",
+      "On vous représente auprès de l'administration si nécessaire.",
+      "On supervise la mise en conformité jusqu'à la levée des réserves.",
     ],
     result: "Objectif : éviter la fermeture et obtenir la levée des non-conformités dans les délais impartis.",
     image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=640&h=400&fit=crop",
@@ -38,7 +38,7 @@ const services = [
     number: "03",
     title: "Dossiers obligatoires (PMS, CERFA, EGAlim)",
     subtitle: "Vos documents réglementaires à jour",
-    description: "La paperasse réglementaire n'est pas votre métier — c'est le mien. Je crée ou remets à jour les documents que la DDPP exige lors d'un contrôle.",
+    description: "La paperasse réglementaire n'est pas votre métier — c'est le nôtre. On crée ou remet à jour les documents que la DDPP exige lors d'un contrôle.",
     details: [
       "Plan de Maîtrise Sanitaire (PMS) complet et adapté à votre établissement.",
       "Fiches CERFA et déclarations obligatoires.",
@@ -56,8 +56,8 @@ export default function Services() {
     <>
       <SEO
         title="Services — RestOclair | Urgence DDPP, Audit, Dossiers"
-        description="Trois interventions pour les restaurateurs partout en France : urgence après contrôle DDPP, audit hygiène préventif, création de dossiers obligatoires (PMS, EGAlim)."
-        keywords="urgence DDPP, audit hygiène restaurant, plan maîtrise sanitaire, PMS, EGAlim, CERFA, consultant restauration"
+        description="Trois interventions pour les professionnels partout en France : urgence après contrôle DDPP, audit hygiène préventif, création de dossiers obligatoires (PMS, EGAlim)."
+        keywords="urgence DDPP, audit hygiène établissement, plan maîtrise sanitaire, PMS, EGAlim, CERFA, consultant restauration"
         canonicalUrl={`${window.location.origin}/Services`}
       />
       <div>
@@ -66,7 +66,7 @@ export default function Services() {
             <div className="max-w-[600px]">
               <h1 className="text-ink mb-6">Nos services.</h1>
               <p className="text-muted text-lg leading-relaxed">
-                Trois interventions, un seul objectif : que votre restaurant reste ouvert
+                Trois interventions, un seul objectif : que votre établissement reste ouvert
                 et conforme, sans que ça devienne votre problème principal.
               </p>
             </div>
@@ -117,7 +117,7 @@ export default function Services() {
           <div className="max-w-[1200px] mx-auto px-6 text-center">
             <h2 className="text-ink mb-4">Besoin d'une intervention ?</h2>
             <p className="text-muted text-lg mb-8 max-w-[480px] mx-auto">
-              Appelez-moi directement ou remplissez le formulaire de contact.
+              Appelez-nous directement ou remplissez le formulaire de contact.
               Réponse sous 2 h en semaine.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

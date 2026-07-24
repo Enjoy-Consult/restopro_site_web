@@ -97,7 +97,7 @@ export default function Contact() {
                       required
                     />
                     <InputField
-                      label="Restaurant"
+                      label="Établissement"
                       name="restaurant"
                       value={formData.restaurant}
                       onChange={handleChange}
@@ -149,12 +149,12 @@ export default function Contact() {
 
                   {status === "success" && (
                     <p className="text-bottle font-medium text-[15px]">
-                      Message envoyé. Je vous recontacte sous 2 h en semaine.
+                      Message envoyé. On vous recontacte sous 2 h en semaine.
                     </p>
                   )}
                   {status === "error" && (
                     <p className="text-red-700 text-[15px]">
-                      Erreur lors de l'envoi. Appelez-moi directement au 06 80 95 25 89.
+                      Erreur lors de l'envoi. Appelez-nous directement au 06 80 95 25 89.
                     </p>
                   )}
 

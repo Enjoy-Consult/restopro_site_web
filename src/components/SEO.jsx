@@ -16,7 +16,7 @@ export default function SEO({
     const defaultImage = "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&h=630&fit=crop";
     const baseUrl = "https://restoclair.fr";
 
-    document.title = title ? `${title} | ${siteName}` : `${siteName} - Expert en Securite Alimentaire pour Restaurateurs`;
+    document.title = title ? `${title} | ${siteName}` : `${siteName} - Expert en Securite Alimentaire pour Professionnels`;
 
     const metaTags = [
       { name: "description", content: description },
@@ -95,7 +95,7 @@ export default function SEO({
       "@type": "ProfessionalService",
       "@id": `${baseUrl}/#localbusiness`,
       "name": "RestOclair",
-      "description": "Conseil en hygiène et sécurité alimentaire pour les restaurateurs partout en France. Urgence DDPP, audit hygiène, création PMS.",
+      "description": "Conseil en hygiène et sécurité alimentaire pour les professionnels partout en France. Urgence DDPP, audit hygiène, création PMS.",
       "url": baseUrl,
       "telephone": "+33680952589",
       "email": "contact@restoclair.fr",

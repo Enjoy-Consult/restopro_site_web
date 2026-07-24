@@ -39,8 +39,8 @@ export default function Blog() {
     <>
       <SEO
         title="Blog — RestOclair | Hygiène alimentaire et réglementation"
-        description="Articles sur la réglementation sanitaire, les bonnes pratiques HACCP et l'actualité DDPP pour les restaurateurs."
-        keywords="blog hygiène alimentaire, actualités DDPP, réglementation restaurant, conseils HACCP"
+        description="Articles sur la réglementation sanitaire, les bonnes pratiques HACCP et l'actualité DDPP pour les professionnels."
+        keywords="blog hygiène alimentaire, actualités DDPP, réglementation établissement, conseils HACCP"
         canonicalUrl={`${window.location.origin}/Blog`}
       />
       <div>
@@ -51,7 +51,7 @@ export default function Blog() {
               <h1 className="text-ink mb-6">Articles.</h1>
               <p className="text-muted text-lg leading-relaxed">
                 Réglementation, retours d'expérience, conseils pratiques —
-                ce que je constate sur le terrain et ce que ça implique pour vous.
+                ce qu'on constate sur le terrain et ce que ça implique pour vous.
               </p>
             </div>
           </div>

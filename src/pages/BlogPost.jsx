@@ -174,7 +174,7 @@ export default function BlogPost() {
           <div className="max-w-[720px] mx-auto px-6 text-center">
             <h2 className="text-bottle-text mb-4">Besoin d'un accompagnement ?</h2>
             <p className="text-bottle-muted text-lg mb-8">
-              Premier échange gratuit. Je vous dis ce que je peux faire pour vous.
+              Premier échange gratuit. On vous dit ce qu'on peut faire pour vous.
             </p>
             <Link to={createPageUrl("Contact")} className="inline-block bg-paper text-ink px-8 py-4 font-medium text-[15px] hover:bg-white transition-colors">
               Prendre contact

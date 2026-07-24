@@ -18,8 +18,8 @@ export default function Home() {
     <>
       <SEO
         title="RestOclair - Consultant hygiène et sécurité alimentaire"
-        description="Consultant en hygiène et sécurité alimentaire pour restaurateurs partout en France. Intervention urgence DDPP sous 24h, audits préventifs, dossiers obligatoires. 06 80 95 25 89"
-        keywords="consultant hygiène alimentaire, sécurité alimentaire restaurant, contrôle DDPP, audit hygiène cuisine, plan maîtrise sanitaire, consultant HACCP, France"
+        description="Consultant en hygiène et sécurité alimentaire pour professionnels partout en France. Intervention urgence DDPP sous 24h, audits préventifs, dossiers obligatoires. 06 80 95 25 89"
+        keywords="consultant hygiène alimentaire, sécurité alimentaire établissement, contrôle DDPP, audit hygiène cuisine, plan maîtrise sanitaire, consultant HACCP, France"
         canonicalUrl={window.location.origin}
       />
       <div>
@@ -29,10 +29,10 @@ export default function Home() {
             <div className="grid md:grid-cols-12 gap-12 md:gap-16 items-start">
               <div className="md:col-span-7">
                 <h1 className="text-ink mb-6">
-                  Un contrôle sanitaire ne devrait jamais fermer votre restaurant.
+                  Un contrôle sanitaire ne devrait jamais fermer votre établissement.
                 </h1>
                 <p className="text-muted text-lg leading-relaxed mb-8 max-w-[520px]">
-                  Depuis 20 ans en restauration, j'aide les restaurateurs partout en France
+                  Depuis 20 ans en restauration, on aide les professionnels partout en France
                   à passer les contrôles DDPP sans stress — ou à rattraper la situation
                   quand l'inspecteur est déjà venu.
                 </p>
@@ -66,7 +66,7 @@ export default function Home() {
         <section className="py-8">
           <div className="max-w-[1200px] mx-auto px-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-12 text-[15px]">
-              <p><strong className="text-ink">200</strong> <span className="text-muted">restaurants accompagnés</span></p>
+              <p><strong className="text-ink">200</strong> <span className="text-muted">établissements accompagnés</span></p>
               <span className="hidden md:block text-border">·</span>
               <p><strong className="text-ink">20 ans</strong> <span className="text-muted">de terrain en restauration</span></p>
               <span className="hidden md:block text-border">·</span>
@@ -90,19 +90,19 @@ export default function Home() {
                   <ServiceRow
                     number="01"
                     title="Urgence après contrôle DDPP"
-                    description="Vous venez de recevoir un rapport défavorable ou une mise en demeure. J'interviens sous 24 h pour rédiger le plan d'actions correctives et vous représenter auprès de l'administration."
+                    description="Vous venez de recevoir un rapport défavorable ou une mise en demeure. On intervient sous 24 h pour rédiger le plan d'actions correctives et vous représenter auprès de l'administration."
                     link="Services"
                   />
                   <ServiceRow
                     number="02"
                     title="Audit hygiène préventif"
-                    description="Avant qu'un inspecteur ne vienne, je réalise un audit complet de votre établissement. Vous repartez avec un rapport détaillé et des recommandations applicables immédiatement en cuisine."
+                    description="Avant qu'un inspecteur ne vienne, on réalise un audit complet de votre établissement. Vous repartez avec un rapport détaillé et des recommandations applicables immédiatement en cuisine."
                     link="Services"
                   />
                   <ServiceRow
                     number="03"
                     title="Dossiers obligatoires (PMS, CERFA, EGAlim)"
-                    description="Plan de maîtrise sanitaire, fiches de traçabilité, conformité EGAlim — je crée ou remets à jour vos documents réglementaires pour que tout soit en ordre le jour du contrôle."
+                    description="Plan de maîtrise sanitaire, fiches de traçabilité, conformité EGAlim — on crée ou remet à jour vos documents réglementaires pour que tout soit en ordre le jour du contrôle."
                     link="Services"
                   />
                 </div>
@@ -131,7 +131,7 @@ export default function Home() {
         {testimonials.length > 1 && (
           <section className="py-16 md:py-24 bg-[#faf9f6]">
             <div className="max-w-[1200px] mx-auto px-6">
-              <h2 className="text-ink text-center mb-12">Ce que disent mes clients</h2>
+              <h2 className="text-ink text-center mb-12">Ce que disent nos clients</h2>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {testimonials
                   .filter(t => t !== featured)
@@ -179,12 +179,12 @@ export default function Home() {
                   20 ans en cuisine avant de passer de l'autre côté du passe.
                 </h2>
                 <p className="text-muted text-lg leading-relaxed mb-4">
-                  Avant de créer RestOclair en 2025, j'ai passé deux décennies en restauration —
-                  du commis au chef d'établissement. Quand je recommande une procédure,
-                  je sais si elle est applicable à 6h du matin avec un service complet qui arrive.
+                  Avant de créer RestOclair en 2025, on a passé deux décennies en restauration —
+                  du commis au chef d'établissement. Quand on recommande une procédure,
+                  on sait si elle est applicable à 6h du matin avec un service complet qui arrive.
                 </p>
                 <p className="text-muted text-lg leading-relaxed mb-8">
-                  Les restaurateurs qui travaillent avec moi gardent un seul interlocuteur,
+                  Les professionnels qui travaillent avec nous gardent un seul interlocuteur,
                   joignable 7j/7, qui répond sous 2 h et qui connaît leur cuisine aussi bien qu'eux.
                 </p>
                 <Link to={createPageUrl("About")} className="link-underline text-[15px]">
