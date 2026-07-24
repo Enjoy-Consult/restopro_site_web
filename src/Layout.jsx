@@ -109,23 +109,22 @@ export default function Layout({ children, currentPageName }) {
       </main>
 
       <footer className="bg-ink" itemScope itemType="https://schema.org/ProfessionalService">
-        <div className="max-w-[1200px] mx-auto px-6 pt-16 pb-8">
-          {/* Top row */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">
+        <div className="max-w-[1200px] mx-auto px-6 pt-14 pb-8">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-10 md:gap-8">
             {/* Brand + description */}
-            <div className="md:col-span-5 flex flex-col gap-5">
-              <Link to={createPageUrl("Home")} className="flex items-center gap-2.5">
+            <div className="md:col-span-5 flex flex-col gap-4">
+              <Link to={createPageUrl("Home")} className="flex items-center gap-2.5 w-fit">
                 <img
                   src="/img_6598.jpeg"
                   alt="RestOclair"
-                  className="w-[36px] h-[36px] object-cover rounded-sm brightness-110"
+                  style={{ width: 32, height: 32, objectFit: 'cover', borderRadius: 4, flexShrink: 0 }}
                 />
                 <span className="font-serif font-semibold text-xl text-paper" itemProp="name">RestOclair</span>
               </Link>
-              <p className="text-paper/50 text-sm leading-relaxed max-w-[320px]" itemProp="description">
-                Conseil en hygiene et securite alimentaire pour les professionnels de la restauration. Intervention partout en France.
+              <p className="text-paper/50 text-sm leading-relaxed max-w-xs" itemProp="description">
+                Conseil en hygiene et securite alimentaire pour les professionnels de la restauration.
               </p>
-              <div className="flex gap-5 mt-1">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-1">
                 <a
                   href={BUSINESS.phone.href}
                   className="text-paper/70 text-sm hover:text-paper transition-colors"
@@ -158,7 +157,7 @@ export default function Layout({ children, currentPageName }) {
               </nav>
             </div>
 
-            {/* Address */}
+            {/* Address + zones */}
             <div className="md:col-span-4" itemProp="address" itemScope itemType="https://schema.org/PostalAddress">
               <p className="text-paper/40 text-xs font-medium uppercase tracking-wider mb-4">Adresse</p>
               <p className="text-paper/70 text-sm leading-relaxed">
@@ -167,15 +166,15 @@ export default function Layout({ children, currentPageName }) {
                 <span itemProp="addressLocality">{BUSINESS.address.city}</span>
               </p>
               <meta itemProp="addressCountry" content="FR" />
-              <p className="text-paper/40 text-xs font-medium uppercase tracking-wider mb-4 mt-8">Zones d'intervention</p>
-              <p className="text-paper/70 text-sm leading-relaxed">
+              <p className="text-paper/40 text-xs font-medium uppercase tracking-wider mt-6 mb-3">Intervention</p>
+              <p className="text-paper/50 text-sm leading-relaxed">
                 {BUSINESS.serviceAreas.join(" \u00B7 ")}
               </p>
             </div>
           </div>
 
           {/* Bottom bar */}
-          <div className="mt-14 pt-6 border-t border-paper/10 flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="mt-12 pt-5 border-t border-paper/10 flex flex-col md:flex-row items-center justify-between gap-3">
             <p className="text-paper/30 text-xs">
               &copy; {new Date().getFullYear()} {BUSINESS.name}
             </p>
