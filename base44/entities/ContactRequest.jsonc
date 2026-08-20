@@ -1,0 +1,103 @@
+{
+  "name": "ContactRequest",
+  "type": "object",
+  "properties": {
+    "restaurant_name": {
+      "type": "string",
+      "description": "Nom du restaurant"
+    },
+    "contact_name": {
+      "type": "string",
+      "description": "Nom du contact"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email de contact"
+    },
+    "phone": {
+      "type": "string",
+      "description": "Num\u00e9ro de t\u00e9l\u00e9phone"
+    },
+    "service_type": {
+      "type": "string",
+      "enum": [
+        "urgence_ddpp",
+        "audit_hygiene",
+        "accompagnement_administratif",
+        "autre"
+      ],
+      "description": "Type de service demand\u00e9"
+    },
+    "message": {
+      "type": "string",
+      "description": "Message d\u00e9taill\u00e9"
+    },
+    "urgency": {
+      "type": "string",
+      "enum": [
+        "urgent",
+        "normal",
+        "information"
+      ],
+      "default": "normal",
+      "description": "Niveau d'urgence"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "nouveau",
+        "en_cours",
+        "traite"
+      ],
+      "default": "nouveau",
+      "description": "Statut de la demande"
+    }
+  },
+  "required": [
+    "restaurant_name",
+    "contact_name",
+    "email",
+    "phone",
+    "service_type"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
