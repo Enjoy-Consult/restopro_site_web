@@ -108,9 +108,10 @@ export default function PolitiqueConfidentialite() {
                 identifiant technique de session.
               </li>
               <li>
-                <strong>Notifications</strong> : identifiant de notification de l'appareil, et titre et
-                texte de chaque alerte ou rappel envoyé (par exemple une température hors limites ou
-                une tâche à faire).
+                <strong>Notifications et e-mails</strong> : identifiant de notification de l'appareil,
+                adresse email, et contenu de chaque alerte, rappel ou email envoyé (par exemple une
+                température hors limites, une tâche à faire, un code de réinitialisation du mot de
+                passe).
               </li>
             </ul>
             <p className="mt-3">
@@ -218,8 +219,15 @@ export default function PolitiqueConfidentialite() {
               <li>
                 <strong>Google (Firebase Cloud Messaging)</strong>, et <strong>Apple</strong> sur
                 iPhone — acheminement des notifications. Ils reçoivent l'identifiant de notification
-                de l'appareil et le contenu de chaque notification. Désactiver les notifications dans
-                les réglages de l'appareil suffit à l'éviter.
+                de l'appareil et le contenu de chaque notification. Couper « Push » dans Mon Profil ›
+                Notifications, ou se déconnecter de l'appareil, l'évite (désactiver les notifications
+                dans les réglages du téléphone en masque l'affichage, pas l'envoi).
+              </li>
+              <li>
+                <strong>Resend</strong> — envoi des emails : notifications, codes de réinitialisation
+                du mot de passe, alertes de sécurité du compte. Resend reçoit l'adresse email et le
+                contenu du message, et traite principalement aux États-Unis. Couper « Email » dans Mon
+                Profil › Notifications arrête les emails de notification.
               </li>
               <li>
                 <strong>Google (ML Kit)</strong>, sur Android — moteur de lecture des étiquettes,
@@ -260,11 +268,11 @@ export default function PolitiqueConfidentialite() {
             <p>
               Aucun transfert de données personnelles n'est effectué en dehors de l'Union européenne
               dans le cadre du site vitrine. Pour l'application RestoClair, Google et Apple, pour les
-              notifications et, sur Android, pour le moteur de lecture des étiquettes, peuvent traiter
-              les données décrites ci-dessus hors de l'Union européenne, notamment aux États-Unis :
-              ces transferts reposent sur le cadre de protection des données UE–États-Unis
-              (<em>Data Privacy Framework</em>), auquel Google LLC et Apple Inc. ont adhéré, et sur
-              les clauses contractuelles types de la Commission européenne. Pour PMSOclair, les
+              notifications et, sur Android, pour le moteur de lecture des étiquettes, et Resend, pour
+              les emails, peuvent traiter les données décrites ci-dessus hors de l'Union européenne,
+              notamment aux États-Unis : ces transferts reposent sur le cadre de protection des données
+              UE–États-Unis (<em>Data Privacy Framework</em>), auquel Google LLC, Apple Inc. et Resend
+              ont adhéré, et sur les clauses contractuelles types de la Commission européenne. Pour PMSOclair, les
               prestataires susceptibles de traiter des données depuis un pays tiers le font sur la
               base des clauses contractuelles types de la Commission européenne.
             </p>
@@ -330,9 +338,11 @@ export default function PolitiqueConfidentialite() {
             </p>
             <p className="mt-3">
               Les applications mobiles ne contiennent aucun kit de développement publicitaire ni
-              outil d'analyse comportementale. Seules les informations techniques de fonctionnement
-              du moteur de lecture des étiquettes (Google ML Kit, sur Android), décrites plus haut,
-              sont transmises à Google.
+              outil d'analyse comportementale. Les seules données transmises à Google sont celles
+              décrites plus haut : l'identifiant de notification de l'appareil et le contenu des
+              notifications (Firebase Cloud Messaging, sur Android et sur iPhone) et, sur Android, les
+              informations techniques de fonctionnement du moteur de lecture des étiquettes (Google
+              ML Kit).
             </p>
           </section>
 
