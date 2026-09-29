@@ -26,7 +26,7 @@ export default function PolitiqueConfidentialite() {
       />
       <div className="max-w-[800px] mx-auto px-6 py-16">
         <h1 className="text-ink font-serif text-3xl mb-2">Politique de confidentialité</h1>
-        <p className="text-muted text-sm mb-8">Dernière mise à jour : 25 août 2026</p>
+        <p className="text-muted text-sm mb-8">Dernière mise à jour : 29 septembre 2026</p>
 
         <div className="space-y-8 text-muted text-[15px] leading-relaxed">
           <section>
@@ -107,7 +107,19 @@ export default function PolitiqueConfidentialite() {
                 <strong>Journal de connexion</strong> : date et heure, adresse IP, type d'appareil et
                 identifiant technique de session.
               </li>
+              <li>
+                <strong>Notifications</strong> : identifiant de notification de l'appareil, et titre et
+                texte de chaque alerte ou rappel envoyé (par exemple une température hors limites ou
+                une tâche à faire).
+              </li>
             </ul>
+            <p className="mt-3">
+              <strong>Lecture des étiquettes</strong> : quand vous photographiez l'étiquette d'un
+              produit, son texte et ses codes-barres (nom, lot, date limite, estampille sanitaire) sont
+              lus sur votre appareil pour pré-remplir la fiche. Ni la photo ni le texte lu ne sont
+              transmis pour cette lecture ; la photo n'est envoyée à nos serveurs que si vous la
+              joignez à la fiche.
+            </p>
             <p className="mt-3">
               L'application demande l'accès au <strong>réseau local et au Bluetooth</strong>
               {" "}uniquement pour détecter les imprimantes d'étiquettes présentes à proximité et leur
@@ -195,8 +207,34 @@ export default function PolitiqueConfidentialite() {
             <h3 className={H3}>Site vitrine et application RestoClair</h3>
             <ul className={UL}>
               <li>
-                <strong>OVHcloud</strong> (France) — hébergement des serveurs et de la base de
-                données. Unique sous-traitant. Aucune donnée ne quitte le territoire français.
+                <strong>OVHcloud</strong> (France) — hébergement des serveurs, de la base de données
+                et des médias. Les données enregistrées dans l'application — comptes, registres,
+                photos — restent hébergées en France.
+              </li>
+            </ul>
+
+            <h3 className={H3}>Application RestoClair : prestataires techniques de l'application mobile</h3>
+            <ul className={UL}>
+              <li>
+                <strong>Google (Firebase Cloud Messaging)</strong>, et <strong>Apple</strong> sur
+                iPhone — acheminement des notifications. Ils reçoivent l'identifiant de notification
+                de l'appareil et le contenu de chaque notification. Désactiver les notifications dans
+                les réglages de l'appareil suffit à l'éviter.
+              </li>
+              <li>
+                <strong>Google (ML Kit)</strong>, sur Android — moteur de lecture des étiquettes,
+                exécuté sur l'appareil. Google reçoit des informations techniques de fonctionnement :
+                modèle et version du système de l'appareil, version de l'application, identifiants
+                d'installation non liés à votre compte, durées de traitement, format d'image, codes
+                d'erreur. Jamais la photo ni le texte lu. Sur iPhone, la lecture utilise Apple Vision
+                et rien n'est transmis.
+              </li>
+              <li>
+                <strong>Open Food Facts</strong> (association française) — base publique de produits
+                alimentaires. Quand un code-barres de produit est lu, l'application l'interroge avec
+                ce seul numéro pour retrouver le nom, la marque et les allergènes. Aucune donnée de
+                compte n'est transmise ; comme pour toute connexion, l'adresse IP de l'appareil est
+                visible de ce serveur.
               </li>
             </ul>
 
@@ -221,7 +259,12 @@ export default function PolitiqueConfidentialite() {
             <h3 className={H3}>Transferts hors Union européenne</h3>
             <p>
               Aucun transfert de données personnelles n'est effectué en dehors de l'Union européenne
-              dans le cadre du site vitrine et de l'application RestoClair. Pour PMSOclair, les
+              dans le cadre du site vitrine. Pour l'application RestoClair, Google et Apple, pour les
+              notifications et, sur Android, pour le moteur de lecture des étiquettes, peuvent traiter
+              les données décrites ci-dessus hors de l'Union européenne, notamment aux États-Unis :
+              ces transferts reposent sur le cadre de protection des données UE–États-Unis
+              (<em>Data Privacy Framework</em>), auquel Google LLC et Apple Inc. ont adhéré, et sur
+              les clauses contractuelles types de la Commission européenne. Pour PMSOclair, les
               prestataires susceptibles de traiter des données depuis un pays tiers le font sur la
               base des clauses contractuelles types de la Commission européenne.
             </p>
@@ -287,7 +330,9 @@ export default function PolitiqueConfidentialite() {
             </p>
             <p className="mt-3">
               Les applications mobiles ne contiennent aucun kit de développement publicitaire ni
-              outil d'analyse comportementale.
+              outil d'analyse comportementale. Seules les informations techniques de fonctionnement
+              du moteur de lecture des étiquettes (Google ML Kit, sur Android), décrites plus haut,
+              sont transmises à Google.
             </p>
           </section>
 
