@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://restoclair.fr/api';
+const API_BASE_URL = 'https://restoclair.fr/php-api';
 
 export async function getBlogPosts() {
   const response = await fetch(`${API_BASE_URL}/blog.php`, {

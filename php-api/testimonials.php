@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 require_once __DIR__ . '/config.php';
 setCorsHeaders();
 
-$result = airtableRequest('Testimonials');
+$result = airtableRequest('AvisSiteWeb');
 
 if ($result['status'] !== 200) {
     http_response_code($result['status']);
