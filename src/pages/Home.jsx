@@ -112,6 +112,42 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Application RestOclair */}
+        <section className="pb-20 md:pb-28">
+          <div className="max-w-[1200px] mx-auto px-6">
+            <div className="border-t border-border pt-16 md:pt-20 grid md:grid-cols-12 gap-12 md:gap-16 items-center">
+              <div className="md:col-span-5">
+                <h2 className="text-ink mb-6">Au quotidien, l’application RestOclair.</h2>
+                <p className="text-muted text-lg leading-relaxed mb-8">
+                  Températures, traçabilité, plans de nettoyage, dossier d’inspection : votre suivi hygiène
+                  au même endroit, sur le téléphone de l’équipe. L’essai est gratuit.
+                </p>
+                <Link to="/essai-gratuit" className="btn-primary">
+                  Tester l’application
+                </Link>
+              </div>
+              <div className="md:col-span-7">
+                <figure>
+                  <div className="border border-border bg-white p-2">
+                    <div className="h-[260px] md:h-[340px] overflow-hidden">
+                      <img
+                        src="/essai/dashboard.jpg"
+                        alt="Tableau de bord de l’application RestOclair"
+                        className="w-full h-auto -mt-[30px]"
+                        style={{ filter: "none" }}
+                        loading="lazy"
+                      />
+                    </div>
+                  </div>
+                  <figcaption className="text-faint text-sm mt-3">
+                    Le tableau de bord d’un établissement dans l’application.
+                  </figcaption>
+                </figure>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Témoignages */}
         {featured && (
           <section className="bg-bottle py-20 md:py-28">

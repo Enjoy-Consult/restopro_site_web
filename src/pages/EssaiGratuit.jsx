@@ -1,9 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
-import "./EssaiGratuit.css";
+import { BUSINESS } from "@/lib/business-info";
 
-// Page d'essai gratuit — intégrée depuis la landing page créée sur restoclair.wassilah-imlak.chatgpt.site
+// Page d'essai gratuit de l'application RestOclair.
 // Formulaire : enregistrement Airtable (php-api/essai.php, table DemandesEssai) + notification email FormSubmit.
 
 const API_URL = "https://restoclair.fr/php-api/essai.php";
@@ -12,10 +12,39 @@ const IMG = "/essai";
 
 const EMPTY = { nom: "", prenom: "", entreprise: "", poste: "", telephone: "", email: "", consentement: false, _honey: "" };
 
+const CLIENTS = [
+  ["Spoon", "Golf du Touquet"],
+  ["Boucherie Bourgeois", "Boulogne-sur-Mer"],
+  ["Térèse", "Asnières"],
+  ["Paris Plage", "Le Touquet"],
+  ["Domino’s Pizza", "Carvin"],
+];
+
+const FONCTIONS = [
+  {
+    titre: "Températures, produits et traçabilité",
+    texte: "Températures, produits, traçabilité et contrôles sont suivis au même endroit, sur le téléphone de l’équipe.",
+  },
+  {
+    titre: "Nettoyage, tâches et actions correctives",
+    texte: "Plans de nettoyage, tâches du jour et actions correctives : le travail de chacun est organisé et tracé.",
+  },
+  {
+    titre: "Le dossier d’inspection",
+    texte: "Vos suivis et votre dossier d’inspection sont rangés dans l’application, prêts le jour du contrôle.",
+  },
+];
+
+const ETAPES = [
+  ["Comprendre les écarts", "On fait le point sur les observations du rapport et sur les besoins de votre établissement."],
+  ["Prioriser et réorganiser", "On définit les actions correctives, les procédures et les documents utiles, en commençant par l’urgent."],
+  ["Garder le cap", "On met en place un suivi hygiène adapté à votre équipe et à vos contraintes."],
+];
+
 export default function EssaiGratuit() {
   const [form, setForm] = useState(EMPTY);
   const [sending, setSending] = useState(false);
-  const [status, setStatus] = useState(null); // { type: 'ok' | 'error', text }
+  const [status, setStatus] = useState(null);
   const statusRef = useRef(null);
   const privacyRef = useRef(null);
 
@@ -56,7 +85,7 @@ export default function EssaiGratuit() {
       const result = await response.json().catch(() => ({}));
       if (!response.ok || result.success !== true) throw new Error("Envoi non confirmé");
 
-      // Notification email (non bloquante : la demande est déjà enregistrée dans Airtable)
+      // Notification email, non bloquante : la demande est déjà enregistrée dans Airtable
       fetch(FORMSUBMIT_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -74,15 +103,15 @@ export default function EssaiGratuit() {
         }),
       }).catch(() => {});
 
-      setStatus({ type: "ok", text: "Merci ! Votre demande a bien été envoyée. Notre équipe vous recontactera sous 24 à 48 h." });
+      setStatus({ type: "ok", text: "C’est noté. Nous vous rappelons sous 24 à 48 h pour préparer votre essai." });
       setForm(EMPTY);
     } catch (error) {
       setStatus({
         type: "error",
         text:
           error.name === "AbortError"
-            ? "L’envoi n’a pas pu être confirmé. Réessayez dans quelques instants ou contactez contact.restoclair@gmail.com."
-            : "Votre demande n’a pas pu être envoyée. Vos informations sont conservées dans le formulaire. Réessayez ou contactez contact.restoclair@gmail.com.",
+            ? `L’envoi n’a pas abouti. Réessayez dans un instant, ou appelez-nous au ${BUSINESS.phone.display}.`
+            : `Votre demande n’est pas partie. Vos informations sont toujours dans le formulaire : réessayez, ou appelez-nous au ${BUSINESS.phone.display}.`,
       });
     } finally {
       clearTimeout(timer);
@@ -91,161 +120,248 @@ export default function EssaiGratuit() {
   };
 
   return (
-    <div className="lp-essai">
+    <>
       <SEO
-        title="Testez l’application RestOclair gratuitement"
-        description="Réorganisez votre établissement après un contrôle DDPP et simplifiez votre suivi hygiène avec RestOclair. Demandez votre essai gratuit."
+        title="Essai gratuit de l’application RestOclair"
+        description="Températures, traçabilité, plans de nettoyage et dossier d’inspection dans une seule application. Demandez votre essai gratuit, nous vous rappelons sous 24 à 48 h."
         canonicalUrl="https://restoclair.fr/essai-gratuit"
       />
-      <a className="skip" href="#main">Aller au contenu</a>
 
-      <header>
-        <div className="container nav">
-          <Link className="brand" to="/" aria-label="RestOclair, accueil du site">
-            <img src={`${IMG}/logo.jpg`} alt="RestOclair" />
-          </Link>
-          <nav aria-label="Navigation principale">
-            <a href="#application">L’application</a>
-            <a href="#accompagnement">L’accompagnement</a>
-          </nav>
-          <a className="button small" href="#essai">TESTER NOTRE APP</a>
+      {/* Ouverture */}
+      <section className="pt-16 pb-20 md:pt-24 md:pb-28">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="grid md:grid-cols-12 gap-12 md:gap-16 items-start">
+            <div className="md:col-span-6">
+              <h1 className="text-ink mb-6">Le suivi hygiène de votre cuisine, dans votre poche.</h1>
+              <p className="text-muted text-lg leading-relaxed mb-8 max-w-[500px]">
+                Relevés de températures, traçabilité, nettoyage, dossier d’inspection : l’application RestOclair
+                rassemble votre suivi hygiène au même endroit, et s’adapte à l’organisation de votre établissement.
+              </p>
+              <div className="flex flex-col sm:flex-row items-start gap-4">
+                <a href="#essai" className="btn-primary">Demander un essai gratuit</a>
+                <a href={BUSINESS.phone.href} className="link-underline text-[15px] py-3">{BUSINESS.phone.display}</a>
+              </div>
+            </div>
+            <div className="md:col-span-6">
+              <figure>
+                <div className="border border-border bg-white p-2">
+                  <div className="h-[300px] md:h-[360px] overflow-hidden">
+                    <img
+                      src={`${IMG}/dashboard.jpg`}
+                      alt="Capture réelle du tableau de bord RestOclair : score hygiène, températures, tâches et alertes."
+                      className="w-full h-auto -mt-[30px]"
+                      style={{ filter: "none" }}
+                      fetchpriority="high"
+                    />
+                  </div>
+                </div>
+                <figcaption className="text-faint text-sm mt-3">
+                  Le tableau de bord d’un établissement : score hygiène, températures, tâches du jour.
+                </figcaption>
+              </figure>
+            </div>
+          </div>
         </div>
-      </header>
+      </section>
 
-      <main id="main">
-        <section className="hero container">
-          <div className="hero-copy">
-            <span className="eyebrow">L’HYGIÈNE, EN TOUTE CLARTÉ</span>
-            <h1>Moins de complexité.<br />Plus de <span>sérénité.</span></h1>
-            <p>Du contrôle DDPP au suivi quotidien, RestOclair vous aide à reprendre la main sur l’hygiène de votre établissement.</p>
-            <a className="button" href="#essai">TESTER NOTRE APP</a>
-            <div className="hero-note"><span className="check">✓</span> Essai gratuit · Une équipe à vos côtés</div>
-          </div>
-          <div className="hero-visual">
-            <div className="visual-caption">
-              <span className="mini-mark">✓</span>
-              <span>Votre établissement.<br /><strong>Une vue d’ensemble claire.</strong></span>
-            </div>
-            <div className="screen">
-              <img src={`${IMG}/dashboard.jpg`} alt="Capture réelle du tableau de bord RestOclair : score hygiène, températures, tâches et alertes." fetchpriority="high" />
-            </div>
-            <div className="visual-label">L’application RestOclair <span>Au plus près du terrain</span></div>
-          </div>
-        </section>
+      {/* Ils l'utilisent */}
+      <hr className="rule" />
+      <section className="py-8">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <p className="text-[15px] leading-relaxed">
+            <span className="text-faint">Déjà en place chez </span>
+            {CLIENTS.map(([nom, lieu], i) => (
+              <span key={nom}>
+                <strong className="text-ink font-medium">{nom}</strong>
+                <span className="text-muted"> ({lieu})</span>
+                {i < CLIENTS.length - 2 ? <span className="text-muted">, </span> : i === CLIENTS.length - 2 ? <span className="text-muted"> et </span> : <span className="text-muted">.</span>}
+              </span>
+            ))}
+          </p>
+        </div>
+      </section>
+      <hr className="rule" />
 
-        <section className="trust">
-          <div className="container">
-            <p className="eyebrow">DES ÉTABLISSEMENTS DÉJÀ ACCOMPAGNÉS</p>
-            <div className="partners">
-              <div><strong>Spoon</strong><span>Restaurant du Golf du Touquet</span></div>
-              <div><strong>Boucherie Bourgeois</strong><span>Boulogne-sur-Mer</span></div>
-              <div><strong>Térèse</strong><span>Asnières</span></div>
-              <div><strong>Paris Plage</strong><span>Le Touquet</span></div>
-              <div><strong>Domino’s Pizza</strong><span>Carvin</span></div>
+      {/* L'application */}
+      <section id="application" className="py-20 md:py-28">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="grid md:grid-cols-12 gap-12 md:gap-16">
+            <div className="md:col-span-4">
+              <h2 className="text-ink">Ce que l’application fait pour vous au quotidien.</h2>
+            </div>
+            <div className="md:col-span-8">
+              <div className="divide-y divide-border border-t border-border">
+                {FONCTIONS.map((f) => (
+                  <div key={f.titre} className="py-8">
+                    <h3 className="text-ink font-sans font-semibold text-[22px] mb-3">{f.titre}</h3>
+                    <p className="text-muted leading-relaxed">{f.texte}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-        </section>
 
-        <section id="application" className="container section">
-          <div className="section-heading">
-            <span className="eyebrow">SIMPLE AU QUOTIDIEN</span>
-            <h2>Votre suivi hygiène.<br />Enfin au même endroit.</h2>
-            <p>Une application claire, adaptée à votre organisation et ajustable aux défis de votre établissement.</p>
-          </div>
-          <div className="features">
-            <article><span className="icon turquoise">°C</span><h3>Suivre l’essentiel</h3><p>Températures, produits, traçabilité et contrôles : gardez une vue claire sur votre activité.</p></article>
-            <article><span className="icon violet">✓</span><h3>Organiser les actions</h3><p>Plans de nettoyage, tâches et actions correctives : structurez le travail au quotidien.</p></article>
-            <article><span className="icon green">≡</span><h3>Centraliser vos documents</h3><p>Retrouvez vos suivis et votre dossier d’inspection dans un même espace.</p></article>
-          </div>
-          <div className="app-gallery">
-            <figure className="phone-picture">
-              <img src={`${IMG}/telephone.jpg`} alt="L’icône RestOclair sur l’écran d’un téléphone." loading="lazy" />
-              <figcaption>RestOclair, à portée de main.</figcaption>
+          <div className="grid md:grid-cols-2 gap-8 mt-16">
+            <figure>
+              <img
+                src={`${IMG}/telephone.jpg`}
+                alt="L’icône RestOclair sur l’écran d’un téléphone."
+                className="w-full h-[280px] md:h-[320px] object-cover"
+                style={{ filter: "none" }}
+                loading="lazy"
+              />
+              <figcaption className="text-faint text-sm mt-3">Installée sur le téléphone de l’équipe.</figcaption>
             </figure>
-            <figure className="modules-picture">
-              <div className="module-crop">
-                <img src={`${IMG}/modules.jpg`} alt="Menu de l’application RestOclair : produits, réceptions, températures, contrôles et dossier d’inspection." loading="lazy" />
+            <figure>
+              <div className="h-[280px] md:h-[320px] overflow-hidden bg-white border border-border">
+                <img
+                  src={`${IMG}/modules.jpg`}
+                  alt="Menu de l’application RestOclair : produits, réceptions, températures, contrôles et dossier d’inspection."
+                  className="w-full -translate-y-[25px]"
+                  style={{ filter: "none" }}
+                  loading="lazy"
+                />
               </div>
-              <figcaption>Des outils adaptés à votre terrain.</figcaption>
+              <figcaption className="text-faint text-sm mt-3">Produits, réceptions, températures, contrôles, dossier d’inspection.</figcaption>
             </figure>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="accompagnement" className="support">
-          <div className="container support-grid">
-            <div>
-              <span className="eyebrow">UNE ÉQUIPE À VOS CÔTÉS</span>
-              <h2>Un contrôle DDPP ?<br />Avancez avec un plan clair.</h2>
-              <p>Après un contrôle, nous vous aidons à réorganiser rapidement et efficacement votre établissement. Puis l’application prend le relais pour simplifier le suivi.</p>
-              <a className="text-link" href="#essai">Parlons de votre établissement</a>
+      {/* Après un contrôle */}
+      <section id="accompagnement" className="bg-bottle py-20 md:py-28">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="grid md:grid-cols-12 gap-12 md:gap-16">
+            <div className="md:col-span-5">
+              <h2 className="text-bottle-text mb-6">Vous sortez d’un contrôle DDPP difficile ?</h2>
+              <p className="text-bottle-muted text-lg leading-relaxed">
+                L’application seule ne suffit pas toujours. Après un contrôle, nous vous aidons d’abord à
+                réorganiser l’établissement. Ensuite, l’application prend le relais pour simplifier le suivi.
+              </p>
             </div>
-            <ol>
-              <li><span>01</span><div><h3>Comprendre les écarts</h3><p>Faire le point sur les observations et les besoins de votre établissement.</p></div></li>
-              <li><span>02</span><div><h3>Prioriser et réorganiser</h3><p>Définir les actions correctives, les procédures et les documents utiles.</p></div></li>
-              <li><span>03</span><div><h3>Garder le cap</h3><p>Mettre en place un suivi hygiène adapté à votre équipe et à vos contraintes.</p></div></li>
-            </ol>
-          </div>
-        </section>
-
-        <section id="essai" className="container section trial">
-          <div className="trial-copy">
-            <span className="eyebrow">À VOUS DE TESTER</span>
-            <h2>Faites place<br />à un suivi<br /><span>plus clair.</span></h2>
-            <p>Demandez votre essai gratuit de l’application. Nous vous recontactons sous <strong>24 à 48 h</strong> pour échanger sur vos besoins et vous accompagner dans la prise en main.</p>
-            <div className="trial-note"><span className="check">✓</span> Une configuration adaptée à votre établissement</div>
-            <a className="contact" href="mailto:contact.restoclair@gmail.com">contact.restoclair@gmail.com</a>
-          </div>
-
-          <div className="form-card">
-            <h3>Tester gratuitement</h3>
-            <p>Parlez-nous un peu de vous.</p>
-            <form id="trial-form" onSubmit={onSubmit} noValidate={false}>
-              <div className="form-grid">
-                <label>Nom <span>*</span><input name="nom" value={form.nom} onChange={update} autoComplete="family-name" maxLength={100} required /></label>
-                <label>Prénom <span>*</span><input name="prenom" value={form.prenom} onChange={update} autoComplete="given-name" maxLength={100} required /></label>
-                <label>Entreprise <span>*</span><input name="entreprise" value={form.entreprise} onChange={update} autoComplete="organization" maxLength={150} required /></label>
-                <label>Poste occupé <span>*</span><input name="poste" value={form.poste} onChange={update} autoComplete="organization-title" maxLength={150} required /></label>
-                <label>Numéro de téléphone <span>*</span><input name="telephone" type="tel" value={form.telephone} onChange={update} autoComplete="tel" minLength={6} maxLength={30} required /></label>
-                <label>Adresse e-mail <span>*</span><input name="email" type="email" value={form.email} onChange={update} autoComplete="email" maxLength={254} required /></label>
+            <div className="md:col-span-7">
+              <div className="divide-y divide-[#2f6650] border-t border-[#2f6650]">
+                {ETAPES.map(([titre, texte], i) => (
+                  <div key={titre} className="py-7 flex items-start gap-6">
+                    <span className="font-serif text-bottle-muted text-2xl leading-none mt-1 shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                    <div>
+                      <h3 className="text-bottle-text font-sans font-semibold text-[20px] mb-2">{titre}</h3>
+                      <p className="text-bottle-muted leading-relaxed">{texte}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <div className="honey" aria-hidden="true">
-                <label>Ne pas remplir<input name="_honey" value={form._honey} onChange={update} tabIndex={-1} autoComplete="off" /></label>
-              </div>
-              <label className="consent">
-                <input type="checkbox" name="consentement" checked={form.consentement} onChange={update} required />
-                <span>J’accepte que RestOclair utilise mes coordonnées pour me recontacter au sujet de mon essai gratuit. <a href="#confidentialite" onClick={openPrivacy}>En savoir plus sur mes données</a>.</span>
-              </label>
-              <button className="button submit" type="submit" disabled={sending}>{sending ? "Envoi en cours…" : "Tester gratuitement"}</button>
-              <p className="required-note">* Tous les champs sont obligatoires.</p>
-              {status && (
-                <p id="form-status" ref={statusRef} role="status" tabIndex={-1} className={status.type === "error" ? "error" : ""}>{status.text}</p>
-              )}
-            </form>
+            </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section id="confidentialite" className="container privacy">
-          <details ref={privacyRef}>
-            <summary>Confidentialité et données personnelles</summary>
-            <div>
-              <p>RestOclair utilise les informations du formulaire uniquement pour traiter votre demande d’essai et vous recontacter, sur la base de votre consentement. Les champs sont obligatoires pour traiter cette demande.</p>
-              <p>Les données sont enregistrées dans l’espace de gestion sécurisé de RestOclair (Airtable). Une notification est également transmise à l’équipe RestOclair par FormSubmit, prestataire d’envoi, puis reçue dans sa messagerie Gmail. Consultez la <a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer">politique de confidentialité de FormSubmit</a>. Les données sont conservées le temps de traiter votre demande ; si un accompagnement débute, les conditions de conservation vous seront précisées à cette occasion.</p>
-              <p>Vous pouvez retirer votre consentement et demander l’accès, la rectification, l’effacement ou la limitation du traitement de vos données, ainsi que leur portabilité lorsque ce droit s’applique, en écrivant à <a href="mailto:contact.restoclair@gmail.com">contact.restoclair@gmail.com</a>. Vous pouvez aussi adresser une réclamation à la <a href="https://www.cnil.fr/fr/adresser-une-plainte" target="_blank" rel="noopener noreferrer">CNIL</a>.</p>
-              <p>Pour en savoir plus, consultez notre <Link to="/PolitiqueConfidentialite">politique de confidentialité</Link>.</p>
+      {/* Formulaire */}
+      <section id="essai" className="py-20 md:py-28 scroll-mt-20">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <div className="grid md:grid-cols-12 gap-12 md:gap-16 items-start">
+            <div className="md:col-span-5">
+              <h2 className="text-ink mb-6">Essayez-la dans votre établissement.</h2>
+              <p className="text-muted text-lg leading-relaxed mb-4">
+                L’essai est gratuit. Laissez vos coordonnées : nous vous rappelons sous 24 à 48 h pour parler
+                de votre cuisine et configurer l’application avec vous.
+              </p>
+              <p className="text-muted leading-relaxed">
+                Vous préférez appeler ?{" "}
+                <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>
+                <br />
+                Par email :{" "}
+                <a href="mailto:contact.restoclair@gmail.com" className="link-underline">contact.restoclair@gmail.com</a>
+              </p>
+            </div>
+
+            <div className="md:col-span-7">
+              <form onSubmit={onSubmit} className="border-t border-border pt-8">
+                <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
+                  <Champ label="Nom" name="nom" value={form.nom} onChange={update} autoComplete="family-name" maxLength={100} />
+                  <Champ label="Prénom" name="prenom" value={form.prenom} onChange={update} autoComplete="given-name" maxLength={100} />
+                  <Champ label="Établissement" name="entreprise" value={form.entreprise} onChange={update} autoComplete="organization" maxLength={150} />
+                  <Champ label="Votre poste" name="poste" value={form.poste} onChange={update} autoComplete="organization-title" maxLength={150} />
+                  <Champ label="Téléphone" name="telephone" type="tel" value={form.telephone} onChange={update} autoComplete="tel" minLength={6} maxLength={30} />
+                  <Champ label="Email" name="email" type="email" value={form.email} onChange={update} autoComplete="email" maxLength={254} />
+                </div>
+
+                <div className="absolute -left-[9999px]" aria-hidden="true">
+                  <label>Ne pas remplir<input name="_honey" value={form._honey} onChange={update} tabIndex={-1} autoComplete="off" /></label>
+                </div>
+
+                <label className="flex items-start gap-3 mt-6 text-sm text-muted leading-relaxed">
+                  <input
+                    type="checkbox"
+                    name="consentement"
+                    checked={form.consentement}
+                    onChange={update}
+                    required
+                    className="mt-1 w-4 h-4 shrink-0 accent-[#1c4b38]"
+                  />
+                  <span>
+                    J’accepte que RestOclair utilise ces coordonnées pour me recontacter au sujet de l’essai.{" "}
+                    <a href="#confidentialite" onClick={openPrivacy} className="link-underline">Ce que vous faites de mes données</a>
+                  </span>
+                </label>
+
+                <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
+                  <button type="submit" className="btn-primary disabled:opacity-60 disabled:cursor-wait" disabled={sending}>
+                    {sending ? "Envoi…" : "Demander mon essai"}
+                  </button>
+                  <span className="text-faint text-sm">Tous les champs sont nécessaires pour vous rappeler.</span>
+                </div>
+
+                {status && (
+                  <p
+                    ref={statusRef}
+                    role="status"
+                    tabIndex={-1}
+                    className={`mt-6 px-4 py-3 text-[15px] border-l-2 ${status.type === "error" ? "border-[#8a2424] text-[#8a2424] bg-[#fbefed]" : "border-bottle text-bottle bg-[#eaf0ea]"}`}
+                  >
+                    {status.text}
+                  </p>
+                )}
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Confidentialité */}
+      <section id="confidentialite" className="pb-20">
+        <div className="max-w-[1200px] mx-auto px-6">
+          <details ref={privacyRef} className="border-t border-border pt-6 text-sm text-faint">
+            <summary className="cursor-pointer text-muted">Vos données personnelles</summary>
+            <div className="max-w-[820px] pt-4 space-y-3 leading-relaxed">
+              <p>Les informations du formulaire servent uniquement à traiter votre demande d’essai et à vous recontacter, sur la base de votre consentement.</p>
+              <p>Elles sont enregistrées dans l’outil de gestion de RestOclair (Airtable). Une notification est aussi envoyée à l’équipe par FormSubmit, puis reçue dans sa messagerie Gmail (<a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer" className="underline">politique de confidentialité de FormSubmit</a>). Elles sont conservées le temps de traiter votre demande ; si un accompagnement commence, les conditions de conservation vous seront précisées.</p>
+              <p>Vous pouvez retirer votre consentement et demander l’accès, la rectification, l’effacement ou la limitation de vos données, ainsi que leur portabilité, en écrivant à <a href="mailto:contact.restoclair@gmail.com" className="underline">contact.restoclair@gmail.com</a>. Vous pouvez aussi saisir la <a href="https://www.cnil.fr/fr/adresser-une-plainte" target="_blank" rel="noopener noreferrer" className="underline">CNIL</a>.</p>
+              <p>Voir aussi notre <Link to="/PolitiqueConfidentialite" className="underline">politique de confidentialité</Link>.</p>
             </div>
           </details>
-        </section>
-      </main>
-
-      <footer>
-        <div className="container">
-          <Link className="brand" to="/" aria-label="RestOclair, accueil du site">
-            <img src={`${IMG}/logo.jpg`} alt="RestOclair" loading="lazy" />
-          </Link>
-          <span>L’hygiène, en toute clarté.</span>
-          <a href="#confidentialite" onClick={openPrivacy}>Confidentialité</a>
         </div>
-      </footer>
+      </section>
+    </>
+  );
+}
+
+function Champ({ label, name, type = "text", value, onChange, ...rest }) {
+  return (
+    <div>
+      <label htmlFor={`essai-${name}`} className="block text-faint text-sm mb-2">
+        {label}<span className="text-bottle ml-0.5">*</span>
+      </label>
+      <input
+        id={`essai-${name}`}
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        required
+        className="w-full border border-border bg-paper px-4 py-3 text-ink text-[15px] focus:outline-none focus:border-bottle"
+        {...rest}
+      />
     </div>
   );
 }
