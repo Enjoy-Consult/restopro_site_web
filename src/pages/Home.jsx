@@ -128,18 +128,18 @@ export default function Home() {
               </div>
               <div className="md:col-span-7">
                 <figure>
-                  <div className="border border-border bg-white p-2">
-                    <div className="h-[260px] md:h-[340px] overflow-hidden">
+                  <div className="border border-border bg-white p-2 max-w-[300px] mx-auto">
+                    <div className="h-[460px] md:h-[520px] overflow-hidden">
                       <img
                         src="/essai/dashboard.jpg"
                         alt="Tableau de bord de l’application RestOclair"
-                        className="w-full h-auto -mt-[30px]"
+                        className="w-full h-auto"
                         style={{ filter: "none" }}
                         loading="lazy"
                       />
                     </div>
                   </div>
-                  <figcaption className="text-faint text-sm mt-3">
+                  <figcaption className="text-faint text-sm mt-3 text-center">
                     Le tableau de bord d’un établissement dans l’application.
                   </figcaption>
                 </figure>

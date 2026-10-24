@@ -144,18 +144,18 @@ export default function EssaiGratuit() {
             </div>
             <div className="md:col-span-6">
               <figure>
-                <div className="border border-border bg-white p-2">
-                  <div className="h-[300px] md:h-[360px] overflow-hidden">
+                <div className="border border-border bg-white p-2 max-w-[300px] mx-auto">
+                  <div className="h-[460px] md:h-[520px] overflow-hidden">
                     <img
                       src={`${IMG}/dashboard.jpg`}
                       alt="Capture réelle du tableau de bord RestOclair : score hygiène, températures, tâches et alertes."
-                      className="w-full h-auto -mt-[30px]"
+                      className="w-full h-auto"
                       style={{ filter: "none" }}
                       fetchpriority="high"
                     />
                   </div>
                 </div>
-                <figcaption className="text-faint text-sm mt-3">
+                <figcaption className="text-faint text-sm mt-3 text-center">
                   Le tableau de bord d’un établissement : score hygiène, températures, tâches du jour.
                 </figcaption>
               </figure>
