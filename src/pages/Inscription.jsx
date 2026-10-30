@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import SEO from "@/components/SEO";
+import Etapes from "@/components/billing/Etapes";
 import Message from "@/components/billing/Message";
 import Recapitulatif from "@/components/billing/Recapitulatif";
 import { BUSINESS } from "@/lib/business-info";
@@ -21,14 +22,14 @@ const VIDE = {
 const INDISPONIBLE = "Le service est momentanément indisponible. Réessayez dans quelques minutes.";
 
 const CLASSE_CHAMP =
-  "w-full border bg-paper px-4 py-3 text-ink text-[15px] focus:outline-none focus:border-bottle disabled:opacity-60";
+  "w-full border bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
 
 function Champ({ label, name, valeur, erreur, onChange, aide, facultatif, type = "text", ...props }) {
   const id = `champ-${name}`;
   const decrit = [aide && `${id}-aide`, erreur && `${id}-erreur`].filter(Boolean).join(" ") || undefined;
   return (
     <div>
-      <label htmlFor={id} className="block text-faint text-sm mb-2">
+      <label htmlFor={id} className="block text-muted text-[14px] mb-2">
         {label}
         {facultatif && <span className="text-faint"> (facultatif)</span>}
       </label>
@@ -249,12 +250,14 @@ export default function Inscription() {
         noindex
       />
 
-      <section className="pt-14 pb-20 md:pt-20 md:pb-28">
-        <div className="max-w-[1200px] mx-auto px-6">
-          <h1 className="text-ink mb-4">Créez votre compte.</h1>
-          <p className="text-muted text-lg leading-relaxed mb-10 max-w-[560px]">
+      <section className="pt-12 pb-20 md:pt-20 md:pb-28">
+        <div className="max-w-[1200px] mx-auto px-5 md:px-6">
+          <p className="text-bottle text-[12px] font-medium uppercase tracking-[0.14em] mb-5">Inscription</p>
+          <h1 className="text-ink mb-5">Créez votre compte.</h1>
+          <p className="text-muted text-[17px] md:text-lg leading-relaxed mb-7 max-w-[560px]">
             Quelques informations sur vous et sur votre établissement, puis vous passez au paiement sécurisé.
           </p>
+          <div className="mb-12 md:mb-14"><Etapes courant={2} /></div>
 
           <div className="grid md:grid-cols-12 gap-10 md:gap-16 items-start">
             <aside className="md:col-span-5 md:col-start-8 md:row-start-1 md:sticky md:top-24" aria-label="Récapitulatif de votre formule">
@@ -274,7 +277,7 @@ export default function Inscription() {
                 <div className="border-t border-border pt-8">
                   <Message type="error">{sessionExpiree}</Message>
                   {URL_MON_COMPTE && (
-                    <a href={URL_MON_COMPTE} className="btn-primary mt-6">Accéder à mon espace</a>
+                    <a href={URL_MON_COMPTE} className="btn-primary mt-6 w-full sm:w-auto text-center">Accéder à mon espace</a>
                   )}
                 </div>
               ) : session ? (
@@ -284,7 +287,7 @@ export default function Inscription() {
                   </Message>
                   {erreurGenerale && <Message type="error" className="mt-4">{erreurGenerale}</Message>}
                   <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-4">
-                    <button type="button" className="btn-primary disabled:opacity-60 disabled:cursor-wait" disabled={envoi} aria-busy={envoi} onClick={reprendrePaiement}>
+                    <button type="button" className="btn-primary w-full sm:w-auto text-center disabled:opacity-60 disabled:cursor-wait" disabled={envoi} aria-busy={envoi} onClick={reprendrePaiement}>
                       {envoi ? "Redirection…" : "Passer au paiement"}
                     </button>
                     <button type="button" onClick={autreCompte} disabled={envoi} className="link-underline text-[15px] text-left">
@@ -294,8 +297,8 @@ export default function Inscription() {
                 </div>
               ) : (
                 <form onSubmit={soumettre} noValidate className="border-t border-border pt-8">
-                  <fieldset className="mb-10">
-                    <legend className="text-ink font-sans font-semibold text-[18px] mb-5">Le responsable du compte</legend>
+                  <fieldset className="mb-12">
+                    <legend className="text-ink font-serif text-[24px] mb-6">Le responsable du compte</legend>
                     <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
                       <Champ label="Prénom" name="prenom" valeur={valeurs.prenom} erreur={erreurs.prenom} onChange={modifier} autoComplete="given-name" maxLength={100} />
                       <Champ label="Nom" name="nom" valeur={valeurs.nom} erreur={erreurs.nom} onChange={modifier} autoComplete="family-name" maxLength={100} />
@@ -308,7 +311,7 @@ export default function Inscription() {
                   </fieldset>
 
                   <fieldset className="mb-8">
-                    <legend className="text-ink font-sans font-semibold text-[18px] mb-5">L’établissement</legend>
+                    <legend className="text-ink font-serif text-[24px] mb-6">L’établissement</legend>
                     <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
                       <Champ label="Nom commercial" name="nomCommercial" valeur={valeurs.nomCommercial} erreur={erreurs.nomCommercial} onChange={modifier} autoComplete="organization" maxLength={150} />
                       <Champ label="Raison sociale" name="raisonSociale" valeur={valeurs.raisonSociale} erreur={erreurs.raisonSociale} onChange={modifier} maxLength={150} />
@@ -351,7 +354,7 @@ export default function Inscription() {
                   {erreurGenerale && <Message type="error" className="mt-6">{erreurGenerale}</Message>}
 
                   <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
-                    <button type="submit" className="btn-primary disabled:opacity-60 disabled:cursor-wait" disabled={envoi} aria-busy={envoi}>
+                    <button type="submit" className="btn-primary w-full sm:w-auto text-center disabled:opacity-60 disabled:cursor-wait" disabled={envoi} aria-busy={envoi}>
                       {envoi ? "Envoi en cours…" : "Créer mon compte et payer"}
                     </button>
                     <span className="text-faint text-sm">Besoin d’aide ? {BUSINESS.phone.display}</span>

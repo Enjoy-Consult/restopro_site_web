@@ -5,9 +5,9 @@ import { formatHTParPeriode, formatMontant, formatPourcentage, libellePeriode } 
 export default function Recapitulatif({ calcul, tvaPourcentage }) {
   const periode = libellePeriode(calcul.periode);
   return (
-    <div className="bg-white border border-border p-6">
-      <p className="text-faint text-sm mb-1">Formule choisie</p>
-      <h2 className="text-ink font-serif text-[28px] leading-tight">{calcul.offre.nom}</h2>
+    <div className="bg-white ring-1 ring-border p-6 md:p-7">
+      <p className="text-faint text-[12px] uppercase tracking-[0.08em] mb-2">Votre formule</p>
+      <h2 className="text-ink font-serif text-[32px] leading-tight">{calcul.offre.nom}</h2>
       <p className="text-muted text-[15px] mt-1">{calcul.version.libelle}</p>
 
       <ul className="mt-5 pt-4 border-t border-border text-[15px] flex flex-col gap-1.5">

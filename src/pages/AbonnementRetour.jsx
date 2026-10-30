@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import SEO from "@/components/SEO";
+import Etapes from "@/components/billing/Etapes";
 import { getCatalogue, getCompte } from "@/lib/billing/api";
 import { APP_STORE_URL, PLAY_STORE_URL, URL_MON_COMPTE } from "@/lib/billing/config";
 import { traiterSessionExpiree } from "@/lib/billing/erreurs";
@@ -15,6 +16,24 @@ const TITRES = {
   provisoire: "Votre prélèvement est en cours de validation.",
   delai: "Confirmation en cours.",
 };
+
+function Pastille({ phase }) {
+  const base = "w-14 h-14 rounded-full flex items-center justify-center mb-7";
+  if (phase === "attente")
+    return (
+      <span className={`${base} border border-border`} aria-hidden="true">
+        <span className="w-6 h-6 border-2 border-border border-t-bottle rounded-full animate-spin" />
+      </span>
+    );
+  const chemin = phase === "actif" ? "M5 12.5l4.5 4.5L19 7.5" : phase === "provisoire" ? "M12 6.5V12l3.5 2" : "M12 7v6M12 16.5v.5";
+  return (
+    <span className={`${base} ${phase === "actif" ? "bg-bottle text-bottle-text" : "bg-[#eaf0ea] text-bottle"}`} aria-hidden="true">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
+        <path d={chemin} />
+      </svg>
+    </span>
+  );
+}
 
 export default function AbonnementRetour() {
   const [etat, setEtat] = useState({ phase: "attente" });
@@ -74,16 +93,17 @@ export default function AbonnementRetour() {
         noindex
       />
 
-      <section className="pt-16 pb-24 md:pt-24 md:pb-32">
-        <div className="max-w-[760px] mx-auto px-6">
+      <section className="pt-12 pb-24 md:pt-20 md:pb-32">
+        <div className="max-w-[640px] mx-auto px-5 md:px-6">
+          <div className="mb-12"><Etapes courant={3} /></div>
           <div aria-live="polite">
-            <h1 className="text-ink mb-6">{TITRES[phase]}</h1>
+            <Pastille phase={phase} />
+            <h1 className="text-ink mb-5 text-[clamp(2rem,5vw,3rem)]">{TITRES[phase]}</h1>
 
             {phase === "attente" && (
-              <div className="flex items-center gap-3 text-muted text-lg" role="status">
-                <span className="w-5 h-5 border-2 border-border border-t-ink rounded-full animate-spin" aria-hidden="true" />
+              <p className="text-muted text-lg leading-relaxed" role="status">
                 Merci de patienter quelques instants.
-              </div>
+              </p>
             )}
 
             {phase === "actif" && (
@@ -122,9 +142,9 @@ export default function AbonnementRetour() {
 
           {(APP_STORE_URL || PLAY_STORE_URL || URL_MON_COMPTE) && (
             <>
-          <hr className="rule my-10" />
+          <hr className="rule my-12" />
 
-          <h2 className="text-ink text-[24px] mb-5">Installez l’application</h2>
+          <h2 className="text-ink text-[24px] mb-5">{APP_STORE_URL || PLAY_STORE_URL ? "Installez l’application" : "Votre espace client"}</h2>
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
             {APP_STORE_URL && (
               <a href={APP_STORE_URL} className={lien} target="_blank" rel="noopener noreferrer">
@@ -137,7 +157,7 @@ export default function AbonnementRetour() {
               </a>
             )}
             {URL_MON_COMPTE && (
-              <a href={URL_MON_COMPTE} className="btn-primary text-center">
+              <a href={URL_MON_COMPTE} className="btn-primary text-center order-first sm:order-none">
                 Accéder à mon espace
               </a>
             )}
