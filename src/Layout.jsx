@@ -46,10 +46,10 @@ export default function Layout({ children, currentPageName }) {
 
             <div className="hidden md:flex items-center gap-4">
               <a
-                href="tel:0680952589"
+                href="tel:0777752605"
                 className="text-[15px] font-medium text-bottle hover:text-bottle-hover transition-colors"
               >
-                06 80 95 25 89
+                07 77 75 26 05
               </a>
               <Link
                 to={createPageUrl("Contact")}
@@ -98,10 +98,10 @@ export default function Layout({ children, currentPageName }) {
             </nav>
             <hr className="rule my-4" />
             <a
-              href="tel:0680952589"
+              href="tel:0777752605"
               className="text-[17px] font-medium text-bottle"
             >
-              06 80 95 25 89
+              07 77 75 26 05
             </a>
           </div>
         )}

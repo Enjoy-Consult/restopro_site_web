@@ -8,9 +8,9 @@ export const BUSINESS = {
   url: "https://restoclair.fr",
   email: "contact@restoclair.fr",
   phone: {
-    display: "06 80 95 25 89",
-    href: "tel:+33680952589",
-    e164: "+33680952589",
+    display: "07 77 75 26 05",
+    href: "tel:+33777752605",
+    e164: "+33777752605",
   },
   address: {
     streetAddress: "10 Avenue du Général de Gaulle",
