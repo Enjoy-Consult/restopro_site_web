@@ -25,7 +25,7 @@ const QUESTIONS = [
   {
     question: "Puis-je ajouter des comptes supplémentaires ?",
     reponse:
-      "Oui, à tout moment depuis votre espace client. Le prix de chaque compte supplémentaire est indiqué dans chaque formule.",
+      "Oui : vous les choisissez lors de l’inscription, puis vous pouvez en ajouter à tout moment depuis votre espace client. Leur prix figure dans le détail de chaque formule.",
   },
   {
     question: "Que sont les équipiers ?",
@@ -112,7 +112,7 @@ export default function Tarifs() {
     <>
       <SEO
         title="Tarifs de l’application RestOclair"
-        description="Trois formules pour le suivi hygiène de votre établissement : Essentiel, Sérénité et Expert. Prix HT, comptes inclus, modules et configurateur en direct."
+        description="Formules Essentiel, Sérénité et Expert : prix HT et TTC, comptes inclus et modules. Comptes supplémentaires au choix à l’inscription."
         canonicalUrl="https://restoclair.fr/tarifs"
       />
 

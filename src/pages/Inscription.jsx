@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link, Navigate, useLocation } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import SEO from "@/components/SEO";
+import AjoutComptes from "@/components/billing/AjoutComptes";
 import Etapes from "@/components/billing/Etapes";
 import Message from "@/components/billing/Message";
 import Recapitulatif from "@/components/billing/Recapitulatif";
 import { BUSINESS } from "@/lib/business-info";
 import { ApiError, getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
-import { calculer, selectionDepuisQuery, selectionVersCheckout } from "@/lib/billing/pricing";
+import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
 import { traiterSessionExpiree } from "@/lib/billing/erreurs";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
 import { nettoyerSiret, validerInscription } from "@/lib/billing/validation";
@@ -66,6 +67,7 @@ function suivre(url) {
 
 export default function Inscription() {
   const { search } = useLocation();
+  const navigate = useNavigate();
   const { data: catalogue, isPending, isError, refetch } = useQuery({
     queryKey: ["billing", "catalogue"],
     queryFn: getCatalogue,
@@ -80,6 +82,8 @@ export default function Inscription() {
   const [erreurGenerale, setErreurGenerale] = useState(null);
   const [erreurRecap, setErreurRecap] = useState(null);
   const [sessionExpiree, setSessionExpiree] = useState(null);
+  // null : ouvert seulement si des comptes ou l'option sont déjà choisis.
+  const [ajoutsOuverts, setAjoutsOuverts] = useState(null);
   const envoiEnCours = useRef(false);
   const recapRef = useRef(null);
 
@@ -108,6 +112,15 @@ export default function Inscription() {
   const selection = selectionDepuisQuery(search, catalogue);
   if (!selection) return <Navigate to="/tarifs" replace />;
   const calcul = calculer(catalogue, selection);
+  const ouvrirAjouts = ajoutsOuverts ?? nombreAjouts(selection) > 0;
+
+  // Le choix vit dans l'URL : « Modifier mon choix », un rechargement ou un retour de Stripe le retrouvent.
+  const changerSelection = (nouvelle) => {
+    if (!calculer(catalogue, nouvelle).ok) return;
+    setAjoutsOuverts((o) => o ?? true); // le panneau reste ouvert pendant qu'on s'en sert, même à 0 ajout
+    setErreurRecap(null);
+    navigate({ search: `?${selectionVersQuery(nouvelle)}` }, { replace: true });
+  };
 
   const modifier = (e) => {
     const { name, type, value, checked } = e.target;
@@ -122,14 +135,19 @@ export default function Inscription() {
   // Les erreurs de l'API qui concernent le choix de formule ramènent au récapitulatif.
   const expliquerChoix = (erreur) => {
     const libelle = (cle) => catalogue.categories.find((c) => c.cle === cle)?.libelle?.toLowerCase() ?? cle;
+    // « 2 cuisiniers », « 1 responsable », « 2 services techniques »
+    const quantite = (cle, n) => {
+      const mot = libelle(cle);
+      return `${n} ${n > 1 && !mot.endsWith("s") ? `${mot}s` : mot}`;
+    };
     switch (erreur.code) {
       case "ROLE_NON_AUTORISE_POUR_OFFRE":
-        return `La formule ${calcul.offre.nom} n’accepte pas les comptes « ${libelle(erreur.detail?.categorie ?? "")} ». Modifiez votre choix pour continuer.`;
+        return `La formule ${calcul.offre.nom} n’accepte pas les comptes « ${libelle(erreur.detail?.categorie ?? "")} ». Retirez-les ci-dessus ou modifiez votre choix.`;
       case "COMPTES_INSUFFISANTS": {
         const requis = Object.entries(erreur.detail?.requis ?? {})
-          .map(([cle, n]) => `${n} ${libelle(cle)}`)
+          .map(([cle, n]) => quantite(cle, n))
           .join(", ");
-        return `Les comptes de votre choix ne suffisent pas${requis ? ` : il en faut au moins ${requis}` : ""}. Modifiez votre choix pour continuer.`;
+        return `Les comptes de votre choix ne suffisent pas${requis ? ` : il en faut au moins ${requis}` : ""}. Ajoutez-les ci-dessus pour continuer.`;
       }
       case "OFFRE_INVALIDE":
       case "VERSION_INDISPONIBLE":
@@ -150,7 +168,10 @@ export default function Inscription() {
       if (messageExpiree) {
         setSession(null);
         setSessionExpiree(messageExpiree);
-      } else if (explication) setErreurRecap({ texte: explication });
+      } else if (explication) {
+        setErreurRecap({ texte: explication });
+        if (erreur.code === "ROLE_NON_AUTORISE_POUR_OFFRE" || erreur.code === "COMPTES_INSUFFISANTS") setAjoutsOuverts(true);
+      }
       else if (erreur.code === "ABONNEMENT_DEJA_ACTIF")
         setErreurGenerale("Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace.");
       else setErreurGenerale(INDISPONIBLE);
@@ -260,13 +281,24 @@ export default function Inscription() {
           <div className="mb-12 md:mb-14"><Etapes courant={2} /></div>
 
           <div className="grid md:grid-cols-12 gap-10 md:gap-16 items-start">
-            <aside className="md:col-span-5 md:col-start-8 md:row-start-1 md:sticky md:top-24" aria-label="Récapitulatif de votre formule">
-              {erreurRecap && (
-                <Message type="error" ref={recapRef} tabIndex={-1} className="mb-4">
-                  {erreurRecap.texte}
-                </Message>
-              )}
-              <Recapitulatif calcul={calcul} tvaPourcentage={catalogue.tvaPourcentage} />
+            <aside className="md:col-span-5 md:col-start-8 md:row-start-1" aria-label="Récapitulatif de votre formule">
+              <Recapitulatif calcul={calcul} tvaPourcentage={catalogue.tvaPourcentage}>
+                <AjoutComptes
+                  catalogue={catalogue}
+                  calcul={calcul}
+                  selection={selection}
+                  onChange={changerSelection}
+                  ouvert={ouvrirAjouts}
+                  onBasculer={() => setAjoutsOuverts(!ouvrirAjouts)}
+                  desactive={envoi}
+                />
+                {/* Sous les réglages : quand il disparaît, les boutons +/− ne bougent pas. */}
+                {erreurRecap && (
+                  <Message type="error" ref={recapRef} tabIndex={-1} className="mt-4">
+                    {erreurRecap.texte}
+                  </Message>
+                )}
+              </Recapitulatif>
               <p className="mt-4 text-[15px]">
                 <Link to={`/tarifs${search}`} className="link-underline">Modifier mon choix</Link>
               </p>

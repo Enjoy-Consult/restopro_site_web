@@ -2,7 +2,9 @@ import React from "react";
 import { formatHTParPeriode, formatMontant, formatPourcentage, libellePeriode } from "@/lib/billing/format";
 
 // Récapitulatif d'une formule et de son total (résultat de `calculer`).
-export default function Recapitulatif({ calcul, tvaPourcentage }) {
+// `children` (choix des comptes supplémentaires) s'affiche au-dessus des lignes : en ajouter allonge
+// la liste en dessous, sans déplacer les boutons sous le pointeur.
+export default function Recapitulatif({ calcul, tvaPourcentage, children }) {
   const periode = libellePeriode(calcul.periode);
   return (
     <div className="bg-white ring-1 ring-border p-6 md:p-7">
@@ -10,7 +12,9 @@ export default function Recapitulatif({ calcul, tvaPourcentage }) {
       <h2 className="text-ink font-serif text-[32px] leading-tight">{calcul.offre.nom}</h2>
       <p className="text-muted text-[15px] mt-1">{calcul.version.libelle}</p>
 
-      <ul className="mt-5 pt-4 border-t border-border text-[15px] flex flex-col gap-1.5">
+      {children}
+
+      <ul className="mt-4 pt-4 border-t border-border text-[15px] flex flex-col gap-1.5">
         {calcul.lignes.map((ligne) => (
           <li key={`${ligne.type}-${ligne.categorie ?? ligne.libelle}`} className="flex justify-between gap-4">
             <span className="text-muted">
@@ -21,7 +25,7 @@ export default function Recapitulatif({ calcul, tvaPourcentage }) {
         ))}
       </ul>
 
-      <dl className="mt-4 pt-4 border-t border-border text-[15px]">
+      <dl className="mt-4 pt-4 border-t border-border text-[15px]" aria-live="polite" aria-atomic="true">
         <div className="flex justify-between gap-4 py-0.5">
           <dt className="text-muted">Total HT/{periode}</dt>
           <dd className="text-ink font-medium">{formatMontant(calcul.totalHTCentimes)}</dd>

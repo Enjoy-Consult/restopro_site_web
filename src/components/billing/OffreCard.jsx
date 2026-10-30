@@ -1,19 +1,19 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import Compteur from "@/components/billing/Compteur";
 import {
-  formatHT,
+  calculerTTC,
   formatHTParPeriode,
   formatMontant,
   formatPourcentage,
   libellePeriode,
 } from "@/lib/billing/format";
 import {
-  calculer,
+  categoriesSupplementaires,
   modulesAffichage,
   pmsDeVersion,
   remiseAnnuelle,
   selectionParDefaut,
+  restreindreAjouts,
   selectionVersQuery,
   versionsDisponibles,
 } from "@/lib/billing/pricing";
@@ -44,14 +44,9 @@ function Ligne({ label, children }) {
 export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, initiale = null, indice = 0 }) {
   const versions = useMemo(() => versionsDisponibles(catalogue, offre), [catalogue, offre]);
   const [selection, setSelection] = useState(() => initiale ?? selectionParDefaut(catalogue, offre));
-  // Un seul menu déroulant ouvert à la fois : null | "perso" | "detail".
-  const [panneau, setPanneau] = useState(() => {
-    const aDesSupplements = initiale && (Object.values(initiale.comptesSupplementaires).some((n) => n > 0) || initiale.options.ddpp);
-    return aDesSupplements ? "perso" : null;
-  });
+  const [detailOuvert, setDetailOuvert] = useState(false);
 
   const version = versions.find((v) => v.cle === selection.version) ?? versions[0];
-  const calcul = useMemo(() => calculer(catalogue, selection), [catalogue, selection]);
   const remise = remiseAnnuelle(offre, catalogue);
   const modules = modulesAffichage(catalogue, offre, precedente);
   // Même quand ils sont identiques à la formule précédente, la liste complète reste consultable.
@@ -68,27 +63,15 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
   const inclus = catalogue.categories
     .filter((c) => (offre.comptesInclus[c.cle] ?? 0) > 0)
     .map((c) => libelleComptes(c.libelle, offre.comptesInclus[c.cle]));
-  const supplements = catalogue.categories.filter(
-    (c) => version.prixCompteSupplementaireCentimes?.[c.cle] !== undefined && offre.categoriesAutorisees.includes(c.cle)
-  );
+  const supplements = categoriesSupplementaires(catalogue, offre, version);
   const prixMiniSupplement = Math.min(...supplements.map((c) => version.prixCompteSupplementaireCentimes[c.cle]));
-  const nbSupplements =
-    Object.values(selection.comptesSupplementaires).reduce((somme, n) => somme + n, 0) + (selection.options.ddpp ? 1 : 0);
+  // Les comptes et l'option se choisissent à l'inscription ; ceux d'un aller-retour depuis
+  // l'inscription (« Modifier mon choix ») sont transmis tant que la version choisie les propose.
+  const lien = `/inscription?${selectionVersQuery(restreindreAjouts(catalogue, selection))}`;
 
-  const choisirVersion = (cle) => setSelection((s) => ({ ...s, version: cle, options: { ddpp: false } }));
-  const changerCompte = (categorie, n) =>
-    setSelection((s) => ({ ...s, comptesSupplementaires: { ...s.comptesSupplementaires, [categorie]: n } }));
-
+  const choisirVersion = (cle) => setSelection((s) => ({ ...s, version: cle }));
   const prixHT = formatMontant(version.prixBaseCentimes);
-  
-  const basculer = (nom) => setPanneau((courant) => (courant === nom ? null : nom));
-  const bouton =
-    "min-w-0 flex items-center justify-center gap-1.5 px-1.5 py-3.5 text-[13px] lg:text-[14px] text-ink font-medium hover:bg-[#faf9f3] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-bottle";
-  const chevron = (ouvert) => (
-    <svg aria-hidden="true" width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" className={`text-bottle shrink-0 transition-transform duration-300 ${ouvert ? "rotate-180" : ""}`}>
-      <path d="M2.5 5l4.5 4.5L11.5 5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  const prixTTC = formatMontant(calculerTTC(version.prixBaseCentimes, catalogue.tvaPourcentage));
 
   return (
     <article
@@ -113,6 +96,7 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
           <span className="font-serif text-[34px] leading-none tracking-tight tabular-nums">{prixHT}</span>
           <span className="text-muted text-[14px]">HT/{periode}</span>
         </p>
+        <p className="text-faint text-[13px] mt-1 tabular-nums">soit {prixTTC} TTC/{periode}</p>
         <p className="text-muted text-[13px] leading-snug mt-2.5">
           <span className="text-ink font-medium">Inclus : </span>
           {inclus.join(", ")}
@@ -160,59 +144,29 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
         )}
       </div>
 
-      {/* 3. Menus déroulants : personnaliser / détail de la formule */}
+      {/* 3. Détail de la formule, à la demande */}
       <div className="border-t border-[#ece8d9]">
-        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] divide-x divide-[#ece8d9]">
-          <button type="button" className={bouton} aria-expanded={panneau === "perso"} aria-controls={`${id}-perso`} onClick={() => basculer("perso")}>
-            <span aria-hidden="true" className="hidden lg:inline">Personnaliser</span>
-            <span aria-hidden="true" className="lg:hidden">Options</span>
-            <span className="sr-only">Personnaliser</span>
-            {nbSupplements > 0 && <span className="bg-bottle text-bottle-text text-[11px] font-medium px-1.5 py-0.5 rounded-full">+{nbSupplements}</span>}
-            {chevron(panneau === "perso")}
-          </button>
-          <button type="button" className={bouton} aria-expanded={panneau === "detail"} aria-controls={`${id}-detail`} onClick={() => basculer("detail")}>
-            Détail
-            {chevron(panneau === "detail")}
-          </button>
-        </div>
+        <button
+          type="button"
+          aria-expanded={detailOuvert}
+          aria-controls={`${id}-detail`}
+          onClick={() => setDetailOuvert((o) => !o)}
+          className="w-full flex items-center justify-center gap-2 px-3 py-3.5 text-[14px] text-ink font-medium hover:bg-[#faf9f3] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-bottle"
+        >
+          Détail de la formule<span className="sr-only"> {offre.nom}</span>
+          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" className={`text-bottle shrink-0 transition-transform duration-300 ${detailOuvert ? "rotate-180" : ""}`}>
+            <path d="M2.5 5l4.5 4.5L11.5 5" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
+        </button>
 
-        {panneau === "perso" && (
-          <div id={`${id}-perso`} role="region" aria-label={`Personnaliser la formule ${offre.nom}`} className="px-5 lg:px-7 pt-4 pb-5 border-t border-[#ece8d9]">
-            <p className="text-faint text-[13px] mb-4">Comptes supplémentaires{offre.fonctions.ddpp === "option" ? " et option" : ""}</p>
-            <div className="flex flex-col gap-4">
-              {supplements.map((c) => (
-                <Compteur
-                  key={c.cle}
-                  id={`${id}-${c.cle}`}
-                  libelle={c.libelle}
-                  detail={`+${formatHT(version.prixCompteSupplementaireCentimes[c.cle])}/${periode}`}
-                  valeur={selection.comptesSupplementaires[c.cle] ?? 0}
-                  onChange={(n) => changerCompte(c.cle, n)}
-                />
-              ))}
-
-              {offre.fonctions.ddpp === "option" && optionDdpp && (
-                <label className="flex items-start gap-3 text-[15px] text-ink cursor-pointer pt-3 border-t border-[#ece8d9]">
-                  <input
-                    type="checkbox"
-                    checked={selection.options.ddpp}
-                    onChange={(e) => setSelection((s) => ({ ...s, options: { ddpp: e.target.checked } }))}
-                    className="mt-0.5 w-[18px] h-[18px] shrink-0 accent-[#1c4b38]"
-                  />
-                  <span>
-                    {optionDdpp.libelle}
-                    <span className="block text-faint text-[13px] mt-0.5">+{formatHTParPeriode(optionDdpp.prixCentimes, "mois")}</span>
-                  </span>
-                </label>
-              )}
-            </div>
-          </div>
-        )}
-
-        {panneau === "detail" && (
+        {detailOuvert && (
           <div id={`${id}-detail`} role="region" aria-label={`Détail de la formule ${offre.nom}`} className="px-5 lg:px-7 pt-4 pb-5 border-t border-[#ece8d9]">
             <dl>
-              <Ligne label="Comptes supplémentaires">dès {formatHTParPeriode(prixMiniSupplement, version.periode)}</Ligne>
+              {supplements.length > 0 && (
+                <Ligne label="Comptes supplémentaires">
+                  dès {formatHTParPeriode(prixMiniSupplement, version.periode)}, à ajouter à l’étape suivante
+                </Ligne>
+              )}
               {offre.fonctions.accesOrdinateur && <Ligne label="Accès sur ordinateur">Inclus</Ligne>}
               <Ligne label="Assistance DDPP niveau 1">
                 {offre.fonctions.ddpp === "incluse" && "Incluse"}
@@ -241,30 +195,16 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
         )}
       </div>
 
-      {/* 4. Total et choix */}
-      <footer className="mt-auto flex flex-col border-t border-[#ece8d9] px-5 lg:px-7 pt-3.5 pb-4 bg-[#fbfaf5]">
-        {calcul.ok && (
-          <div aria-live="polite">
-            <p className="flex flex-wrap items-baseline justify-between gap-x-3 tabular-nums">
-              <span className="text-ink text-[14px] font-medium whitespace-nowrap">Total TTC/{periode}</span>
-              <span className="text-ink font-semibold text-[20px] whitespace-nowrap">{formatMontant(calcul.totalTTCCentimes)}</span>
-            </p>
-            <p className="text-faint text-[12px] leading-snug mt-1 tabular-nums">
-              {formatMontant(calcul.totalHTCentimes)} HT + {formatMontant(calcul.tvaCentimes)} de TVA {formatPourcentage(catalogue.tvaPourcentage)}
-            </p>
-          </div>
-        )}
-
-        <div className="mt-auto pt-3">
-          <Link
-            to={`/inscription?${selectionVersQuery(selection)}`}
-            className={`block w-full text-center py-2.5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bottle ${
-              miseEnAvant ? "bg-bottle text-bottle-text hover:bg-bottle-hover" : "bg-white text-bottle ring-1 ring-bottle hover:bg-bottle hover:text-bottle-text"
-            }`}
-          >
-            Choisir {offre.nom}
-          </Link>
-        </div>
+      {/* 4. Choix */}
+      <footer className="mt-auto border-t border-[#ece8d9] px-5 lg:px-7 py-4 bg-[#fbfaf5]">
+        <Link
+          to={lien}
+          className={`block w-full text-center py-2.5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bottle ${
+            miseEnAvant ? "bg-bottle text-bottle-text hover:bg-bottle-hover" : "bg-white text-bottle ring-1 ring-bottle hover:bg-bottle hover:text-bottle-text"
+          }`}
+        >
+          Choisir {offre.nom}
+        </Link>
       </footer>
     </article>
   );

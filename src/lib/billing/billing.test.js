@@ -193,3 +193,40 @@ test("jeton expiré : même traitement sur 403 ; les autres erreurs ne touchent 
   assert.ok(traiterSessionExpiree(new ApiError("ACTION_NON_AUTORISEE", 403)));
   assert.equal(lireSession(), null);
 });
+
+test("comptes supplémentaires proposés : catégories autorisées et tarifées de la version", async () => {
+  const { categoriesSupplementaires } = await import("./pricing.js");
+  const [ess, ser, exp] = catalogue.offres;
+  assert.deepEqual(categoriesSupplementaires(catalogue, ess, ess.versions[0]).map((c) => c.cle), ["responsable", "cuisinier", "services_techniques"]);
+  assert.deepEqual(categoriesSupplementaires(catalogue, ser, ser.versions.find((v) => v.cle === "annuel")).map((c) => c.cle), ["responsable", "superviseur", "cuisinier", "services_techniques"]);
+  assert.equal(categoriesSupplementaires(catalogue, exp, exp.versions[0]).length, 4);
+});
+
+test("nombre d'ajouts et sélection sans ajouts", async () => {
+  const { nombreAjouts, sansAjouts } = await import("./pricing.js");
+  const sel = { offre: "expert", version: "mensuel", comptesSupplementaires: { cuisinier: 2, superviseur: 1 }, options: { ddpp: true } };
+  assert.equal(nombreAjouts(sel), 4);
+  assert.equal(nombreAjouts({ offre: "essentiel", version: "mensuel", comptesSupplementaires: {}, options: { ddpp: false } }), 0);
+  const nu = sansAjouts(sel);
+  assert.deepEqual(nu, { offre: "expert", version: "mensuel", comptesSupplementaires: {}, options: { ddpp: false } });
+  assert.equal(calculer(catalogue, nu).totalHTCentimes, 9900);
+  assert.deepEqual(sel.comptesSupplementaires, { cuisinier: 2, superviseur: 1 });
+});
+
+test("restreindreAjouts : garde ce que la version propose, retire le reste", async () => {
+  const { restreindreAjouts } = await import("./pricing.js");
+  // Expert mensuel -> engagé (PMS disponible) : l'option DDPP et les comptes restent valables.
+  const expert = { offre: "expert", version: "mensuel_engage", comptesSupplementaires: { cuisinier: 2 }, options: { ddpp: true } };
+  assert.deepEqual(restreindreAjouts(cataloguePms, expert), expert);
+  // Sans PMS, la version engagée n'existe pas : tout est retiré.
+  assert.deepEqual(restreindreAjouts(catalogue, expert).comptesSupplementaires, {});
+  // Catégorie non proposée par l'Essentiel et option absente : retirées, le reste est gardé.
+  const essentiel = { offre: "essentiel", version: "mensuel", comptesSupplementaires: { superviseur: 1, cuisinier: 1, responsable: 0 }, options: { ddpp: true } };
+  assert.deepEqual(restreindreAjouts(catalogue, essentiel), {
+    offre: "essentiel", version: "mensuel", comptesSupplementaires: { cuisinier: 1 }, options: { ddpp: false },
+  });
+  assert.equal(calculer(catalogue, restreindreAjouts(catalogue, essentiel)).ok, true);
+  // Quantités hors bornes retirées.
+  const exces = { offre: "serenite", version: "annuel", comptesSupplementaires: { cuisinier: 999, superviseur: 1.5 }, options: {} };
+  assert.deepEqual(restreindreAjouts(catalogue, exces).comptesSupplementaires, {});
+});
