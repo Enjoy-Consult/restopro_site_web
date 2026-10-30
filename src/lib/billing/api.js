@@ -25,7 +25,7 @@ async function requete(methode, chemin, { corps, token } = {}) {
   }
   if (!API_URL) throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE");
 
-  const headers = { "Content-Type": "application/json", "X-Client-Platform": "site" };
+  const headers = { "Content-Type": "application/json", "X-Client-Type": "web" };
   if (token) headers[EN_TETE_AUTH] = `${SCHEMA_AUTH} ${token}`;
 
   const controleur = new AbortController();

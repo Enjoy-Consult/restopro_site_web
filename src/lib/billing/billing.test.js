@@ -14,6 +14,7 @@ import {
   pmsDeVersion,
 } from "./pricing.js";
 import { mockCatalogue } from "./mock.js";
+import { extraireJetonRestreint } from "./jeton.js";
 
 const plat = (texte) => texte.replace(/[  ]/g, " ");
 const catalogue = mockCatalogue(false);
@@ -145,4 +146,11 @@ test("paramètres d'URL absents ou invalides -> null", () => {
   assert.equal(selectionDepuisQuery("offre=essentiel&version=mensuel&comptes=superviseur:1", catalogue), null);
   assert.equal(selectionDepuisQuery("offre=essentiel&version=mensuel&comptes=cuisinier:abc", catalogue), null);
   assert.equal(selectionDepuisQuery("offre=essentiel&version=mensuel&comptes=cuisinier:999", catalogue), null);
+});
+
+test("jeton de l'inscription : champ restreint prioritaire, repli sur token, sinon null", () => {
+  assert.equal(extraireJetonRestreint({ tokenRestreint: "r", token: "t" }), "r");
+  assert.equal(extraireJetonRestreint({ token: "t", restaurantId: "r1" }), "t");
+  assert.equal(extraireJetonRestreint({ restaurantId: "r1" }), null);
+  assert.equal(extraireJetonRestreint(null), null);
 });
