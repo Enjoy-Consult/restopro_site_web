@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import SEO from "@/components/SEO";
 import { getCatalogue, getCompte } from "@/lib/billing/api";
 import { APP_STORE_URL, PLAY_STORE_URL, URL_MON_COMPTE } from "@/lib/billing/config";
+import { traiterSessionExpiree } from "@/lib/billing/erreurs";
 import { effacerSession, lireSession } from "@/lib/billing/session";
 
 const INTERVALLE_MS = 2000;
@@ -45,7 +46,7 @@ export default function AbonnementRetour() {
         if (compte.statut === "activation_provisoire") return terminer("provisoire", compte);
       } catch (erreur) {
         if (arrete) return;
-        if (erreur.status === 401 || erreur.status === 403) return setEtat({ phase: "delai", sansJeton: true });
+        if (traiterSessionExpiree(erreur)) return setEtat({ phase: "delai", sansJeton: true });
       }
       if (Date.now() - debut >= DUREE_MAX_MS) return setEtat({ phase: "delai" });
       minuteur = setTimeout(interroger, INTERVALLE_MS);

@@ -146,3 +146,50 @@ test("paramètres d'URL absents ou invalides -> null", () => {
   assert.equal(selectionDepuisQuery("offre=essentiel&version=mensuel&comptes=cuisinier:abc", catalogue), null);
   assert.equal(selectionDepuisQuery("offre=essentiel&version=mensuel&comptes=cuisinier:999", catalogue), null);
 });
+
+// --- Jeton expiré : message vers l'espace client, jeton supprimé de sessionStorage ---
+function faussePageSession() {
+  const stockage = new Map();
+  globalThis.window = {
+    sessionStorage: {
+      getItem: (cle) => (stockage.has(cle) ? stockage.get(cle) : null),
+      setItem: (cle, valeur) => stockage.set(cle, String(valeur)),
+      removeItem: (cle) => stockage.delete(cle),
+    },
+  };
+  return stockage;
+}
+
+test("jeton expiré (401) : message vers l'espace client et jeton supprimé de sessionStorage", async () => {
+  const stockage = faussePageSession();
+  const { ecrireSession, lireSession } = await import("./session.js");
+  const { traiterSessionExpiree, MESSAGE_SESSION_EXPIREE } = await import("./erreurs.js");
+  const { ApiError } = await import("./errors.js");
+
+  ecrireSession({ token: "jeton-expire", email: "marie@exemple.fr" });
+  assert.equal(stockage.size, 1);
+
+  const message = traiterSessionExpiree(new ApiError("ACTION_NON_AUTORISEE", 401));
+  assert.equal(message, "Votre session a expiré. Connectez-vous à votre espace pour finaliser votre abonnement.");
+  assert.equal(message, MESSAGE_SESSION_EXPIREE);
+  assert.equal(stockage.size, 0);
+  assert.equal(lireSession(), null);
+  assert.ok(!/recr|créez/i.test(message));
+});
+
+test("jeton expiré : même traitement sur 403 ; les autres erreurs ne touchent pas au jeton", async () => {
+  const stockage = faussePageSession();
+  const { ecrireSession, lireSession } = await import("./session.js");
+  const { traiterSessionExpiree } = await import("./erreurs.js");
+  const { ApiError } = await import("./errors.js");
+
+  ecrireSession({ token: "jeton-valide", email: "marie@exemple.fr" });
+  assert.equal(traiterSessionExpiree(new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503)), null);
+  assert.equal(traiterSessionExpiree(new ApiError("RESEAU")), null);
+  assert.equal(traiterSessionExpiree(new ApiError("COMPTES_INSUFFISANTS", 422)), null);
+  assert.equal(lireSession().token, "jeton-valide");
+  assert.equal(stockage.size, 1);
+
+  assert.ok(traiterSessionExpiree(new ApiError("ACTION_NON_AUTORISEE", 403)));
+  assert.equal(lireSession(), null);
+});

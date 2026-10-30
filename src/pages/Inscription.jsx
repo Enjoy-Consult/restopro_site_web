@@ -8,6 +8,7 @@ import { BUSINESS } from "@/lib/business-info";
 import { ApiError, getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
 import { calculer, selectionDepuisQuery, selectionVersCheckout } from "@/lib/billing/pricing";
+import { traiterSessionExpiree } from "@/lib/billing/erreurs";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
 import { nettoyerSiret, validerInscription } from "@/lib/billing/validation";
 
@@ -77,6 +78,7 @@ export default function Inscription() {
   const [envoi, setEnvoi] = useState(false);
   const [erreurGenerale, setErreurGenerale] = useState(null);
   const [erreurRecap, setErreurRecap] = useState(null);
+  const [sessionExpiree, setSessionExpiree] = useState(null);
   const envoiEnCours = useRef(false);
   const recapRef = useRef(null);
 
@@ -142,15 +144,15 @@ export default function Inscription() {
       if (suivre(url)) return; // la page se quitte : le bouton reste désactivé
       setErreurGenerale(INDISPONIBLE);
     } catch (erreur) {
-      const explication = expliquerChoix(erreur);
-      if (explication) setErreurRecap({ texte: explication });
+      const messageExpiree = traiterSessionExpiree(erreur);
+      const explication = messageExpiree ? null : expliquerChoix(erreur);
+      if (messageExpiree) {
+        setSession(null);
+        setSessionExpiree(messageExpiree);
+      } else if (explication) setErreurRecap({ texte: explication });
       else if (erreur.code === "ABONNEMENT_DEJA_ACTIF")
         setErreurGenerale("Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace.");
-      else if (erreur.status === 401 || erreur.status === 403) {
-        effacerSession();
-        setSession(null);
-        setErreurGenerale("Votre session a expiré. Créez de nouveau votre compte pour continuer.");
-      } else setErreurGenerale(INDISPONIBLE);
+      else setErreurGenerale(INDISPONIBLE);
     }
     setEnvoi(false);
     envoiEnCours.current = false;
@@ -268,7 +270,14 @@ export default function Inscription() {
             </aside>
 
             <div className="md:col-span-7 md:row-start-1">
-              {session ? (
+              {sessionExpiree ? (
+                <div className="border-t border-border pt-8">
+                  <Message type="error">{sessionExpiree}</Message>
+                  {URL_MON_COMPTE && (
+                    <a href={URL_MON_COMPTE} className="btn-primary mt-6">Accéder à mon espace</a>
+                  )}
+                </div>
+              ) : session ? (
                 <div className="border-t border-border pt-8">
                   <Message type="info">
                     Votre compte est créé pour <strong>{session.email}</strong>. Il reste à régler votre abonnement.
