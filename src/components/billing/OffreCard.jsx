@@ -35,14 +35,14 @@ function libelleComptes(libelle, n) {
 function Depliant({ titre, indice, defaultOpen = false, children }) {
   return (
     <details open={defaultOpen} className="group border-t border-border">
-      <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-6 py-3.5 text-[15px] text-ink font-medium hover:bg-[#f6f4ec] focus-visible:outline focus-visible:outline-2 focus-visible:outline-bottle">
+      <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-4 lg:px-6 py-3.5 text-[15px] text-ink font-medium hover:bg-[#f6f4ec] focus-visible:outline focus-visible:outline-2 focus-visible:outline-bottle">
         <span>
           {titre}
           {indice && <span className="ml-2 bg-bottle text-bottle-text text-[12px] font-medium px-2 py-0.5 align-middle">{indice}</span>}
         </span>
         <span aria-hidden="true" className="text-bottle text-xl leading-none group-open:rotate-45 transition-transform">+</span>
       </summary>
-      <div className="px-6 pb-5">{children}</div>
+      <div className="px-4 lg:px-6 pb-5">{children}</div>
     </details>
   );
 }
@@ -78,17 +78,17 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
   return (
     <article
       aria-labelledby={`${id}-nom`}
-      className={`relative flex flex-col bg-white ${miseEnAvant ? "border-2 border-bottle" : "border border-border"}`}
+      className={`relative flex flex-col bg-white shrink-0 basis-[82%] snap-center min-[620px]:basis-auto ${miseEnAvant ? "border-2 border-bottle" : "border border-border"}`}
     >
       {miseEnAvant && (
-        <span className="absolute -top-3 left-6 bg-bottle text-bottle-text text-[12px] font-medium tracking-wide px-3 py-1">
+        <span className="absolute -top-3 left-4 lg:left-6 bg-bottle text-bottle-text text-[12px] font-medium tracking-wide px-3 py-1">
           Le plus choisi
         </span>
       )}
 
-      <div className="p-6">
+      <div className="p-4 lg:p-6">
         <h2 id={`${id}-nom`} className="text-ink mb-3">{offre.nom}</h2>
-        <p className="text-ink font-serif text-[32px] leading-none">{formatHTParPeriode(version.prixBaseCentimes, version.periode)}</p>
+        <p className="text-ink font-serif text-[24px] lg:text-[32px] leading-none">{formatHTParPeriode(version.prixBaseCentimes, version.periode)}</p>
         <p className="text-faint text-[14px] mt-2">{formatTTCParPeriode(calculerTTC(version.prixBaseCentimes, catalogue.tvaPourcentage), version.periode)}</p>
 
         {versions.length > 1 && (
@@ -126,7 +126,7 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
         )}
       </div>
 
-      <ul className="flex flex-col gap-2 px-6 pb-5 text-[15px] text-muted leading-relaxed">
+      <ul className="flex flex-col gap-2 px-4 lg:px-6 pb-5 text-[15px] text-muted leading-relaxed">
         <li>
           <strong className="text-ink font-medium">Comptes inclus : </strong>
           {inclus.join(", ")}
@@ -200,7 +200,7 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
         </div>
       </Depliant>
 
-      <div className="mt-auto border-t border-border p-6 bg-[#fbfaf5]">
+      <div className="mt-auto border-t border-border p-4 lg:p-6 bg-[#fbfaf5]">
         {calcul.ok && (
           <dl className="text-[15px]" aria-live="polite">
             <div className="flex justify-between gap-4 py-0.5">

@@ -110,7 +110,12 @@ export default function Tarifs() {
           )}
 
           {catalogue && (
-            <div className="grid md:grid-cols-3 gap-10 md:gap-6 items-stretch pt-3">
+            <div
+              role="region"
+              aria-label="Les trois formules"
+              tabIndex={0}
+              className="flex gap-4 overflow-x-auto snap-x snap-mandatory pt-4 pb-4 -mx-6 px-6 min-[620px]:grid min-[620px]:grid-cols-3 min-[620px]:gap-4 lg:gap-6 min-[620px]:overflow-visible min-[620px]:mx-0 min-[620px]:px-0 items-stretch focus-visible:outline focus-visible:outline-2 focus-visible:outline-bottle"
+            >
               {catalogue.offres.map((offre, i) => (
                 <OffreCard
                   key={offre.cle}
