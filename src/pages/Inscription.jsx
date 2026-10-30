@@ -7,7 +7,6 @@ import Recapitulatif from "@/components/billing/Recapitulatif";
 import { BUSINESS } from "@/lib/business-info";
 import { ApiError, getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
-import { extraireJetonRestreint } from "@/lib/billing/jeton";
 import { calculer, selectionDepuisQuery, selectionVersCheckout } from "@/lib/billing/pricing";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
 import { nettoyerSiret, validerInscription } from "@/lib/billing/validation";
@@ -182,7 +181,7 @@ export default function Inscription() {
       if (valeurs.ligne2.trim()) adresse.ligne2 = valeurs.ligne2.trim();
 
       const email = valeurs.email.trim();
-      const reponse = await inscrire({
+      const { token } = await inscrire({
         responsable: { prenom: valeurs.prenom.trim(), nom: valeurs.nom.trim(), email, motDePasse: valeurs.motDePasse },
         restaurant: {
           nomCommercial: valeurs.nomCommercial.trim(),
@@ -192,7 +191,6 @@ export default function Inscription() {
         },
         cgvAcceptees: true,
       });
-      const token = extraireJetonRestreint(reponse);
       if (!token) throw new ApiError("ERREUR_INCONNUE");
       const nouvelle = { token, email };
       ecrireSession(nouvelle);

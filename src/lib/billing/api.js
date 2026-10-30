@@ -6,7 +6,7 @@ import { ApiError } from "./errors.js";
 export { ApiError };
 
 const DELAI_MAX_MS = 15000;
-// En-tête d'authentification : à confirmer avec le chantier Apirest (jeton existant).
+// Jeton restreint de l'inscription (champ `token`), valable 2 h, envoyé seulement sur /checkout et /compte.
 const EN_TETE_AUTH = "Authorization";
 const SCHEMA_AUTH = "Bearer";
 
