@@ -265,7 +265,7 @@ export default function Inscription() {
               )}
               <Recapitulatif calcul={calcul} tvaPourcentage={catalogue.tvaPourcentage} />
               <p className="mt-4 text-[15px]">
-                <Link to="/tarifs" className="link-underline">Modifier mon choix</Link>
+                <Link to={`/tarifs${search}`} className="link-underline">Modifier mon choix</Link>
               </p>
             </aside>
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import SEO from "@/components/SEO";
 import Message from "@/components/billing/Message";
@@ -7,6 +7,7 @@ import OffreCard from "@/components/billing/OffreCard";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
+import { selectionDepuisQuery } from "@/lib/billing/pricing";
 
 const QUESTIONS = [
   {
@@ -51,6 +52,7 @@ function Chargement() {
 
 export default function Tarifs() {
   const [params] = useSearchParams();
+  const { search } = useLocation();
   const annule = params.get("paiement") === "annule";
   const { data: catalogue, isPending, isError, refetch, isFetching } = useQuery({
     queryKey: ["billing", "catalogue"],
@@ -58,6 +60,9 @@ export default function Tarifs() {
     retry: 1,
     staleTime: 5 * 60 * 1000,
   });
+
+  // Retour depuis /inscription (« Modifier mon choix ») : on retrouve la configuration choisie.
+  const choixPrecedent = catalogue ? selectionDepuisQuery(search, catalogue) : null;
 
   return (
     <>
@@ -74,6 +79,14 @@ export default function Tarifs() {
             Choisissez la formule, ajoutez les comptes dont vous avez besoin et voyez le total tout de suite.
             Les équipiers sont illimités et gratuits.
           </p>
+          <ol className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-8 text-[15px] text-muted" aria-label="Les étapes">
+            {["Choisir votre formule", "Créer votre compte", "Payer en ligne"].map((etape, i) => (
+              <li key={etape} className="flex items-center gap-3">
+                <span aria-hidden="true" className={`w-7 h-7 flex items-center justify-center text-[13px] font-medium border ${i === 0 ? "bg-bottle text-bottle-text border-bottle" : "border-border text-faint"}`}>{i + 1}</span>
+                <span className={i === 0 ? "text-ink font-medium" : ""}>{etape}</span>
+              </li>
+            ))}
+          </ol>
         </div>
       </section>
 
@@ -97,7 +110,7 @@ export default function Tarifs() {
           )}
 
           {catalogue && (
-            <div className="grid md:grid-cols-3 gap-8 md:gap-6 items-stretch pt-3">
+            <div className="grid md:grid-cols-3 gap-10 md:gap-6 items-stretch pt-3">
               {catalogue.offres.map((offre, i) => (
                 <OffreCard
                   key={offre.cle}
@@ -105,6 +118,7 @@ export default function Tarifs() {
                   offre={offre}
                   precedente={i > 0 ? catalogue.offres[i - 1] : null}
                   miseEnAvant={offre.cle === "serenite"}
+                  initiale={choixPrecedent?.offre === offre.cle ? choixPrecedent : null}
                 />
               ))}
             </div>

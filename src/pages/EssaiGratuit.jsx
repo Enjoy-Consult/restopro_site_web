@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import { BUSINESS } from "@/lib/business-info";
+import { BILLING_ACTIF } from "@/lib/billing/config";
 
 // Page d'essai gratuit de l'application RestOclair.
 // Formulaire : enregistrement Airtable (php-api/essai.php, table DemandesEssai) + notification email FormSubmit.
@@ -139,6 +140,9 @@ export default function EssaiGratuit() {
               </p>
               <div className="flex flex-col sm:flex-row items-start gap-4">
                 <a href="#essai" className="btn-primary">Demander un essai gratuit</a>
+                {BILLING_ACTIF && (
+                  <Link to="/tarifs" className="link-underline text-[15px] py-3">Voir les tarifs</Link>
+                )}
                 <a href={BUSINESS.phone.href} className="link-underline text-[15px] py-3">{BUSINESS.phone.display}</a>
               </div>
             </div>
