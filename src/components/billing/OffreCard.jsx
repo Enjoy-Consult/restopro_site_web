@@ -35,9 +35,9 @@ function libelleComptes(libelle, n) {
 
 function Ligne({ label, children }) {
   return (
-    <div className="py-3 border-t border-[#ece8d9] first:border-t-0 first:pt-0">
-      <dt className="text-faint text-[12px] uppercase tracking-[0.08em] mb-1">{label}</dt>
-      <dd className="text-ink text-[15px] leading-snug">{children}</dd>
+    <div className="py-2.5 border-t border-[#ece8d9] first:border-t-0 first:pt-0">
+      <dt className="text-faint text-[11px] uppercase tracking-[0.08em] mb-0.5">{label}</dt>
+      <dd className="text-ink text-[14px] leading-snug">{children}</dd>
     </div>
   );
 }
@@ -46,7 +46,7 @@ function Ligne({ label, children }) {
 function Depliant({ titre, indice, defaultOpen = false, children }) {
   return (
     <details open={defaultOpen} className="group border-t border-[#ece8d9]">
-      <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-5 lg:px-7 py-4 text-[15px] text-ink font-medium hover:bg-[#faf9f3] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-bottle">
+      <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-5 lg:px-7 py-3.5 text-[15px] text-ink font-medium hover:bg-[#faf9f3] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-bottle">
         <span className="flex items-center gap-2">
           {titre}
           {indice && <span className="bg-bottle text-bottle-text text-[11px] font-medium px-2 py-0.5 rounded-full">{indice}</span>}
@@ -100,7 +100,7 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
     <article
       aria-labelledby={`${id}-nom`}
       style={{ animationDelay: `${indice * 90}ms` }}
-      className={`rise relative flex flex-col shrink-0 basis-[84%] snap-center min-[620px]:basis-auto min-[620px]:grid min-[620px]:row-span-6 min-[620px]:grid-rows-subgrid bg-white transition-shadow duration-300 ${
+      className={`rise relative flex flex-col shrink-0 basis-[84%] snap-center min-[620px]:basis-auto min-[620px]:grid min-[620px]:row-span-5 min-[620px]:grid-rows-subgrid bg-white transition-shadow duration-300 ${
         miseEnAvant
           ? "ring-2 ring-bottle shadow-[0_24px_60px_-28px_rgba(28,75,56,0.55)]"
           : "ring-1 ring-border hover:shadow-[0_18px_44px_-30px_rgba(22,33,27,0.45)]"
@@ -112,26 +112,30 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
         </span>
       )}
 
-      {/* 1. Nom et prix */}
-      <header className="px-5 lg:px-7 pt-8 pb-5">
-        <h2 id={`${id}-nom`} className="text-ink text-[28px] mb-4">{offre.nom}</h2>
+      {/* 1. Nom, prix et comptes inclus */}
+      <header className="px-5 lg:px-7 pt-7 pb-4">
+        <h2 id={`${id}-nom`} className="text-ink text-[26px] mb-3">{offre.nom}</h2>
         <p className="flex flex-wrap items-baseline gap-x-2 text-ink">
-          <span className="font-serif text-[40px] leading-none tracking-tight tabular-nums">{prixHT}</span>
+          <span className="font-serif text-[38px] leading-none tracking-tight tabular-nums">{prixHT}</span>
           <span className="text-muted text-[14px]">HT/{periode}</span>
         </p>
-        <p className="text-faint text-[13px] mt-2">soit {prixTTC} TTC/{periode}</p>
+        <p className="text-faint text-[13px] mt-1.5">soit {prixTTC} TTC/{periode}</p>
+        <p className="text-muted text-[14px] leading-snug mt-4">
+          <span className="text-ink font-medium">Inclus : </span>
+          {inclus.join(", ")}
+        </p>
       </header>
 
       {/* 2. Version */}
-      <div className="px-5 lg:px-7 pb-6">
+      <div className="px-5 lg:px-7 pb-4">
         {!aVersions && (
           <>
             <div className="p-1 bg-[#f0ede1] rounded-full">
-              <p className="bg-white rounded-full px-2 min-h-[46px] flex items-center justify-center text-center text-[13px] leading-tight text-ink font-medium shadow-sm">
+              <p className="bg-white rounded-full px-2 min-h-[44px] flex items-center justify-center text-center text-[13px] leading-tight text-ink font-medium shadow-sm">
                 {INTITULE_VERSION[version.cle] ?? version.libelle}
               </p>
             </div>
-            <p className="text-faint text-[13px] mt-3 leading-snug">{version.libelle}</p>
+            <p className="text-faint text-[12px] mt-2 leading-snug">{version.libelle}</p>
           </>
         )}
         {aVersions && (
@@ -141,7 +145,7 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
               {versions.map((v) => (
                 <label
                   key={v.cle}
-                  className={`relative flex flex-col items-center justify-center min-h-[46px] text-center cursor-pointer rounded-full px-2 text-[13px] leading-tight transition-all duration-200 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-bottle ${
+                  className={`relative flex flex-col items-center justify-center min-h-[44px] text-center cursor-pointer rounded-full px-2 text-[13px] leading-tight transition-all duration-200 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-bottle ${
                     v.cle === version.cle ? "bg-white text-ink font-medium shadow-sm" : "text-muted hover:text-ink"
                   }`}
                 >
@@ -160,7 +164,7 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
                 </label>
               ))}
             </div>
-            <p className="text-faint text-[13px] mt-3 leading-snug" aria-live="polite">
+            <p className="text-faint text-[12px] mt-2 leading-snug" aria-live="polite">
               {version.libelle}
               {version.periode === "an" && (
                 <>
@@ -208,20 +212,20 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
       </div>
 
       {/* 4. Total et choix */}
-      <footer className="border-t border-[#ece8d9] px-5 lg:px-7 pt-5 pb-6 bg-[#fbfaf5]">
+      <footer className="border-t border-[#ece8d9] px-5 lg:px-7 pt-4 pb-5 bg-[#fbfaf5]">
         {calcul.ok && (
           <div aria-live="polite">
-            <p className="text-faint text-[12px] uppercase tracking-[0.08em] mb-2">Votre total par {periode}</p>
+            <p className="text-faint text-[11px] uppercase tracking-[0.08em] mb-1.5">Votre total par {periode}</p>
             <dl className="text-[14px] tabular-nums">
-              <div className="flex justify-between gap-4 py-0.5">
+              <div className="flex justify-between gap-4">
                 <dt className="text-muted">Total HT</dt>
                 <dd className="text-ink">{formatMontant(calcul.totalHTCentimes)}</dd>
               </div>
-              <div className="flex justify-between gap-4 py-0.5">
+              <div className="flex justify-between gap-4">
                 <dt className="text-muted">TVA {formatPourcentage(catalogue.tvaPourcentage)}</dt>
                 <dd className="text-ink">{formatMontant(calcul.tvaCentimes)}</dd>
               </div>
-              <div className="flex justify-between gap-4 pt-2 mt-1.5 border-t border-[#e6e2d3] text-[16px]">
+              <div className="flex justify-between gap-4 pt-1.5 mt-1.5 border-t border-[#e6e2d3] text-[16px]">
                 <dt className="text-ink font-medium whitespace-nowrap">Total TTC</dt>
                 <dd className="text-ink font-semibold whitespace-nowrap">{formatMontant(calcul.totalTTCCentimes)}</dd>
               </div>
@@ -231,48 +235,37 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
 
         <Link
           to={`/inscription?${selectionVersQuery(selection)}`}
-          className={`block w-full text-center mt-5 py-3.5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bottle ${
+          className={`block w-full text-center mt-4 py-3.5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bottle ${
             miseEnAvant ? "bg-bottle text-bottle-text hover:bg-bottle-hover" : "bg-white text-bottle ring-1 ring-bottle hover:bg-bottle hover:text-bottle-text"
           }`}
         >
           Choisir {offre.nom}
         </Link>
-
-        <p className="text-faint text-[12px] leading-relaxed mt-4">
-          Prix HT, TVA {formatPourcentage(catalogue.tvaPourcentage)} en sus. Paiement par carte bancaire ou prélèvement SEPA.
-          Le montant exact figure sur la page de paiement.
-        </p>
       </footer>
 
-      {/* 5. Contenu de la formule */}
-      <dl className="px-5 lg:px-7 pt-6 pb-6 border-t border-[#ece8d9]">
-        <Ligne label="Comptes inclus">{inclus.join(", ")}</Ligne>
-        <Ligne label="Comptes supplémentaires">dès {formatHTParPeriode(prixMiniSupplement, version.periode)}</Ligne>
-        {modules.mode === "identiques" && <Ligne label="Modules">Les mêmes que l’Essentiel</Ligne>}
-        {offre.fonctions.accesOrdinateur && <Ligne label="Accès sur ordinateur">Inclus</Ligne>}
-        <Ligne label="Assistance DDPP niveau 1">
-          {offre.fonctions.ddpp === "incluse" && "Incluse"}
-          {offre.fonctions.ddpp === "option" && `En option, ${optionDdpp ? formatHTParPeriode(optionDdpp.prixCentimes, "mois") : "sur demande"}`}
-          {offre.fonctions.ddpp === "non" && "Non"}
-        </Ligne>
-        {pms && <Ligne label="PMS">{PMS_TEXTE[pms]}</Ligne>}
-        <Ligne label="Équipiers">Illimités, sans supplément</Ligne>
-      </dl>
-
-      {/* 6. Modules */}
+      {/* 5. Détail de la formule, à la demande */}
       <div>
-        <Depliant
-          titre={
-            modules.mode === "plus"
-              ? `Modules du ${precedente.nom}, plus ${listeModules.length}`
-              : `Les ${listeModules.length} modules`
-          }
-        >
-          {modules.mode === "plus" && <p className="text-muted text-[14px] mb-3">Tous les modules du {precedente.nom}, plus :</p>}
-          <ul className="text-[14px] text-muted flex flex-col gap-2">
+        <Depliant titre="Détail de la formule">
+          <dl>
+            <Ligne label="Comptes supplémentaires">dès {formatHTParPeriode(prixMiniSupplement, version.periode)}</Ligne>
+            {offre.fonctions.accesOrdinateur && <Ligne label="Accès sur ordinateur">Inclus</Ligne>}
+            <Ligne label="Assistance DDPP niveau 1">
+              {offre.fonctions.ddpp === "incluse" && "Incluse"}
+              {offre.fonctions.ddpp === "option" && `En option, ${optionDdpp ? formatHTParPeriode(optionDdpp.prixCentimes, "mois") : "sur demande"}`}
+              {offre.fonctions.ddpp === "non" && "Non"}
+            </Ligne>
+            {pms && <Ligne label="PMS">{PMS_TEXTE[pms]}</Ligne>}
+            <Ligne label="Équipiers">Illimités, sans supplément</Ligne>
+            <Ligne label="Modules">
+              {modules.mode === "identiques" && "Les mêmes que l’Essentiel : "}
+              {modules.mode === "plus" && `Tous les modules du ${precedente.nom}, plus : `}
+              {modules.mode === "complet" && "Liste complète : "}
+            </Ligne>
+          </dl>
+          <ul className="mt-1 text-[13px] text-muted flex flex-col gap-1.5">
             {listeModules.map((m) => (
               <li key={m} className="flex gap-2.5 leading-snug">
-                <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#1c4b38" strokeWidth="1.8" className="shrink-0 mt-[3px]">
+                <svg aria-hidden="true" width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#1c4b38" strokeWidth="1.8" className="shrink-0 mt-[3px]">
                   <path d="M2.5 7.5l3 3 6-6.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
                 {m}

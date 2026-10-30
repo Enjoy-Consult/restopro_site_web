@@ -13,7 +13,7 @@ import { selectionDepuisQuery } from "@/lib/billing/pricing";
 const ATOUTS = [
   ["Équipiers illimités", "Gratuits dans toutes les formules, pour signer les actions."],
   ["Sans engagement", "Les formules mensuelles se résilient depuis votre espace client."],
-  ["Paiement sécurisé", "Par carte bancaire ou prélèvement SEPA, sur la page de paiement."],
+  ["Paiement sécurisé", "Par carte bancaire ou prélèvement SEPA. Le montant exact figure sur la page de paiement."],
 ];
 
 const QUESTIONS = [
@@ -154,7 +154,7 @@ export default function Tarifs() {
                 role="region"
                 aria-label="Les trois formules"
                 tabIndex={0}
-                className="relative no-scrollbar flex gap-4 overflow-x-auto snap-x snap-mandatory pt-5 pb-6 -mx-5 px-5 min-[620px]:grid min-[620px]:grid-cols-3 min-[620px]:grid-rows-[repeat(6,auto)] min-[620px]:gap-x-4 lg:gap-x-6 min-[620px]:overflow-visible min-[620px]:mx-0 min-[620px]:px-0 min-[620px]:pb-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bottle"
+                className="relative no-scrollbar flex gap-4 overflow-x-auto snap-x snap-mandatory pt-5 pb-6 -mx-5 px-5 min-[620px]:grid min-[620px]:grid-cols-3 min-[620px]:grid-rows-[repeat(5,auto)] min-[620px]:gap-x-4 lg:gap-x-6 min-[620px]:overflow-visible min-[620px]:mx-0 min-[620px]:px-0 min-[620px]:pb-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bottle"
               >
                 {catalogue.offres.map((offre, i) => (
                   <OffreCard
