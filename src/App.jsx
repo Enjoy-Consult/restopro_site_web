@@ -6,6 +6,12 @@ import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import EssaiGratuit from './pages/EssaiGratuit';
+import Tarifs from './pages/Tarifs';
+import Inscription from './pages/Inscription';
+import AbonnementRetour from './pages/AbonnementRetour';
+import Cgv from './pages/Cgv';
+import Cgu from './pages/Cgu';
+import { BILLING_ACTIF } from '@/lib/billing/config';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
@@ -60,6 +66,16 @@ const AuthenticatedApp = () => {
         />
       ))}
       <Route path="/essai-gratuit" element={<LayoutWrapper currentPageName="essai-gratuit"><EssaiGratuit /></LayoutWrapper>} />
+      {/* Vente d'abonnements : routes enregistrées seulement si BILLING_ACTIF */}
+      {BILLING_ACTIF && (
+        <>
+          <Route path="/tarifs" element={<LayoutWrapper currentPageName="tarifs"><Tarifs /></LayoutWrapper>} />
+          <Route path="/inscription" element={<LayoutWrapper currentPageName="inscription"><Inscription /></LayoutWrapper>} />
+          <Route path="/abonnement/retour" element={<LayoutWrapper currentPageName="abonnement-retour"><AbonnementRetour /></LayoutWrapper>} />
+          <Route path="/cgv" element={<LayoutWrapper currentPageName="cgv"><Cgv /></LayoutWrapper>} />
+          <Route path="/cgu" element={<LayoutWrapper currentPageName="cgu"><Cgu /></LayoutWrapper>} />
+        </>
+      )}
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

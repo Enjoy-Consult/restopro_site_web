@@ -10,7 +10,8 @@ export default function SEO({
   pageType = "website",
   articleData = null,
   serviceData = null,
-  breadcrumbs = null
+  breadcrumbs = null,
+  noindex = false
 }) {
   useEffect(() => {
     const siteName = BUSINESS.name;
@@ -24,7 +25,7 @@ export default function SEO({
     const metaTags = [
       { name: "description", content: description },
       { name: "keywords", content: keywords },
-      { name: "robots", content: "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
+      { name: "robots", content: noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
       { name: "author", content: `${BUSINESS.founder} - ${siteName}` },
       { name: "publisher", content: siteName },
 
@@ -264,7 +265,7 @@ export default function SEO({
     });
     document.head.appendChild(schemaScript);
 
-  }, [title, description, keywords, ogImage, canonicalUrl, pageType, articleData, serviceData, breadcrumbs]);
+  }, [title, description, keywords, ogImage, canonicalUrl, pageType, articleData, serviceData, breadcrumbs, noindex]);
 
   return null;
 }

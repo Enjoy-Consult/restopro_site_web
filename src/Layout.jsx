@@ -2,9 +2,11 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { BUSINESS } from "@/lib/business-info";
+import { BILLING_ACTIF } from "@/lib/billing/config";
 
 const navigation = [
   { name: "Services", page: "Services" },
+  ...(BILLING_ACTIF ? [{ name: "Tarifs", page: "tarifs" }] : []),
   { name: "Blog", page: "Blog" },
   { name: "À propos", page: "About" },
   { name: "Contact", page: "Contact" },
