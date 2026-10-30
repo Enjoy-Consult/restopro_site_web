@@ -50,7 +50,7 @@ function Chargement() {
       <p className="sr-only">Chargement des tarifs…</p>
       <div className="grid min-[620px]:grid-cols-3 gap-4 lg:gap-6" aria-hidden="true">
         {[0, 1, 2].map((i) => (
-          <div key={i} className="h-[520px] bg-white ring-1 ring-border animate-pulse" />
+          <div key={i} className="h-[400px] bg-white ring-1 ring-border animate-pulse" />
         ))}
       </div>
     </div>
@@ -116,18 +116,14 @@ export default function Tarifs() {
         canonicalUrl="https://restoclair.fr/tarifs"
       />
 
-      <section className="pt-12 pb-8 md:pt-20 md:pb-12">
-        <div className="max-w-[1200px] mx-auto px-5 md:px-6">
-          <p className="text-bottle text-[12px] font-medium uppercase tracking-[0.14em] mb-5">Tarifs</p>
-          <h1 className="text-ink mb-5 max-w-[780px]">Un abonnement à la taille de votre équipe.</h1>
-          <p className="text-muted text-[17px] md:text-lg leading-relaxed max-w-[560px] mb-7">
-            Choisissez une formule, ajoutez les comptes dont vous avez besoin : le total se met à jour sous vos yeux.
-          </p>
-          <Etapes courant={1} />
+      <section className="pt-7 pb-3 md:pt-9 md:pb-4">
+        <div className="max-w-[1200px] mx-auto px-5 md:px-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-8">
+          <h1 className="text-ink text-[clamp(1.75rem,4.6vw,2.5rem)] leading-[1.08]">Un abonnement à la taille de votre équipe.</h1>
+          <div className="shrink-0"><Etapes courant={1} /></div>
         </div>
       </section>
 
-      <section className="pb-16 md:pb-24" aria-label="Formules">
+      <section className="pb-14 md:pb-20" aria-label="Formules">
         <div className="max-w-[1200px] mx-auto px-5 md:px-6">
           {annule && (
             <Message type="info" className="mb-8">
@@ -154,7 +150,7 @@ export default function Tarifs() {
                 role="region"
                 aria-label="Les trois formules"
                 tabIndex={0}
-                className="relative no-scrollbar flex gap-4 overflow-x-auto snap-x snap-mandatory pt-5 pb-6 -mx-5 px-5 min-[620px]:grid min-[620px]:grid-cols-3 min-[620px]:grid-rows-[repeat(5,auto)] min-[620px]:gap-x-4 lg:gap-x-6 min-[620px]:overflow-visible min-[620px]:mx-0 min-[620px]:px-0 min-[620px]:pb-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bottle"
+                className="relative no-scrollbar flex gap-4 overflow-x-auto snap-x snap-mandatory pt-5 pb-4 -mx-5 px-5 min-[620px]:grid min-[620px]:grid-cols-3 min-[620px]:grid-rows-[repeat(4,auto)] min-[620px]:gap-x-4 lg:gap-x-6 min-[620px]:overflow-visible min-[620px]:mx-0 min-[620px]:px-0 min-[620px]:pb-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bottle"
               >
                 {catalogue.offres.map((offre, i) => (
                   <OffreCard

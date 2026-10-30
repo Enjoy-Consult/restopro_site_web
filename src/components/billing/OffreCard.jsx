@@ -2,7 +2,6 @@ import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Compteur from "@/components/billing/Compteur";
 import {
-  calculerTTC,
   formatHT,
   formatHTParPeriode,
   formatMontant,
@@ -35,34 +34,21 @@ function libelleComptes(libelle, n) {
 
 function Ligne({ label, children }) {
   return (
-    <div className="py-2.5 border-t border-[#ece8d9] first:border-t-0 first:pt-0">
+    <div className="py-2 border-t border-[#ece8d9] first:border-t-0 first:pt-0">
       <dt className="text-faint text-[11px] uppercase tracking-[0.08em] mb-0.5">{label}</dt>
       <dd className="text-ink text-[14px] leading-snug">{children}</dd>
     </div>
   );
 }
 
-// Bloc repliable : la carte reste courte, le détail s'ouvre à la demande.
-function Depliant({ titre, indice, defaultOpen = false, children }) {
-  return (
-    <details open={defaultOpen} className="group border-t border-[#ece8d9]">
-      <summary className="cursor-pointer list-none flex items-center justify-between gap-3 px-5 lg:px-7 py-3.5 text-[15px] text-ink font-medium hover:bg-[#faf9f3] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-bottle">
-        <span className="flex items-center gap-2">
-          {titre}
-          {indice && <span className="bg-bottle text-bottle-text text-[11px] font-medium px-2 py-0.5 rounded-full">{indice}</span>}
-        </span>
-        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6" className="text-bottle shrink-0 transition-transform duration-300 group-open:rotate-180">
-          <path d="M2.5 5l4.5 4.5L11.5 5" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </summary>
-      <div className="px-5 lg:px-7 pb-5">{children}</div>
-    </details>
-  );
-}
-
 export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, initiale = null, indice = 0 }) {
   const versions = useMemo(() => versionsDisponibles(catalogue, offre), [catalogue, offre]);
   const [selection, setSelection] = useState(() => initiale ?? selectionParDefaut(catalogue, offre));
+  // Un seul menu déroulant ouvert à la fois : null | "perso" | "detail".
+  const [panneau, setPanneau] = useState(() => {
+    const aDesSupplements = initiale && (Object.values(initiale.comptesSupplementaires).some((n) => n > 0) || initiale.options.ddpp);
+    return aDesSupplements ? "perso" : null;
+  });
 
   const version = versions.find((v) => v.cle === selection.version) ?? versions[0];
   const calcul = useMemo(() => calculer(catalogue, selection), [catalogue, selection]);
@@ -94,13 +80,21 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
     setSelection((s) => ({ ...s, comptesSupplementaires: { ...s.comptesSupplementaires, [categorie]: n } }));
 
   const prixHT = formatMontant(version.prixBaseCentimes);
-  const prixTTC = formatMontant(calculerTTC(version.prixBaseCentimes, catalogue.tvaPourcentage));
+  
+  const basculer = (nom) => setPanneau((courant) => (courant === nom ? null : nom));
+  const bouton =
+    "flex items-center justify-center gap-1.5 px-2 py-3.5 text-[13px] lg:text-[14px] text-ink font-medium hover:bg-[#faf9f3] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-bottle";
+  const chevron = (ouvert) => (
+    <svg aria-hidden="true" width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" className={`text-bottle shrink-0 transition-transform duration-300 ${ouvert ? "rotate-180" : ""}`}>
+      <path d="M2.5 5l4.5 4.5L11.5 5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 
   return (
     <article
       aria-labelledby={`${id}-nom`}
       style={{ animationDelay: `${indice * 90}ms` }}
-      className={`rise relative flex flex-col shrink-0 basis-[84%] snap-center min-[620px]:basis-auto min-[620px]:grid min-[620px]:row-span-5 min-[620px]:grid-rows-subgrid bg-white transition-shadow duration-300 ${
+      className={`rise relative flex flex-col shrink-0 basis-[84%] snap-center min-[620px]:basis-auto min-[620px]:grid min-[620px]:row-span-4 min-[620px]:grid-rows-subgrid bg-white transition-shadow duration-300 ${
         miseEnAvant
           ? "ring-2 ring-bottle shadow-[0_24px_60px_-28px_rgba(28,75,56,0.55)]"
           : "ring-1 ring-border hover:shadow-[0_18px_44px_-30px_rgba(22,33,27,0.45)]"
@@ -113,30 +107,27 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
       )}
 
       {/* 1. Nom, prix et comptes inclus */}
-      <header className="px-5 lg:px-7 pt-7 pb-4">
-        <h2 id={`${id}-nom`} className="text-ink text-[26px] mb-3">{offre.nom}</h2>
+      <header className="px-5 lg:px-7 pt-5 pb-3">
+        <h2 id={`${id}-nom`} className="text-ink text-[24px] mb-2">{offre.nom}</h2>
         <p className="flex flex-wrap items-baseline gap-x-2 text-ink">
-          <span className="font-serif text-[38px] leading-none tracking-tight tabular-nums">{prixHT}</span>
+          <span className="font-serif text-[34px] leading-none tracking-tight tabular-nums">{prixHT}</span>
           <span className="text-muted text-[14px]">HT/{periode}</span>
         </p>
-        <p className="text-faint text-[13px] mt-1.5">soit {prixTTC} TTC/{periode}</p>
-        <p className="text-muted text-[14px] leading-snug mt-4">
+        <p className="text-muted text-[13px] leading-snug mt-2.5">
           <span className="text-ink font-medium">Inclus : </span>
           {inclus.join(", ")}
         </p>
       </header>
 
       {/* 2. Version */}
-      <div className="px-5 lg:px-7 pb-4">
+      <div className="px-5 lg:px-7 pb-3.5">
+        <p className="sr-only" aria-live="polite">{version.libelle}</p>
         {!aVersions && (
-          <>
-            <div className="p-1 bg-[#f0ede1] rounded-full">
-              <p className="bg-white rounded-full px-2 min-h-[44px] flex items-center justify-center text-center text-[13px] leading-tight text-ink font-medium shadow-sm">
-                {INTITULE_VERSION[version.cle] ?? version.libelle}
-              </p>
-            </div>
-            <p className="text-faint text-[12px] mt-2 leading-snug">{version.libelle}</p>
-          </>
+          <div className="p-1 bg-[#f0ede1] rounded-full">
+            <p className="bg-white rounded-full px-2 min-h-[42px] flex items-center justify-center text-center text-[13px] leading-tight text-ink font-medium shadow-sm">
+              {version.libelle}
+            </p>
+          </div>
         )}
         {aVersions && (
           <fieldset>
@@ -145,7 +136,8 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
               {versions.map((v) => (
                 <label
                   key={v.cle}
-                  className={`relative flex flex-col items-center justify-center min-h-[44px] text-center cursor-pointer rounded-full px-2 text-[13px] leading-tight transition-all duration-200 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-bottle ${
+                  title={v.libelle}
+                  className={`relative flex flex-col items-center justify-center min-h-[42px] text-center cursor-pointer rounded-full px-2 text-[13px] leading-tight transition-all duration-200 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-bottle ${
                     v.cle === version.cle ? "bg-white text-ink font-medium shadow-sm" : "text-muted hover:text-ink"
                   }`}
                 >
@@ -164,116 +156,112 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
                 </label>
               ))}
             </div>
-            <p className="text-faint text-[12px] mt-2 leading-snug" aria-live="polite">
-              {version.libelle}
-              {version.periode === "an" && (
-                <>
-                  {" "}· {formatHTParPeriode(version.prixBaseCentimes, version.periode)}
-                  {remise ? `, environ −${formatPourcentage(remise)}` : ""}
-                </>
-              )}
-            </p>
           </fieldset>
         )}
       </div>
 
-      {/* 3. Personnaliser */}
-      <div>
-        <Depliant titre="Personnaliser" indice={nbSupplements > 0 ? `+${nbSupplements}` : null} defaultOpen={nbSupplements > 0}>
-          <p className="text-faint text-[13px] mb-4">Comptes supplémentaires{offre.fonctions.ddpp === "option" ? " et option" : ""}</p>
-          <div className="flex flex-col gap-4">
-            {supplements.map((c) => (
-              <Compteur
-                key={c.cle}
-                id={`${id}-${c.cle}`}
-                libelle={c.libelle}
-                detail={`+${formatHT(version.prixCompteSupplementaireCentimes[c.cle])}/${periode}`}
-                valeur={selection.comptesSupplementaires[c.cle] ?? 0}
-                onChange={(n) => changerCompte(c.cle, n)}
-              />
-            ))}
+      {/* 3. Menus déroulants : personnaliser / détail de la formule */}
+      <div className="border-t border-[#ece8d9]">
+        <div className="grid grid-cols-2 divide-x divide-[#ece8d9]">
+          <button type="button" className={bouton} aria-expanded={panneau === "perso"} aria-controls={`${id}-perso`} onClick={() => basculer("perso")}>
+            Personnaliser
+            {nbSupplements > 0 && <span className="bg-bottle text-bottle-text text-[11px] font-medium px-1.5 py-0.5 rounded-full">+{nbSupplements}</span>}
+            {chevron(panneau === "perso")}
+          </button>
+          <button type="button" className={bouton} aria-expanded={panneau === "detail"} aria-controls={`${id}-detail`} onClick={() => basculer("detail")}>
+            Détail
+            {chevron(panneau === "detail")}
+          </button>
+        </div>
 
-            {offre.fonctions.ddpp === "option" && optionDdpp && (
-              <label className="flex items-start gap-3 text-[15px] text-ink cursor-pointer pt-3 border-t border-[#ece8d9]">
-                <input
-                  type="checkbox"
-                  checked={selection.options.ddpp}
-                  onChange={(e) => setSelection((s) => ({ ...s, options: { ddpp: e.target.checked } }))}
-                  className="mt-0.5 w-[18px] h-[18px] shrink-0 accent-[#1c4b38]"
+        {panneau === "perso" && (
+          <div id={`${id}-perso`} role="region" aria-label={`Personnaliser la formule ${offre.nom}`} className="px-5 lg:px-7 pt-4 pb-5 border-t border-[#ece8d9]">
+            <p className="text-faint text-[13px] mb-4">Comptes supplémentaires{offre.fonctions.ddpp === "option" ? " et option" : ""}</p>
+            <div className="flex flex-col gap-4">
+              {supplements.map((c) => (
+                <Compteur
+                  key={c.cle}
+                  id={`${id}-${c.cle}`}
+                  libelle={c.libelle}
+                  detail={`+${formatHT(version.prixCompteSupplementaireCentimes[c.cle])}/${periode}`}
+                  valeur={selection.comptesSupplementaires[c.cle] ?? 0}
+                  onChange={(n) => changerCompte(c.cle, n)}
                 />
-                <span>
-                  {optionDdpp.libelle}
-                  <span className="block text-faint text-[13px] mt-0.5">+{formatHTParPeriode(optionDdpp.prixCentimes, "mois")}</span>
-                </span>
-              </label>
-            )}
+              ))}
+
+              {offre.fonctions.ddpp === "option" && optionDdpp && (
+                <label className="flex items-start gap-3 text-[15px] text-ink cursor-pointer pt-3 border-t border-[#ece8d9]">
+                  <input
+                    type="checkbox"
+                    checked={selection.options.ddpp}
+                    onChange={(e) => setSelection((s) => ({ ...s, options: { ddpp: e.target.checked } }))}
+                    className="mt-0.5 w-[18px] h-[18px] shrink-0 accent-[#1c4b38]"
+                  />
+                  <span>
+                    {optionDdpp.libelle}
+                    <span className="block text-faint text-[13px] mt-0.5">+{formatHTParPeriode(optionDdpp.prixCentimes, "mois")}</span>
+                  </span>
+                </label>
+              )}
+            </div>
           </div>
-        </Depliant>
+        )}
+
+        {panneau === "detail" && (
+          <div id={`${id}-detail`} role="region" aria-label={`Détail de la formule ${offre.nom}`} className="px-5 lg:px-7 pt-4 pb-5 border-t border-[#ece8d9]">
+            <dl>
+              <Ligne label="Comptes supplémentaires">dès {formatHTParPeriode(prixMiniSupplement, version.periode)}</Ligne>
+              {offre.fonctions.accesOrdinateur && <Ligne label="Accès sur ordinateur">Inclus</Ligne>}
+              <Ligne label="Assistance DDPP niveau 1">
+                {offre.fonctions.ddpp === "incluse" && "Incluse"}
+                {offre.fonctions.ddpp === "option" && `En option, ${optionDdpp ? formatHTParPeriode(optionDdpp.prixCentimes, "mois") : "sur demande"}`}
+                {offre.fonctions.ddpp === "non" && "Non"}
+              </Ligne>
+              {pms && <Ligne label="PMS">{PMS_TEXTE[pms]}</Ligne>}
+              <Ligne label="Équipiers">Illimités, sans supplément</Ligne>
+              <Ligne label="Modules">
+                {modules.mode === "identiques" && "Les mêmes que l’Essentiel :"}
+                {modules.mode === "plus" && `Tous les modules du ${precedente.nom}, plus :`}
+                {modules.mode === "complet" && "Liste complète :"}
+              </Ligne>
+            </dl>
+            <ul className="mt-1 text-[13px] text-muted flex flex-col gap-1.5">
+              {listeModules.map((m) => (
+                <li key={m} className="flex gap-2.5 leading-snug">
+                  <svg aria-hidden="true" width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#1c4b38" strokeWidth="1.8" className="shrink-0 mt-[3px]">
+                    <path d="M2.5 7.5l3 3 6-6.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  {m}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       {/* 4. Total et choix */}
-      <footer className="border-t border-[#ece8d9] px-5 lg:px-7 pt-4 pb-5 bg-[#fbfaf5]">
+      <footer className="border-t border-[#ece8d9] px-5 lg:px-7 pt-3.5 pb-4 bg-[#fbfaf5]">
         {calcul.ok && (
           <div aria-live="polite">
-            <p className="text-faint text-[11px] uppercase tracking-[0.08em] mb-1.5">Votre total par {periode}</p>
-            <dl className="text-[14px] tabular-nums">
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted">Total HT</dt>
-                <dd className="text-ink">{formatMontant(calcul.totalHTCentimes)}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-muted">TVA {formatPourcentage(catalogue.tvaPourcentage)}</dt>
-                <dd className="text-ink">{formatMontant(calcul.tvaCentimes)}</dd>
-              </div>
-              <div className="flex justify-between gap-4 pt-1.5 mt-1.5 border-t border-[#e6e2d3] text-[16px]">
-                <dt className="text-ink font-medium whitespace-nowrap">Total TTC</dt>
-                <dd className="text-ink font-semibold whitespace-nowrap">{formatMontant(calcul.totalTTCCentimes)}</dd>
-              </div>
-            </dl>
+            <p className="flex items-baseline justify-between gap-3 tabular-nums">
+              <span className="text-ink font-medium whitespace-nowrap">Total TTC</span>
+              <span className="text-ink font-semibold text-[20px] whitespace-nowrap">{formatMontant(calcul.totalTTCCentimes)}<span className="text-faint text-[12px] font-normal">/{periode}</span></span>
+            </p>
+            <p className="text-faint text-[12px] leading-snug mt-1 tabular-nums">
+              {formatMontant(calcul.totalHTCentimes)} HT + {formatMontant(calcul.tvaCentimes)} de TVA {formatPourcentage(catalogue.tvaPourcentage)}
+            </p>
           </div>
         )}
 
         <Link
           to={`/inscription?${selectionVersQuery(selection)}`}
-          className={`block w-full text-center mt-4 py-3.5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bottle ${
+          className={`block w-full text-center mt-3 py-2.5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bottle ${
             miseEnAvant ? "bg-bottle text-bottle-text hover:bg-bottle-hover" : "bg-white text-bottle ring-1 ring-bottle hover:bg-bottle hover:text-bottle-text"
           }`}
         >
           Choisir {offre.nom}
         </Link>
       </footer>
-
-      {/* 5. Détail de la formule, à la demande */}
-      <div>
-        <Depliant titre="Détail de la formule">
-          <dl>
-            <Ligne label="Comptes supplémentaires">dès {formatHTParPeriode(prixMiniSupplement, version.periode)}</Ligne>
-            {offre.fonctions.accesOrdinateur && <Ligne label="Accès sur ordinateur">Inclus</Ligne>}
-            <Ligne label="Assistance DDPP niveau 1">
-              {offre.fonctions.ddpp === "incluse" && "Incluse"}
-              {offre.fonctions.ddpp === "option" && `En option, ${optionDdpp ? formatHTParPeriode(optionDdpp.prixCentimes, "mois") : "sur demande"}`}
-              {offre.fonctions.ddpp === "non" && "Non"}
-            </Ligne>
-            {pms && <Ligne label="PMS">{PMS_TEXTE[pms]}</Ligne>}
-            <Ligne label="Équipiers">Illimités, sans supplément</Ligne>
-            <Ligne label="Modules">
-              {modules.mode === "identiques" && "Les mêmes que l’Essentiel : "}
-              {modules.mode === "plus" && `Tous les modules du ${precedente.nom}, plus : `}
-              {modules.mode === "complet" && "Liste complète : "}
-            </Ligne>
-          </dl>
-          <ul className="mt-1 text-[13px] text-muted flex flex-col gap-1.5">
-            {listeModules.map((m) => (
-              <li key={m} className="flex gap-2.5 leading-snug">
-                <svg aria-hidden="true" width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#1c4b38" strokeWidth="1.8" className="shrink-0 mt-[3px]">
-                  <path d="M2.5 7.5l3 3 6-6.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                {m}
-              </li>
-            ))}
-          </ul>
-        </Depliant>
-      </div>
     </article>
   );
 }
