@@ -83,7 +83,7 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
   
   const basculer = (nom) => setPanneau((courant) => (courant === nom ? null : nom));
   const bouton =
-    "flex items-center justify-center gap-1.5 px-2 py-3.5 text-[13px] lg:text-[14px] text-ink font-medium hover:bg-[#faf9f3] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-bottle";
+    "min-w-0 flex items-center justify-center gap-1.5 px-1.5 py-3.5 text-[13px] lg:text-[14px] text-ink font-medium hover:bg-[#faf9f3] transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-bottle";
   const chevron = (ouvert) => (
     <svg aria-hidden="true" width="12" height="12" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.8" className={`text-bottle shrink-0 transition-transform duration-300 ${ouvert ? "rotate-180" : ""}`}>
       <path d="M2.5 5l4.5 4.5L11.5 5" strokeLinecap="round" strokeLinejoin="round" />
@@ -94,7 +94,7 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
     <article
       aria-labelledby={`${id}-nom`}
       style={{ animationDelay: `${indice * 90}ms` }}
-      className={`rise relative flex flex-col shrink-0 basis-[84%] snap-center min-[620px]:basis-auto min-[620px]:grid min-[620px]:row-span-4 min-[620px]:grid-rows-subgrid bg-white transition-shadow duration-300 ${
+      className={`rise relative min-w-0 overflow-x-clip flex flex-col shrink-0 basis-[84%] snap-center min-[700px]:basis-auto min-[700px]:grid min-[700px]:row-span-4 min-[700px]:grid-rows-subgrid bg-white transition-shadow duration-300 ${
         miseEnAvant
           ? "ring-2 ring-bottle shadow-[0_24px_60px_-28px_rgba(28,75,56,0.55)]"
           : "ring-1 ring-border hover:shadow-[0_18px_44px_-30px_rgba(22,33,27,0.45)]"
@@ -162,9 +162,11 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
 
       {/* 3. Menus déroulants : personnaliser / détail de la formule */}
       <div className="border-t border-[#ece8d9]">
-        <div className="grid grid-cols-2 divide-x divide-[#ece8d9]">
+        <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] divide-x divide-[#ece8d9]">
           <button type="button" className={bouton} aria-expanded={panneau === "perso"} aria-controls={`${id}-perso`} onClick={() => basculer("perso")}>
-            Personnaliser
+            <span aria-hidden="true" className="hidden lg:inline">Personnaliser</span>
+            <span aria-hidden="true" className="lg:hidden">Options</span>
+            <span className="sr-only">Personnaliser</span>
             {nbSupplements > 0 && <span className="bg-bottle text-bottle-text text-[11px] font-medium px-1.5 py-0.5 rounded-full">+{nbSupplements}</span>}
             {chevron(panneau === "perso")}
           </button>
@@ -240,12 +242,12 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
       </div>
 
       {/* 4. Total et choix */}
-      <footer className="border-t border-[#ece8d9] px-5 lg:px-7 pt-3.5 pb-4 bg-[#fbfaf5]">
+      <footer className="mt-auto flex flex-col border-t border-[#ece8d9] px-5 lg:px-7 pt-3.5 pb-4 bg-[#fbfaf5]">
         {calcul.ok && (
           <div aria-live="polite">
-            <p className="flex items-baseline justify-between gap-3 tabular-nums">
-              <span className="text-ink font-medium whitespace-nowrap">Total TTC</span>
-              <span className="text-ink font-semibold text-[20px] whitespace-nowrap">{formatMontant(calcul.totalTTCCentimes)}<span className="text-faint text-[12px] font-normal">/{periode}</span></span>
+            <p className="flex flex-wrap items-baseline justify-between gap-x-3 tabular-nums">
+              <span className="text-ink text-[14px] font-medium whitespace-nowrap">Total TTC/{periode}</span>
+              <span className="text-ink font-semibold text-[20px] whitespace-nowrap">{formatMontant(calcul.totalTTCCentimes)}</span>
             </p>
             <p className="text-faint text-[12px] leading-snug mt-1 tabular-nums">
               {formatMontant(calcul.totalHTCentimes)} HT + {formatMontant(calcul.tvaCentimes)} de TVA {formatPourcentage(catalogue.tvaPourcentage)}
@@ -253,14 +255,16 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
           </div>
         )}
 
-        <Link
-          to={`/inscription?${selectionVersQuery(selection)}`}
-          className={`block w-full text-center mt-3 py-2.5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bottle ${
-            miseEnAvant ? "bg-bottle text-bottle-text hover:bg-bottle-hover" : "bg-white text-bottle ring-1 ring-bottle hover:bg-bottle hover:text-bottle-text"
-          }`}
-        >
-          Choisir {offre.nom}
-        </Link>
+        <div className="mt-auto pt-3">
+          <Link
+            to={`/inscription?${selectionVersQuery(selection)}`}
+            className={`block w-full text-center py-2.5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bottle ${
+              miseEnAvant ? "bg-bottle text-bottle-text hover:bg-bottle-hover" : "bg-white text-bottle ring-1 ring-bottle hover:bg-bottle hover:text-bottle-text"
+            }`}
+          >
+            Choisir {offre.nom}
+          </Link>
+        </div>
       </footer>
     </article>
   );

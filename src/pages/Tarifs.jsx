@@ -48,7 +48,7 @@ function Chargement() {
   return (
     <div role="status" aria-live="polite">
       <p className="sr-only">Chargement des tarifs…</p>
-      <div className="grid min-[620px]:grid-cols-3 gap-4 lg:gap-6" aria-hidden="true">
+      <div className="grid min-[700px]:grid-cols-3 gap-4 lg:gap-6" aria-hidden="true">
         {[0, 1, 2].map((i) => (
           <div key={i} className="h-[400px] bg-white ring-1 ring-border animate-pulse" />
         ))}
@@ -150,7 +150,7 @@ export default function Tarifs() {
                 role="region"
                 aria-label="Les trois formules"
                 tabIndex={0}
-                className="relative no-scrollbar flex gap-4 overflow-x-auto snap-x snap-mandatory pt-5 pb-4 -mx-5 px-5 min-[620px]:grid min-[620px]:grid-cols-3 min-[620px]:grid-rows-[repeat(4,auto)] min-[620px]:gap-x-4 lg:gap-x-6 min-[620px]:overflow-visible min-[620px]:mx-0 min-[620px]:px-0 min-[620px]:pb-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bottle"
+                className="relative no-scrollbar flex gap-4 overflow-x-auto snap-x snap-mandatory pt-5 pb-4 -mx-5 px-5 min-[700px]:grid min-[700px]:grid-cols-3 min-[700px]:grid-rows-[repeat(4,auto)] min-[700px]:gap-x-4 lg:gap-x-6 min-[700px]:overflow-visible min-[700px]:mx-0 min-[700px]:px-0 min-[700px]:pb-0 focus-visible:outline focus-visible:outline-2 focus-visible:outline-bottle"
               >
                 {catalogue.offres.map((offre, i) => (
                   <OffreCard
@@ -165,7 +165,7 @@ export default function Tarifs() {
                 ))}
               </div>
 
-              <div className="min-[620px]:hidden flex justify-center gap-2 mt-2" role="group" aria-label="Choisir une formule">
+              <div className="min-[700px]:hidden flex justify-center gap-2 mt-2" role="group" aria-label="Choisir une formule">
                 {catalogue.offres.map((offre, i) => (
                   <button
                     key={offre.cle}
@@ -218,7 +218,7 @@ export default function Tarifs() {
                       <path d="M2.5 5l4.5 4.5L11.5 5" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
                   </summary>
-                  <p className="text-muted leading-relaxed pb-6 max-w-[620px]">{reponse}</p>
+                  <p className="text-muted leading-relaxed pb-6 max-w-[700px]">{reponse}</p>
                 </details>
               ))}
             </div>
