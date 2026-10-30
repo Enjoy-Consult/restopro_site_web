@@ -36,7 +36,7 @@ export default function Contact() {
   return (
     <>
       <SEO
-        title="Contact — RestOclair | 06 80 95 25 89"
+        title="Contact — RestOclair | 07 77 75 26 05"
         description="Contactez Thierry Bailleul pour une intervention urgence DDPP, un audit hygiène ou une question réglementaire. Réponse sous 2 h en semaine."
         keywords="contact RestOclair, consultant hygiène alimentaire, rendez-vous DDPP"
         canonicalUrl={`${window.location.origin}/Contact`}
@@ -51,8 +51,8 @@ export default function Contact() {
 
                 <div className="mb-10">
                   <p className="text-faint text-sm mb-2">Téléphone</p>
-                  <a href="tel:0680952589" className="font-serif text-3xl md:text-4xl text-ink block mb-1">
-                    06 80 95 25 89
+                  <a href="tel:0777752605" className="font-serif text-3xl md:text-4xl text-ink block mb-1">
+                    07 77 75 26 05
                   </a>
                   <p className="text-faint text-sm">Réponse sous 2 h en semaine</p>
                 </div>
@@ -154,7 +154,7 @@ export default function Contact() {
                   )}
                   {status === "error" && (
                     <p className="text-red-700 text-[15px]">
-                      Erreur lors de l'envoi. Appelez-nous directement au 06 80 95 25 89.
+                      Erreur lors de l'envoi. Appelez-nous directement au 07 77 75 26 05.
                     </p>
                   )}
 

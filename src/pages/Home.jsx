@@ -19,7 +19,7 @@ export default function Home() {
     <>
       <SEO
         title="RestOclair - Consultant hygiène et sécurité alimentaire"
-        description="Consultant en hygiène et sécurité alimentaire pour professionnels partout en France. Intervention urgence DDPP sous 24h, audits préventifs, dossiers obligatoires. 06 80 95 25 89"
+        description="Consultant en hygiène et sécurité alimentaire pour professionnels partout en France. Intervention urgence DDPP sous 24h, audits préventifs, dossiers obligatoires. 07 77 75 26 05"
         keywords="consultant hygiène alimentaire, sécurité alimentaire établissement, contrôle DDPP, audit hygiène cuisine, plan maîtrise sanitaire, consultant HACCP, France"
         canonicalUrl={window.location.origin}
       />
@@ -41,8 +41,8 @@ export default function Home() {
                   <Link to={createPageUrl("Contact")} className="btn-primary">
                     Prendre rendez-vous
                   </Link>
-                  <a href="tel:0680952589" className="link-underline text-[15px] py-3">
-                    06 80 95 25 89
+                  <a href="tel:0777752605" className="link-underline text-[15px] py-3">
+                    07 77 75 26 05
                   </a>
                 </div>
               </div>

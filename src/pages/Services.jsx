@@ -124,8 +124,8 @@ export default function Services() {
               <Link to={createPageUrl("Contact")} className="btn-primary">
                 Prendre contact
               </Link>
-              <a href="tel:0680952589" className="link-underline text-[15px]">
-                06 80 95 25 89
+              <a href="tel:0777752605" className="link-underline text-[15px]">
+                07 77 75 26 05
               </a>
             </div>
           </div>
