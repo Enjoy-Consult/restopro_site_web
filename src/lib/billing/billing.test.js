@@ -216,7 +216,7 @@ test("jeton expiré (401) : message vers l'espace client et jeton supprimé de s
 test("403 : refus affiché, jeton conservé ; seul un 401 est une expiration", async () => {
   const stockage = faussePageSession();
   const { ecrireSession, lireSession } = await import("./session.js");
-  const { traiterSessionExpiree, estSessionExpiree, messageRefus, MESSAGE_INDISPONIBLE } = await import("./erreurs.js");
+  const { traiterSessionExpiree, estSessionExpiree, messageRefus, MESSAGE_INDISPONIBLE, MESSAGE_REFUS_GENERIQUE } = await import("./erreurs.js");
   const { ApiError } = await import("./errors.js");
 
   ecrireSession({ token: "jeton-valide", email: "marie@exemple.fr" });
@@ -234,8 +234,11 @@ test("403 : refus affiché, jeton conservé ; seul un 401 est une expiration", a
 
   assert.equal(messageRefus(new ApiError("NON_TITULAIRE", 403)), "Seul le titulaire de l’abonnement peut effectuer cette action.");
   assert.equal(messageRefus(new ApiError("ACTION_NON_AUTORISEE", 403)), "Cette action n’est pas autorisée pour votre compte.");
-  assert.equal(messageRefus(new ApiError("CODE_INCONNU", 403)), MESSAGE_INDISPONIBLE);
-  assert.equal(messageRefus(new ApiError("ERREUR_INCONNUE", 403)), MESSAGE_INDISPONIBLE);
+  // Code inconnu : message neutre, jamais celui d'indisponibilité (réservé au réseau et aux 5xx).
+  assert.equal(MESSAGE_REFUS_GENERIQUE, "Cette action n’est pas possible pour le moment. Contactez-nous si le problème persiste.");
+  assert.equal(messageRefus(new ApiError("CODE_INCONNU", 403)), MESSAGE_REFUS_GENERIQUE);
+  assert.equal(messageRefus(new ApiError("ERREUR_INCONNUE", 403)), MESSAGE_REFUS_GENERIQUE);
+  assert.notEqual(messageRefus(new ApiError("CODE_INCONNU", 403)), MESSAGE_INDISPONIBLE);
   assert.equal(messageRefus(new ApiError("NON_TITULAIRE", 401)), null);
   assert.equal(messageRefus(new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503)), null);
 

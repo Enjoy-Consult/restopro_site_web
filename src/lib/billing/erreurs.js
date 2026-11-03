@@ -3,6 +3,9 @@ import { effacerSession } from "./session.js";
 
 export const MESSAGE_INDISPONIBLE = "Le service est momentanément indisponible. Réessayez dans quelques minutes.";
 
+// Refus (403) au code inconnu : message neutre, l'indisponibilité est réservée au réseau et aux 5xx.
+export const MESSAGE_REFUS_GENERIQUE = "Cette action n’est pas possible pour le moment. Contactez-nous si le problème persiste.";
+
 // Jeton restreint expiré (2 h) : le compte existe déjà, on ne propose jamais de le recréer
 // (l'API répondrait EMAIL_DEJA_UTILISE) ; on renvoie vers l'espace client.
 export const MESSAGE_SESSION_EXPIREE =
@@ -30,9 +33,9 @@ const REFUS = {
   ABONNEMENT_DEJA_ACTIF: "Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace.",
 };
 
-// Texte à afficher pour un refus (403) : celui du code reçu, ou le message générique si le code est inconnu.
+// Texte à afficher pour un refus (403) : celui du code reçu, ou le message neutre si le code est inconnu.
 // Renvoie null si l'erreur n'est pas un 403.
 export function messageRefus(erreur) {
   if (erreur?.status !== 403) return null;
-  return REFUS[erreur.code] ?? MESSAGE_INDISPONIBLE;
+  return REFUS[erreur.code] ?? MESSAGE_REFUS_GENERIQUE;
 }
