@@ -45,6 +45,42 @@ test("SIRET : 14 chiffres et clé de Luhn", () => {
   assert.equal(estSiretValide("abcdefghijklmn"), false);
 });
 
+test("SIRET de La Poste (SIREN 356000000) : somme des chiffres multiple de 5, sauf le siège (Luhn)", async () => {
+  const { luhnValide, cleSiretValide } = await import("./validation.js");
+  const somme = (s) => [...s].reduce((t, c) => t + Number(c), 0);
+  // 35600000000001 : somme 15 (multiple de 5) mais clé de Luhn fausse -> accepté
+  assert.equal(somme("35600000000001"), 15);
+  assert.equal(luhnValide("35600000000001"), false);
+  assert.equal(estSiretValide("35600000000001"), true);
+  assert.equal(estSiretValide("356 000 000 00001"), true);
+  // Établissement dont la somme n'est pas un multiple de 5 : refusé, même si sa clé de Luhn est juste.
+  assert.equal(somme("35600000000055"), 24);
+  assert.equal(estSiretValide("35600000000055"), false);
+  // Le siège (35600000000048, somme 26) est l'exception : il suit la clé de Luhn.
+  assert.equal(somme("35600000000048"), 26);
+  assert.equal(luhnValide("35600000000048"), true);
+  assert.equal(estSiretValide("35600000000048"), true);
+  assert.equal(cleSiretValide("35600000000048"), true);
+  // Seul le SIREN exact 356000000 est concerné : un SIREN voisin suit la clé de Luhn.
+  assert.equal(somme("35600000100000"), 15);
+  assert.equal(luhnValide("35600000100000"), false);
+  assert.equal(estSiretValide("35600000100000"), false);
+  assert.equal(estSiretValide("3560000000000"), false); // 13 chiffres
+  assert.equal(estSiretValide("3560000000000a"), false);
+  // Un SIRET La Poste dont la somme vaut 20 est accepté ; une autre entreprise suit toujours Luhn.
+  assert.equal(estSiretValide("35600000000060"), true);
+  assert.equal(estSiretValide("73282932000074"), true);
+  assert.equal(estSiretValide("73282932000075"), false);
+  // Le formulaire applique la même règle.
+  const base = {
+    prenom: "Marie", nom: "Martin", email: "marie@exemple.fr", motDePasse: "motdepasse1", confirmation: "motdepasse1",
+    nomCommercial: "Bureau de poste", raisonSociale: "La Poste", ligne1: "1 rue", codePostal: "75002", ville: "Paris", cgv: true,
+  };
+  assert.equal(validerInscription({ ...base, siret: "35600000000001" }).siret, undefined);
+  assert.ok(validerInscription({ ...base, siret: "35600000000055" }).siret);
+  assert.equal(validerInscription({ ...base, siret: "35600000000048" }).siret, undefined);
+});
+
 test("mot de passe, code postal, e-mail", () => {
   assert.equal(estMotDePasseValide("abcdefg1"), true);
   assert.equal(estMotDePasseValide("abcdefgh"), false);

@@ -26,9 +26,22 @@ export function luhnValide(chiffres) {
   return somme % 10 === 0;
 }
 
+// Les établissements de La Poste (SIREN 356000000) ne suivent pas la clé de Luhn : la somme de leurs
+// 14 chiffres doit être un multiple de 5. Exception : le siège (35600000000048) suit la clé de Luhn.
+// Même règle que python-stdnum (stdnum/fr/siret.py).
+const SIREN_LA_POSTE = "356000000";
+const SIRET_SIEGE_LA_POSTE = "35600000000048";
+
+export function cleSiretValide(siret) {
+  if (siret.startsWith(SIREN_LA_POSTE) && siret !== SIRET_SIEGE_LA_POSTE) {
+    return [...siret].reduce((somme, c) => somme + (c.charCodeAt(0) - 48), 0) % 5 === 0;
+  }
+  return luhnValide(siret);
+}
+
 export function estSiretValide(valeur) {
   const siret = nettoyerSiret(valeur);
-  return /^\d{14}$/.test(siret) && luhnValide(siret);
+  return /^\d{14}$/.test(siret) && cleSiretValide(siret);
 }
 
 export function estCodePostalValide(valeur) {
@@ -70,7 +83,7 @@ export function validerInscription(v) {
   const siret = nettoyerSiret(v.siret);
   if (!siret) erreurs.siret = "Indiquez le numéro SIRET.";
   else if (!/^\d{14}$/.test(siret)) erreurs.siret = "Le SIRET comporte 14 chiffres.";
-  else if (!luhnValide(siret)) erreurs.siret = "Ce numéro SIRET n’est pas valide. Vérifiez-le.";
+  else if (!cleSiretValide(siret)) erreurs.siret = "Ce numéro SIRET n’est pas valide. Vérifiez-le.";
 
   if (!String(v.codePostal ?? "").trim()) erreurs.codePostal = "Indiquez le code postal.";
   else if (!estCodePostalValide(v.codePostal)) erreurs.codePostal = "Le code postal comporte 5 chiffres.";
