@@ -50,7 +50,7 @@ export default function Home() {
               <div className="md:col-span-5">
                 <figure>
                   <img
-                    src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=640&h=800&fit=crop"
+                    src="/images/cuisine-service-640x800.jpg"
                     alt="Cuisine professionnelle en activité"
                     className="w-full aspect-[4/5] object-cover"
                   />
