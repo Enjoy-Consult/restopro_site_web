@@ -26,8 +26,8 @@ Settings > Secrets and variables > Actions > **Variables** (ce ne sont pas des s
 | Variable | Production | Rôle |
 |---|---|---|
 | `VITE_BILLING_ACTIF` | `true` le jour de l'ouverture, absente ou `false` avant | Enregistre les pages Tarifs, Inscription et Retour de paiement, et ajoute « Tarifs » au menu |
-| `VITE_API_URL` | `https://api.enjoyapp.fr/v1` | API publique d'Apirest ; le site appelle `{VITE_API_URL}/api/billing/…` |
-| `VITE_APP_WEB_URL` | `https://app.enjoyapp.fr` | Version web de l'application ; l'espace client est `{VITE_APP_WEB_URL}/mon-compte` |
+| `VITE_API_URL` | `https://api.restoclair.fr/v1` | API publique d'Apirest ; le site appelle `{VITE_API_URL}/api/billing/…` |
+| `VITE_APP_WEB_URL` | `https://app.restoclair.fr` | Version web de l'application ; l'espace client est `{VITE_APP_WEB_URL}/mon-compte` |
 | `VITE_APP_STORE_URL` | vide jusqu'à la publication de l'app iOS | Bouton App Store de la page de retour (masqué si vide) |
 | `VITE_PLAY_STORE_URL` | vide jusqu'à la publication de l'app Android | Bouton Google Play de la page de retour (masqué si vide) |
 
