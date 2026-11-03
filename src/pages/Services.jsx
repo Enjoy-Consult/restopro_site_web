@@ -16,7 +16,7 @@ const services = [
       "Nous supervisons la mise en conformité jusqu'à la levée des réserves.",
     ],
     result: "Objectif : éviter la fermeture et obtenir la levée des non-conformités dans les délais impartis.",
-    image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=640&h=400&fit=crop",
+    image: "/images/cuisine-service-640x400.jpg",
     imageCaption: "Cuisine professionnelle — intervention terrain",
   },
   {
@@ -31,7 +31,7 @@ const services = [
       "Débrief avec votre équipe pour expliquer les points clés.",
     ],
     result: "Objectif : passer le prochain contrôle DDPP sereinement, sans surprise.",
-    image: "https://images.unsplash.com/photo-1577219491135-ce391730fb2c?w=640&h=400&fit=crop",
+    image: "/images/cuisine-pro-640x400.jpg",
     imageCaption: "Vérification des procédures en cuisine",
   },
   {
@@ -46,7 +46,7 @@ const services = [
       "Classeur de traçabilité opérationnel et simple à maintenir par votre équipe.",
     ],
     result: "Objectif : des documents que votre équipe utilise vraiment, pas un classeur oublié sur une étagère.",
-    image: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=640&h=400&fit=crop",
+    image: "/images/documents-640x400.jpg",
     imageCaption: "Documentation réglementaire",
   },
 ];
