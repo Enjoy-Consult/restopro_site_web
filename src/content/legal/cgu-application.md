@@ -1,0 +1,7 @@
+# cgu-application
+
+Version 0.1 — 3 novembre 2026
+
+> **Projet à faire relire par un avocat.**
+
+En cours de rédaction.

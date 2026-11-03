@@ -375,8 +375,8 @@ export default function Inscription() {
                       <span>
                         J’accepte les{" "}
                         <Link to="/cgv" target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>{" "}
-                        et les{" "}
-                        <Link to="/cgu" target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales d’utilisation</Link>
+                        (et leur annexe, l’<Link to="/accord-sous-traitance" target="_blank" rel="noopener noreferrer" className="link-underline">accord de sous-traitance des données</Link>) et les{" "}
+                        <Link to="/application/cgu" target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales d’utilisation</Link>
                       </span>
                     </label>
                     {erreurs.cgv && <p id="champ-cgv-erreur" className="text-[#8a2424] text-[14px] mt-1.5">{erreurs.cgv}</p>}
