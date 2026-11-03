@@ -1,5 +1,6 @@
 // Consentement aux cookies (recommandations de la CNIL) : rien de Google n'est chargé avant un « oui » explicite.
-// Le conteneur GTM ne contient que Google Ads (conversions) : une seule finalité soumise au consentement.
+// Le conteneur GTM ne contient que Google Ads (conversions et remarketing, décision de Louis du 3/11) :
+// une seule finalité soumise au consentement.
 // Le mode de consentement de Google (v2) est déclaré « refusé » dans index.html, avant tout chargement.
 
 export const GTM_ID = "GTM-MJ9BMVVK";
