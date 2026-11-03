@@ -2,6 +2,8 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
+import ConsentementCookies from '@/components/ConsentementCookies'
+import { ouvrirGestionCookies } from '@/lib/consentement'
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
@@ -69,7 +71,7 @@ const AuthenticatedApp = () => {
       {/* Documents légaux : toujours en ligne (le pied de page ne lie CGV, CGU et DPA que si la vente est active) */}
       <Route path="/cgv" element={<LayoutWrapper currentPageName="cgv"><Cgv /></LayoutWrapper>} />
       <Route path="/confidentialite" element={<LayoutWrapper currentPageName="confidentialite"><DocumentLegal cle="confidentialite-site" /></LayoutWrapper>} />
-      <Route path="/cookies" element={<LayoutWrapper currentPageName="cookies"><DocumentLegal cle="cookies" /></LayoutWrapper>} />
+      <Route path="/cookies" element={<LayoutWrapper currentPageName="cookies"><DocumentLegal cle="cookies" apres={<button type="button" onClick={ouvrirGestionCookies} className="btn-primary mt-8">Gérer mes cookies</button>} /></LayoutWrapper>} />
       <Route path="/application/cgu" element={<LayoutWrapper currentPageName="application-cgu"><DocumentLegal cle="cgu-application" /></LayoutWrapper>} />
       <Route path="/application/confidentialite" element={<LayoutWrapper currentPageName="application-confidentialite"><DocumentLegal cle="confidentialite-application" /></LayoutWrapper>} />
       <Route path="/accord-sous-traitance" element={<LayoutWrapper currentPageName="accord-sous-traitance"><DocumentLegal cle="accord-sous-traitance" /></LayoutWrapper>} />
@@ -95,6 +97,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <NavigationTracker />
+          <ConsentementCookies />
           <AuthenticatedApp />
         </Router>
         <Toaster />

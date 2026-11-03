@@ -27,7 +27,7 @@ const COMPOSANTS = {
   ),
 };
 
-export default function DocumentLegal({ cle, avant = null }) {
+export default function DocumentLegal({ cle, avant = null, apres = null }) {
   const doc = DOCUMENTS_LEGAUX[cle];
   return (
     <>
@@ -40,6 +40,7 @@ export default function DocumentLegal({ cle, avant = null }) {
         <div className="prose-editorial text-[15px] [&_h1]:text-ink [&_h1]:mb-3 [&_h1]:text-[clamp(1.9rem,4.5vw,2.75rem)] [&_ul]:list-disc [&_ol]:list-decimal [&_h2]:scroll-mt-24 [&_h1+p]:text-faint [&_h1+p]:text-[14px]">
           <ReactMarkdown components={COMPOSANTS}>{doc.source}</ReactMarkdown>
         </div>
+        {apres}
       </article>
     </>
   );

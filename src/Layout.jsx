@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { BUSINESS } from "@/lib/business-info";
 import { BILLING_ACTIF } from "@/lib/billing/config";
+import { ouvrirGestionCookies } from "@/lib/consentement";
 
 const navigation = [
   { name: "Services", page: "Services" },
@@ -188,6 +189,7 @@ export default function Layout({ children, currentPageName }) {
               <Link to={createPageUrl("MentionsLegales")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Mentions légales</Link>
               <Link to="/confidentialite" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Confidentialité</Link>
               <Link to="/cookies" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Cookies</Link>
+              <button type="button" onClick={ouvrirGestionCookies} className="hover:underline transition-colors text-left" style={{ color: '#6b7268' }}>Gérer mes cookies</button>
               {BILLING_ACTIF && (
                 <>
                   <Link to="/cgv" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>CGV</Link>
