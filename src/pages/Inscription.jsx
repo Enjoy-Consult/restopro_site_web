@@ -10,7 +10,7 @@ import { BUSINESS } from "@/lib/business-info";
 import { ApiError, getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
 import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
-import { traiterSessionExpiree } from "@/lib/billing/erreurs";
+import { MESSAGE_INDISPONIBLE, messageRefus, traiterSessionExpiree } from "@/lib/billing/erreurs";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
 import { nettoyerSiret, validerInscription } from "@/lib/billing/validation";
 
@@ -19,8 +19,6 @@ const VIDE = {
   nomCommercial: "", raisonSociale: "", siret: "",
   ligne1: "", ligne2: "", codePostal: "", ville: "", cgv: false,
 };
-
-const INDISPONIBLE = "Le service est momentanément indisponible. Réessayez dans quelques minutes.";
 
 const CLASSE_CHAMP =
   "w-full border bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
@@ -102,7 +100,7 @@ export default function Inscription() {
     return (
       <div className="max-w-[1200px] mx-auto px-6 py-24">
         <Message type="error">
-          <p>{INDISPONIBLE}</p>
+          <p>{MESSAGE_INDISPONIBLE}</p>
           <button type="button" onClick={() => refetch()} className="link-underline mt-2">Réessayer</button>
         </Message>
       </div>
@@ -161,7 +159,7 @@ export default function Inscription() {
     try {
       const { url } = await lancerCheckout(jeton, selectionVersCheckout(selection));
       if (suivre(url)) return; // la page se quitte : le bouton reste désactivé
-      setErreurGenerale(INDISPONIBLE);
+      setErreurGenerale(MESSAGE_INDISPONIBLE);
     } catch (erreur) {
       const messageExpiree = traiterSessionExpiree(erreur);
       const explication = messageExpiree ? null : expliquerChoix(erreur);
@@ -174,7 +172,8 @@ export default function Inscription() {
       }
       else if (erreur.code === "ABONNEMENT_DEJA_ACTIF")
         setErreurGenerale("Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace.");
-      else setErreurGenerale(INDISPONIBLE);
+      // 403 : le refus reçu (ou le message générique pour un code inconnu)
+      else setErreurGenerale(messageRefus(erreur) ?? MESSAGE_INDISPONIBLE);
     }
     setEnvoi(false);
     envoiEnCours.current = false;
@@ -240,7 +239,7 @@ export default function Inscription() {
       } else if (erreur.code === "SIRET_INVALIDE") {
         setErreurs({ siret: "Ce numéro SIRET n’est pas reconnu. Vérifiez-le." });
         document.getElementById("champ-siret")?.focus();
-      } else setErreurGenerale(INDISPONIBLE);
+      } else setErreurGenerale(messageRefus(erreur) ?? MESSAGE_INDISPONIBLE);
       setEnvoi(false);
       envoiEnCours.current = false;
     }

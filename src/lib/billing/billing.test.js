@@ -213,20 +213,33 @@ test("jeton expiré (401) : message vers l'espace client et jeton supprimé de s
   assert.ok(!/recr|créez/i.test(message));
 });
 
-test("jeton expiré : même traitement sur 403 ; les autres erreurs ne touchent pas au jeton", async () => {
+test("403 : refus affiché, jeton conservé ; seul un 401 est une expiration", async () => {
   const stockage = faussePageSession();
   const { ecrireSession, lireSession } = await import("./session.js");
-  const { traiterSessionExpiree } = await import("./erreurs.js");
+  const { traiterSessionExpiree, estSessionExpiree, messageRefus, MESSAGE_INDISPONIBLE } = await import("./erreurs.js");
   const { ApiError } = await import("./errors.js");
 
   ecrireSession({ token: "jeton-valide", email: "marie@exemple.fr" });
-  assert.equal(traiterSessionExpiree(new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503)), null);
-  assert.equal(traiterSessionExpiree(new ApiError("RESEAU")), null);
-  assert.equal(traiterSessionExpiree(new ApiError("COMPTES_INSUFFISANTS", 422)), null);
+  for (const erreur of [
+    new ApiError("NON_TITULAIRE", 403),
+    new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503),
+    new ApiError("RESEAU"),
+    new ApiError("COMPTES_INSUFFISANTS", 422),
+  ]) {
+    assert.equal(estSessionExpiree(erreur), false);
+    assert.equal(traiterSessionExpiree(erreur), null);
+  }
   assert.equal(lireSession().token, "jeton-valide");
   assert.equal(stockage.size, 1);
 
-  assert.ok(traiterSessionExpiree(new ApiError("ACTION_NON_AUTORISEE", 403)));
+  assert.equal(messageRefus(new ApiError("NON_TITULAIRE", 403)), "Seul le titulaire de l’abonnement peut effectuer cette action.");
+  assert.equal(messageRefus(new ApiError("ACTION_NON_AUTORISEE", 403)), "Cette action n’est pas autorisée pour votre compte.");
+  assert.equal(messageRefus(new ApiError("CODE_INCONNU", 403)), MESSAGE_INDISPONIBLE);
+  assert.equal(messageRefus(new ApiError("ERREUR_INCONNUE", 403)), MESSAGE_INDISPONIBLE);
+  assert.equal(messageRefus(new ApiError("NON_TITULAIRE", 401)), null);
+  assert.equal(messageRefus(new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503)), null);
+
+  assert.ok(traiterSessionExpiree(new ApiError("ACTION_NON_AUTORISEE", 401)));
   assert.equal(lireSession(), null);
 });
 

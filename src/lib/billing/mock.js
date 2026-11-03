@@ -6,6 +6,8 @@
 //   ko@…        -> le 1er checkout échoue, le 2e réussit (reprise sans recréer le compte)
 //   role@…      -> ROLE_NON_AUTORISE_POUR_OFFRE   comptes@… -> COMPTES_INSUFFISANTS
 //   sepa@…      -> retour en « activation_provisoire »   lent@… -> la confirmation n'arrive pas
+//   expire@…    -> le checkout répond 401 (jeton expiré)   refus@… -> le checkout répond 403 NON_TITULAIRE
+//   bloque@…    -> la page de retour reçoit un 403 NON_TITULAIRE de /compte
 //   SIRET commençant par 000000 -> SIRET_INVALIDE
 // Toute autre adresse : abonnement « actif » après quelques interrogations.
 import { ApiError } from "./errors.js";
@@ -169,6 +171,8 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false }
 
   if (route === "POST /api/billing/checkout") {
     const etat = etatDuJeton(token);
+    if (etat.email.startsWith("expire")) throw new ApiError("ACTION_NON_AUTORISEE", 401);
+    if (etat.email.startsWith("refus")) throw new ApiError("NON_TITULAIRE", 403);
     if (etat.email.includes("role")) throw new ApiError("ROLE_NON_AUTORISE_POUR_OFFRE", 422, { categorie: "superviseur" });
     if (etat.email.includes("comptes")) throw new ApiError("COMPTES_INSUFFISANTS", 422, { requis: { cuisinier: 2 } });
     etat.essaisCheckout += 1;
@@ -184,6 +188,7 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false }
 
   if (route === "GET /api/billing/compte") {
     const etat = etatDuJeton(token);
+    if (etat.email.startsWith("bloque")) throw new ApiError("NON_TITULAIRE", 403);
     etat.interrogations += 1;
     ecrireEtat(etat);
     let statut = "en_attente_paiement";

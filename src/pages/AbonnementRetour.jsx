@@ -4,7 +4,7 @@ import SEO from "@/components/SEO";
 import Etapes from "@/components/billing/Etapes";
 import { getCatalogue, getCompte } from "@/lib/billing/api";
 import { APP_STORE_URL, PLAY_STORE_URL, URL_MON_COMPTE } from "@/lib/billing/config";
-import { traiterSessionExpiree } from "@/lib/billing/erreurs";
+import { messageRefus, traiterSessionExpiree } from "@/lib/billing/erreurs";
 import { effacerSession, lireSession } from "@/lib/billing/session";
 
 const INTERVALLE_MS = 2000;
@@ -15,6 +15,7 @@ const TITRES = {
   actif: "Votre abonnement est actif.",
   provisoire: "Votre prélèvement est en cours de validation.",
   delai: "Confirmation en cours.",
+  refus: "Confirmation impossible.",
 };
 
 function Pastille({ phase }) {
@@ -66,6 +67,8 @@ export default function AbonnementRetour() {
       } catch (erreur) {
         if (arrete) return;
         if (traiterSessionExpiree(erreur)) return setEtat({ phase: "delai", sansJeton: true });
+        const refus = messageRefus(erreur);
+        if (refus) return setEtat({ phase: "refus", refus });
       }
       if (Date.now() - debut >= DUREE_MAX_MS) return setEtat({ phase: "delai" });
       minuteur = setTimeout(interroger, INTERVALLE_MS);
@@ -117,6 +120,22 @@ export default function AbonnementRetour() {
               <p className="text-muted text-lg leading-relaxed">
                 Votre prélèvement SEPA est en cours de validation, ce qui prend quelques jours ouvrés. Vous pouvez déjà utiliser l’application.
               </p>
+            )}
+
+            {phase === "refus" && (
+              <>
+                <p className="text-muted text-lg leading-relaxed">{etat.refus}</p>
+                <button
+                  type="button"
+                  className="link-underline mt-4"
+                  onClick={() => {
+                    setEtat({ phase: "attente" });
+                    setRelance((n) => n + 1);
+                  }}
+                >
+                  Vérifier à nouveau
+                </button>
+              </>
             )}
 
             {phase === "delai" && (
