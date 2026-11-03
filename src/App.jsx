@@ -11,8 +11,8 @@ import EssaiGratuit from './pages/EssaiGratuit';
 import Tarifs from './pages/Tarifs';
 import Inscription from './pages/Inscription';
 import AbonnementRetour from './pages/AbonnementRetour';
-import Cgv from './pages/Cgv';
 import DocumentLegal from './pages/DocumentLegal';
+import { DOCUMENTS_LEGAUX } from '@/content/legal';
 import { BILLING_ACTIF } from '@/lib/billing/config';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -68,14 +68,24 @@ const AuthenticatedApp = () => {
         />
       ))}
       <Route path="/essai-gratuit" element={<LayoutWrapper currentPageName="essai-gratuit"><EssaiGratuit /></LayoutWrapper>} />
-      {/* Documents légaux : toujours en ligne (le pied de page ne lie CGV, CGU et DPA que si la vente est active) */}
-      <Route path="/cgv" element={<LayoutWrapper currentPageName="cgv"><Cgv /></LayoutWrapper>} />
-      <Route path="/confidentialite" element={<LayoutWrapper currentPageName="confidentialite"><DocumentLegal cle="confidentialite-site" /></LayoutWrapper>} />
-      <Route path="/cookies" element={<LayoutWrapper currentPageName="cookies"><DocumentLegal cle="cookies" apres={<button type="button" onClick={ouvrirGestionCookies} className="btn-primary mt-8">Gérer mes cookies</button>} /></LayoutWrapper>} />
-      <Route path="/application/cgu" element={<LayoutWrapper currentPageName="application-cgu"><DocumentLegal cle="cgu-application" /></LayoutWrapper>} />
-      <Route path="/application/confidentialite" element={<LayoutWrapper currentPageName="application-confidentialite"><DocumentLegal cle="confidentialite-application" /></LayoutWrapper>} />
-      <Route path="/accord-sous-traitance" element={<LayoutWrapper currentPageName="accord-sous-traitance"><DocumentLegal cle="accord-sous-traitance" /></LayoutWrapper>} />
+      {/* Documents légaux : toujours en ligne, chacun aussi à une adresse versionnée et immuable (/cgv/0.1…).
+          Les pages de l'application sont sans en-tête ni pied de page (magasins d'applications, sans prix).
+          Le pied de page ne lie CGV, CGU et accord de sous-traitance que si la vente est active. */}
+      {Object.values(DOCUMENTS_LEGAUX).flatMap((doc) => {
+        const apres = doc.document === "cookies"
+          ? <button type="button" onClick={ouvrirGestionCookies} className="btn-primary mt-8">Gérer mes cookies</button>
+          : null;
+        const page = doc.portee === "application"
+          ? <DocumentLegal cle={doc.document} nu />
+          : <LayoutWrapper currentPageName={doc.document}><DocumentLegal cle={doc.document} apres={apres} /></LayoutWrapper>;
+        return [
+          <Route key={doc.chemin} path={doc.chemin} element={page} />,
+          <Route key={`${doc.chemin}/version`} path={`${doc.chemin}/:version`} element={page} />,
+        ];
+      })}
       <Route path="/cgu" element={<Navigate to="/application/cgu" replace />} />
+      {/* Ancienne URL déclarée aux magasins : 301 côté serveur (.htaccess), et repli ici */}
+      <Route path="/PolitiqueConfidentialite" element={<Navigate to="/application/confidentialite" replace />} />
       {/* Vente d'abonnements : routes enregistrées seulement si BILLING_ACTIF */}
       {BILLING_ACTIF && (
         <>

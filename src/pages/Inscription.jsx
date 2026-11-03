@@ -13,6 +13,10 @@ import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, se
 import { MESSAGE_INDISPONIBLE, messageRefus, traiterSessionExpiree } from "@/lib/billing/erreurs";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
 import { nettoyerSiret, validerInscription } from "@/lib/billing/validation";
+import { INDEX_LEGAL } from "virtual:documents-legaux";
+
+// Version des CGV acceptée à l'inscription (Apirest refuse une version qui n'est plus en vigueur : 409).
+const CGV = INDEX_LEGAL.find((d) => d.document === "cgv");
 
 const VIDE = {
   prenom: "", nom: "", email: "", motDePasse: "", confirmation: "",
@@ -213,6 +217,8 @@ export default function Inscription() {
           adresse,
         },
         cgvAcceptees: true,
+        cgvVersion: CGV.version,
+        cgvSha256: CGV.sha256,
       });
       if (!token) throw new ApiError("ERREUR_INCONNUE");
       const nouvelle = { token, email };
@@ -236,6 +242,21 @@ export default function Inscription() {
           ),
         });
         document.getElementById("champ-email")?.focus();
+      } else if (erreur.code === "CGV_VERSION_OBSOLETE") {
+        // Les CGV ont changé depuis le chargement de la page : on fait relire et accepter la nouvelle version.
+        setValeurs((v) => ({ ...v, cgv: false }));
+        setErreurs({
+          cgv: (
+            <>
+              Les conditions générales de vente ont été mises à jour.{" "}
+              <button type="button" onClick={() => window.location.reload()} className="link-underline">
+                Rechargez la page
+              </button>{" "}
+              pour lire et accepter la nouvelle version.
+            </>
+          ),
+        });
+        document.getElementById("champ-cgv")?.focus();
       } else if (erreur.code === "SIRET_INVALIDE") {
         setErreurs({ siret: "Ce numéro SIRET n’est pas reconnu. Vérifiez-le." });
         document.getElementById("champ-siret")?.focus();
@@ -374,7 +395,7 @@ export default function Inscription() {
                       />
                       <span>
                         J’accepte les{" "}
-                        <Link to="/cgv" target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>{" "}
+                        <Link to={`/cgv/${CGV.version}`} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>{" "}
                         (et leur annexe, l’<Link to="/accord-sous-traitance" target="_blank" rel="noopener noreferrer" className="link-underline">accord de sous-traitance des données</Link>) et les{" "}
                         <Link to="/application/cgu" target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales d’utilisation</Link>
                       </span>

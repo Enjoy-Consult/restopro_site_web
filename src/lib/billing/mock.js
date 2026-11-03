@@ -8,6 +8,7 @@
 //   sepa@…      -> retour en « activation_provisoire »   lent@… -> la confirmation n'arrive pas
 //   expire@…    -> le checkout répond 401 (jeton expiré)   refus@… -> le checkout répond 403 NON_TITULAIRE
 //   bloque@…    -> la page de retour reçoit un 403 NON_TITULAIRE de /compte
+//   cgvobsolete@… -> l'inscription répond 409 CGV_VERSION_OBSOLETE
 //   SIRET commençant par 000000 -> SIRET_INVALIDE
 // Toute autre adresse : abonnement « actif » après quelques interrogations.
 import { ApiError } from "./errors.js";
@@ -162,6 +163,7 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false }
     const email = String(corps?.responsable?.email ?? "").toLowerCase();
     if (email.startsWith("indispo")) throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
     if (email.startsWith("existant")) throw new ApiError("EMAIL_DEJA_UTILISE", 409);
+    if (email.startsWith("cgvobsolete")) throw new ApiError("CGV_VERSION_OBSOLETE", 409);
     if (String(corps?.restaurant?.siret ?? "").startsWith("000000")) throw new ApiError("SIRET_INVALIDE", 422);
     const jeton = `mock-${Math.random().toString(36).slice(2)}`;
     const { prenom, nom } = corps.responsable;

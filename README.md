@@ -39,3 +39,41 @@ Le workflow ne transmet jamais `VITE_BILLING_MOCK` : un build de production ne p
 - Les routes `/api/billing/catalogue`, `/inscription`, `/checkout` et `/compte` répondent sous `VITE_API_URL`.
 - Les pages `/cgv` et `/cgu` ont leur texte définitif (elles sont provisoires).
 - Le serveur renvoie `index.html` pour toute adresse inconnue (déjà fait par `.htaccess`).
+
+## Documents légaux
+
+Source unique pour le site, l'application et l'API : `src/content/legal/<document>/<version>.md`, décrits dans `src/content/legal/documents.json` (version en vigueur, date d'entrée en vigueur `enVigueurLe`, statut).
+
+| Document | Page en vigueur | Page d'une version |
+|---|---|---|
+| `mentions-legales` | `/MentionsLegales` | `/MentionsLegales/<version>` |
+| `cgv` | `/cgv` | `/cgv/<version>` |
+| `accord-sous-traitance` | `/accord-sous-traitance` | `/accord-sous-traitance/<version>` |
+| `confidentialite-site` | `/confidentialite` | `/confidentialite/<version>` |
+| `cookies` | `/cookies` | `/cookies/<version>` |
+| `cgu-app` | `/application/cgu` | `/application/cgu/<version>` |
+| `confidentialite-app` | `/application/confidentialite` | `/application/confidentialite/<version>` |
+
+- Les pages `/application/…` n'ont ni en-tête ni pied de page, et leurs textes ne contiennent ni prix, ni mention d'abonnement payant, ni lien d'achat (vérifié par `npm test`).
+- `/PolitiqueConfidentialite` (ancienne URL des magasins) redirige en 301 vers `/application/confidentialite` (`public/.htaccess`).
+- Une version publiée ne se modifie plus : on ajoute un fichier `<version>.md`, on le déclare dans `documents.json` et on change `versionEnVigueur`. Quand le statut d'une version n'est plus `projet`, son `sha256` doit être enregistré dans `documents.json` ; `npm test` échoue si le texte change ensuite.
+- Le build publie `https://restoclair.fr/legal/index.json` (versions en vigueur), `https://restoclair.fr/legal/historique.json` (toutes les versions) et chaque texte sous `https://restoclair.fr/legal/<document>/<version>.md`. `npm run legal:index` affiche le même index en local.
+- L'inscription envoie `cgvVersion` et `cgvSha256` de la version en vigueur ; un 409 `CGV_VERSION_OBSOLETE` demande de recharger la page pour accepter la nouvelle version.
+
+Format de l'index (une entrée par document) :
+
+```json
+{ "document": "cgv", "version": "0.1", "enVigueurLe": "2026-11-03", "sha256": "…", "url": "https://restoclair.fr/cgv/0.1", "markdown": "https://restoclair.fr/legal/cgv/0.1.md", "statut": "projet" }
+```
+
+### Calcul de l'empreinte (identique pour le site, l'application et Apirest)
+
+`sha256` est calculé sur le texte publié, normalisé ainsi (`scripts/legal.mjs`, `normaliserTexteLegal`) :
+
+1. décoder le fichier en UTF-8 et retirer la marque d'ordre des octets (BOM) s'il y en a une ;
+2. remplacer chaque fin de ligne `\r\n` ou `\r` par `\n` ;
+3. retirer le bandeau « projet » : le bloc de lignes consécutives commençant par `>` qui contient « Projet à faire relire par un avocat », ainsi que la ligne vide qui le suit immédiatement ;
+4. supprimer les `\n` en fin de texte, puis en ajouter exactement un ;
+5. empreinte : SHA-256 des octets UTF-8 du résultat, en hexadécimal minuscule.
+
+Le texte affiché à l'utilisateur peut garder le bandeau : il n'entre pas dans l'empreinte.

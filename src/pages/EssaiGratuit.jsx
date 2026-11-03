@@ -341,7 +341,7 @@ export default function EssaiGratuit() {
               <p>Les informations du formulaire servent uniquement à traiter votre demande d’essai et à vous recontacter, sur la base de votre consentement.</p>
               <p>Elles sont enregistrées dans l’outil de gestion de RestOclair (Airtable). Une notification est aussi envoyée à l’équipe par FormSubmit, puis reçue dans sa messagerie Gmail (<a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer" className="underline">politique de confidentialité de FormSubmit</a>). Elles sont conservées le temps de traiter votre demande ; si un accompagnement commence, les conditions de conservation vous seront précisées.</p>
               <p>Vous pouvez retirer votre consentement et demander l’accès, la rectification, l’effacement ou la limitation de vos données, ainsi que leur portabilité, en écrivant à <a href="mailto:contact.restoclair@gmail.com" className="underline">contact.restoclair@gmail.com</a>. Vous pouvez aussi saisir la <a href="https://www.cnil.fr/fr/adresser-une-plainte" target="_blank" rel="noopener noreferrer" className="underline">CNIL</a>.</p>
-              <p>Voir aussi notre <Link to="/PolitiqueConfidentialite" className="underline">politique de confidentialité</Link>.</p>
+              <p>Voir aussi notre <Link to="/confidentialite" className="underline">politique de confidentialité</Link>.</p>
             </div>
           </details>
         </div>

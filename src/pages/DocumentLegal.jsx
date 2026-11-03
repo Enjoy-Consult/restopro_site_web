@@ -1,9 +1,10 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import SEO from "@/components/SEO";
 import { BUSINESS } from "@/lib/business-info";
 import { DOCUMENTS_LEGAUX } from "@/content/legal";
+import PageNotFound from "@/lib/PageNotFound";
 
 // Rendu des éléments Markdown dans le style du site.
 const COMPOSANTS = {
@@ -27,21 +28,37 @@ const COMPOSANTS = {
   ),
 };
 
-export default function DocumentLegal({ cle, avant = null, apres = null }) {
+// `nu` : sans en-tête ni pied de page (pages de l'application, servies aussi aux magasins d'applications).
+export default function DocumentLegal({ cle, nu = false, avant = null, apres = null }) {
   const doc = DOCUMENTS_LEGAUX[cle];
+  const { version: demandee } = useParams();
+  const version = demandee ?? doc.versionEnVigueur;
+  const source = doc.sources[version];
+  if (!source) return <PageNotFound />;
+  const archivee = version !== doc.versionEnVigueur;
+  const chemin = demandee ? `${doc.chemin}/${version}` : doc.chemin;
+
   return (
-    <>
-      <SEO title={doc.titre} description={doc.description} canonicalUrl={`${BUSINESS.url}${doc.chemin}`} noindex />
+    <div className={nu ? "min-h-screen bg-paper" : undefined}>
+      <SEO title={doc.titre} description={doc.description} canonicalUrl={`${BUSINESS.url}${chemin}`} noindex />
       <article className="max-w-[800px] mx-auto px-5 md:px-6 py-12 md:py-16">
-        <p className="text-bottle text-[12px] font-medium uppercase tracking-[0.14em] mb-4">
-          {doc.portee === "application" ? "Application RestOclair" : "Site restoclair.fr"}
-        </p>
+        {!nu && (
+          <p className="text-bottle text-[12px] font-medium uppercase tracking-[0.14em] mb-4">
+            {doc.portee === "application" ? "Application RestOclair" : "Site restoclair.fr"}
+          </p>
+        )}
+        {archivee && (
+          <p role="note" className="text-muted text-[14px] border-l-2 border-border pl-3 mb-6">
+            Version {version}, qui n’est plus en vigueur.{" "}
+            <Link to={doc.chemin} className="link-underline">Lire la version en vigueur</Link>
+          </p>
+        )}
         {avant}
         <div className="prose-editorial text-[15px] [&_h1]:text-ink [&_h1]:mb-3 [&_h1]:text-[clamp(1.9rem,4.5vw,2.75rem)] [&_ul]:list-disc [&_ol]:list-decimal [&_h2]:scroll-mt-24 [&_h1+p]:text-faint [&_h1+p]:text-[14px]">
-          <ReactMarkdown components={COMPOSANTS}>{doc.source}</ReactMarkdown>
+          <ReactMarkdown components={COMPOSANTS}>{source}</ReactMarkdown>
         </div>
         {apres}
       </article>
-    </>
+    </div>
   );
 }
