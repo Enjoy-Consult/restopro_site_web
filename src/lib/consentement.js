@@ -1,6 +1,6 @@
 // Consentement aux cookies (recommandations de la CNIL) : rien de Google n'est chargé avant un « oui » explicite.
-// Le conteneur GTM ne contient que Google Ads (conversions et remarketing, décision de Louis du 3/11) :
-// une seule finalité soumise au consentement.
+// Le conteneur GTM charge la balise Google, qui envoie vers Google Ads et vers Google Analytics
+// (G-Z0ZKBK12KB, réglé chez Google et non dans le conteneur). Les deux relèvent d'un seul choix du bandeau.
 // Le mode de consentement de Google (v2) est déclaré « refusé » dans index.html, avant tout chargement.
 
 export const GTM_ID = "GTM-MJ9BMVVK";
@@ -41,7 +41,8 @@ function gtag() {
   window.dataLayer.push(arguments);
 }
 
-// Signaux du mode de consentement : il n'y a pas de mesure d'audience, analytics_storage reste refusé.
+// Signaux du mode de consentement : analytics_storage reste refusé, même après accord.
+// Google Analytics reçoit alors ses mesures sans cookie (ni _ga ni _ga_*).
 export function signauxConsentement(publicite) {
   const etat = publicite ? "granted" : "denied";
   return { ad_storage: etat, ad_user_data: etat, ad_personalization: etat, analytics_storage: "denied" };
@@ -63,17 +64,21 @@ export function chargerGtm() {
 }
 
 // Retrait du consentement : efface les cookies de Google Ads déposés sur ce domaine (_gcl_*) et leur copie locale.
-export function effacerTraceursPublicite() {
+function effacerCookies(estVise) {
   const noms = document.cookie
     .split(";")
     .map((c) => c.split("=")[0].trim())
-    .filter((nom) => nom.startsWith("_gcl_"));
+    .filter(estVise);
   const hote = window.location.hostname;
   const domaines = [hote, `.${hote.replace(/^www\./, "")}`];
   for (const nom of noms) {
     document.cookie = `${nom}=; Max-Age=0; path=/`;
     for (const domaine of domaines) document.cookie = `${nom}=; Max-Age=0; path=/; domain=${domaine}`;
   }
+}
+
+export function effacerTraceursPublicite() {
+  effacerCookies((nom) => nom.startsWith("_gcl_"));
   try {
     for (const cle of Object.keys(window.localStorage)) if (cle.startsWith("_gcl_")) window.localStorage.removeItem(cle);
   } catch {
@@ -83,6 +88,8 @@ export function effacerTraceursPublicite() {
 
 // Au démarrage : applique un choix déjà enregistré (sans choix, rien n'est chargé).
 export function appliquerConsentement(choix) {
+  // analytics_storage reste refusé : les _ga déposés avant la mise en place du bandeau ne servent plus.
+  effacerCookies((nom) => nom === "_ga" || nom.startsWith("_ga_"));
   if (!choix) return;
   gtag("consent", "update", signauxConsentement(choix.publicite));
   if (choix.publicite) chargerGtm();
