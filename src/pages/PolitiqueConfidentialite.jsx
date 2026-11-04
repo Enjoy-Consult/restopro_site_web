@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { BUSINESS } from "@/lib/business-info";
 import SEO from "@/components/SEO";
 
@@ -14,6 +16,12 @@ import SEO from "@/components/SEO";
  * aux trois endroits.
  */
 export default function PolitiqueConfidentialite() {
+  // Lien du bandeau de consentement (#cookies) : le navigateur ne peut pas défiler seul, la page s'affiche après le chargement.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
+  }, [hash]);
+
   const H2 = "text-ink font-semibold text-lg mb-3";
   const H3 = "text-ink font-medium text-[15px] mt-4 mb-2";
   const UL = "list-disc pl-5 mt-2 space-y-1";
@@ -327,14 +335,16 @@ export default function PolitiqueConfidentialite() {
             </p>
           </section>
 
-          <section>
+          <section id="cookies" className="scroll-mt-24">
             <h2 className={H2}>Cookies et traceurs</h2>
             <p>
-              Aucun cookie publicitaire, aucun traceur tiers, aucun outil de mesure d'audience
-              externe n'est utilisé. Seuls sont déposés les cookies strictement nécessaires au
-              fonctionnement des services : maintien de la session authentifiée et sécurisation des
-              échanges. Ces cookies sont exemptés de consentement préalable au sens des
-              recommandations de la CNIL.
+              Le site utilise des cookies de Google Ads (mesure des conversions et remarketing) uniquement si
+              vous les acceptez dans le bandeau de consentement : Google Tag Manager n'est pas chargé avant votre
+              accord. Votre choix est conservé 6 mois au plus, et vous pouvez le modifier à tout moment avec le
+              lien « Gérer mes cookies », en bas de chaque page. Les illustrations du blog sont chargées depuis
+              Unsplash, qui reçoit alors votre adresse IP. Les autres cookies sont strictement nécessaires au
+              fonctionnement des services : maintien de la session authentifiée et sécurisation des échanges. Ces
+              cookies sont exemptés de consentement préalable au sens des recommandations de la CNIL.
             </p>
             <p className="mt-3">
               Les applications mobiles ne contiennent aucun kit de développement publicitaire ni
