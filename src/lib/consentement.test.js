@@ -1,10 +1,10 @@
 // Tests du consentement aux cookies : `npm test` (node --test, sans dépendance).
 import test from "node:test";
 import assert from "node:assert/strict";
-function fauxNavigateur() {
+function fauxNavigateur(cookiesDepart = "_gcl_au=1.1.123; autre=ok") {
   const stockage = new Map();
   const scripts = [];
-  let cookies = "_gcl_au=1.1.123; autre=ok";
+  let cookies = cookiesDepart;
   globalThis.window = {
     localStorage: {
       getItem: (c) => (stockage.has(c) ? stockage.get(c) : null),
@@ -68,4 +68,12 @@ test("consentement : acceptation, puis retrait qui recharge la page ; choix pér
   assert.equal(c.lireConsentement(debut), null);
   nav.stockage.set(c.CLE_CONSENTEMENT, JSON.stringify({ version: 99, publicite: true, date: "2026-11-03T11:00:00Z" }));
   assert.equal(c.lireConsentement(debut), null);
+});
+
+test("consentement : les anciens cookies _ga sont effacés au chargement, sans toucher aux autres", async () => {
+  const nav = fauxNavigateur("_ga=GA1.1.1; _ga_Z0ZKBK12KB=GS2.1; _gcl_au=1.1.123; autre=ok");
+  const c = await import("./consentement.js");
+  c.appliquerConsentement(null);
+  assert.equal(nav.cookies(), "_gcl_au=1.1.123; autre=ok");
+  assert.equal(nav.scripts.length, 0);
 });

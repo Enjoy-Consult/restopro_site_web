@@ -77,10 +77,10 @@ export default function ConsentementCookies() {
         <div className="flex-1 min-w-0">
           <h2 id="cookies-titre" className="text-ink font-sans font-semibold text-[17px] mb-1.5">Vos choix sur les cookies</h2>
           <p className="text-muted text-[14px] leading-relaxed">
-            Avec votre accord, nous utilisons des cookies Google Ads pour mesurer l’efficacité de nos annonces et
-            vous montrer ensuite des publicités RestOclair sur d’autres sites (remarketing). Rien n’est déposé tant que
-            vous n’avez pas accepté, et vous pouvez changer d’avis à tout moment avec le lien « Gérer mes cookies » en
-            bas de page.{" "}
+            Avec votre accord, nous utilisons Google Ads pour mesurer l’efficacité de nos annonces et vous montrer
+            ensuite des publicités RestOclair sur d’autres sites (remarketing), et Google Analytics pour mesurer la
+            fréquentation du site. Rien n’est déposé tant que vous n’avez pas accepté, et vous pouvez changer d’avis à
+            tout moment avec le lien « Gérer mes cookies » en bas de page.{" "}
             <Link to="/cookies" className="link-underline">En savoir plus</Link>
           </p>
 
@@ -96,11 +96,12 @@ export default function ConsentementCookies() {
                 />
                 <span>
                   <span className="block text-ink text-[15px] font-medium">
-                    Publicité, mesure des conversions et remarketing (Google Ads)
+                    Publicité et mesure d’audience (Google Ads et Google Analytics)
                   </span>
                   <span className="block text-faint text-[13px] leading-snug mt-0.5">
-                    Savoir si une visite venue d’une annonce Google aboutit à une demande de contact ou d’essai, et vous
-                    montrer ensuite des publicités RestOclair sur d’autres sites, avec Google comme responsable conjoint.
+                    Savoir si une visite venue d’une annonce Google aboutit à un appel ou à une demande de contact, vous
+                    montrer ensuite des publicités RestOclair sur d’autres sites, avec Google comme responsable conjoint,
+                    et mesurer la fréquentation du site avec Google Analytics, sans cookie d’audience.
                   </span>
                 </span>
               </label>
