@@ -1,15 +1,18 @@
 <?php
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
+require_once __DIR__ . '/securite.php';
 require_once __DIR__ . '/config.php';
 setCorsHeaders();
 
 $result = airtableRequest('BlogPost?view=Grid%20view');
 
 if ($result['status'] !== 200) {
-    http_response_code($result['status']);
-    echo json_encode(['error' => 'Erreur API Airtable', 'details' => $result]);
+    error_log('blog.php Airtable error: ' . json_encode($result));
+    http_response_code(502);
+    echo json_encode(['error' => 'Service indisponible']);
     exit();
 }
 
