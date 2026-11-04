@@ -96,7 +96,8 @@ if ($errors) {
     repondre(422, ['success' => false, 'error' => 'Champs invalides', 'fields' => $errors]);
 }
 
-// Limite d'envoi : le compteur garde une empreinte de l'adresse IP, jamais l'adresse, et l'efface au bout de 24 h.
+// Limite d'envoi : le compteur garde une empreinte de l'adresse IP, jamais l'adresse.
+// Une empreinte sans envoi depuis 24 h est effacée à la demande suivante, quelle qu'en soit l'origine.
 // Si le dossier n'est pas accessible, on laisse passer : un client ne doit pas être bloqué par une panne du compteur.
 function limiteDepassee($ip) {
     $dossier = sys_get_temp_dir() . '/restoclair_contact';
@@ -124,10 +125,8 @@ function limiteDepassee($ip) {
     flock($fichier, LOCK_UN);
     fclose($fichier);
 
-    if (mt_rand(1, 50) === 1) {
-        foreach (glob($dossier . '/*') ?: [] as $ancien) {
-            if (filemtime($ancien) < $maintenant - 86400) @unlink($ancien);
-        }
+    foreach (glob($dossier . '/*') ?: [] as $ancien) {
+        if (filemtime($ancien) < $maintenant - 86400) @unlink($ancien);
     }
 
     return $depassee;
