@@ -301,7 +301,7 @@ export default function PolitiqueConfidentialite() {
             <p>
               Pour le site vitrine, des données peuvent être traitées hors de l'Union européenne : par
               Airtable, aux États-Unis, sur la base des clauses contractuelles types de la Commission
-              européenne ; par Google (Google Fonts, messagerie de l'équipe et, avec votre accord, Google Ads
+              européenne ; par Google (messagerie de l'équipe et, avec votre accord, Google Ads
               et Google Analytics), sur la base du cadre de protection des données UE–États-Unis
               (<em>Data Privacy Framework</em>), auquel Google LLC a adhéré ; par Unsplash, au Canada, pays
               qui bénéficie d'une décision d'adéquation de la Commission européenne ; par FormSubmit, dont le
@@ -408,9 +408,10 @@ export default function PolitiqueConfidentialite() {
               effacés et la page est rechargée sans Google Tag Manager.
             </p>
             <p className="mt-3">
-              Quel que soit votre choix, les polices de caractères sont chargées depuis Google Fonts et certaines images
-              depuis Unsplash : ces services reçoivent votre adresse IP dès l'affichage des pages concernées. Les autres
-              cookies sont strictement nécessaires au fonctionnement des services : maintien de la session authentifiée
+              Les polices de caractères et les images du site sont hébergées par le site lui-même : leur affichage ne
+              fait appel ni à Google Fonts ni à Unsplash. Seule exception : sur les pages du blog, les illustrations des
+              articles sont encore chargées depuis Unsplash. Quel que soit votre choix, Unsplash reçoit votre adresse IP
+              dès l'affichage de ces pages. Les autres cookies sont strictement nécessaires au fonctionnement des services : maintien de la session authentifiée
               et sécurisation des échanges. Ces cookies sont exemptés de consentement préalable au sens des
               recommandations de la CNIL.
             </p>
