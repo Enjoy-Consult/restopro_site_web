@@ -19,7 +19,8 @@ function lireErreur(data) {
 }
 
 async function requete(methode, chemin, { corps, token } = {}) {
-  if (BILLING_MOCK) {
+  // import.meta.env.DEV : la maquette ne fait jamais partie d'un build de production.
+  if (import.meta.env.DEV && BILLING_MOCK) {
     const { mockRequete } = await import("./mock.js");
     return mockRequete(methode, chemin, { corps, token, pms: BILLING_MOCK_PMS });
   }

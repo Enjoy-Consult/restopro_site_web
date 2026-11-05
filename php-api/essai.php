@@ -1,5 +1,6 @@
 <?php
 // Demandes d'essai gratuit (page /essai-gratuit) -> table Airtable "DemandesEssai"
+require_once __DIR__ . '/securite.php';
 require_once __DIR__ . '/config.php';
 setCorsHeaders();
 
