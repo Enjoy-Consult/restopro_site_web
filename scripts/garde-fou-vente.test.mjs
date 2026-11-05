@@ -165,3 +165,12 @@ test("workflow de production : il transmet l'interrupteur et les adresses, jamai
   }
   assert.ok(!workflow.includes("VITE_BILLING_MOCK"));
 });
+
+test("maquette en production : le build passe, mais avec un avertissement", async () => {
+  const { avertissementMaquette } = await import("./garde-fou-vente.mjs");
+  const actif = { VITE_BILLING_ACTIF: "true", VITE_BILLING_MOCK: "true" };
+  assert.match(avertissementMaquette({ commande: "build", mode: "production", env: actif }), /simule le paiement/);
+  assert.equal(avertissementMaquette({ commande: "serve", mode: "development", env: actif }), null);
+  assert.equal(avertissementMaquette({ commande: "build", mode: "production", env: { VITE_BILLING_ACTIF: "true" } }), null);
+  assert.equal(avertissementMaquette({ commande: "build", mode: "production", env: {} }), null);
+});

@@ -437,3 +437,11 @@ test("messageErreur : refus conservés, le reste est une indisponibilité", () =
   assert.equal(messageErreur(new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503)), MESSAGE_INDISPONIBLE);
   assert.equal(messageErreur(new TypeError("autre")), MESSAGE_INDISPONIBLE);
 });
+
+test("messageErreur : un 4xx au code inconnu n'est pas présenté comme une panne", async () => {
+  const { messageErreur, MESSAGE_INDISPONIBLE, MESSAGE_REFUS_GENERIQUE } = await import("./erreurs.js");
+  assert.equal(messageErreur(new ApiError("CODE_INCONNU", 422)), MESSAGE_REFUS_GENERIQUE);
+  assert.equal(messageErreur(new ApiError("CODE_INCONNU", 409)), MESSAGE_REFUS_GENERIQUE);
+  assert.equal(messageErreur(new ApiError("CODE_INCONNU", 500)), MESSAGE_INDISPONIBLE);
+  assert.equal(messageErreur(new ApiError("RESEAU", 0)), MESSAGE_INDISPONIBLE);
+});

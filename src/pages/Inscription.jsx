@@ -302,6 +302,8 @@ export default function Inscription() {
     effacerSession();
     setSession(null);
     setErreurGenerale(null);
+    // Un autre compte, c'est une nouvelle acceptation des conditions.
+    setValeurs((v) => ({ ...v, cgv: false }));
   };
 
   return (
@@ -341,9 +343,11 @@ export default function Inscription() {
                   </Message>
                 )}
               </Recapitulatif>
-              <p className="mt-4 text-[15px]">
-                <Link to={`/tarifs${search}`} onClick={() => retenirSaisie(valeurs)} className="link-underline">Modifier mon choix</Link>
-              </p>
+              {!envoi && (
+                <p className="mt-4 text-[15px]">
+                  <Link to={`/tarifs${search}`} onClick={() => retenirSaisie(valeurs)} className="link-underline">Modifier mon choix</Link>
+                </p>
+              )}
               <div className="mt-5 flex flex-col gap-2 text-muted text-[13px] leading-relaxed">
                 {mentionsAbonnement(calcul.version).map((mention) => (
                   <p key={mention}>{mention}</p>

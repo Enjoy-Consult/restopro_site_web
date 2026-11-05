@@ -160,6 +160,7 @@ export default function AbonnementRetour() {
                 <button type="button" className="link-underline mt-4" onClick={relancer}>
                   Vérifier à nouveau
                 </button>
+                <Aide />
               </>
             )}
 

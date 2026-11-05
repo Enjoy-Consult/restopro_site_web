@@ -94,7 +94,11 @@ export function messageErreur(erreur) {
   if (erreur?.code === "VALIDATION_ERROR") return MESSAGE_VALIDATION;
   if (erreur?.code === "CGV_VERSION_OBSOLETE") return MESSAGE_CGV_OBSOLETE_PAIEMENT;
   if (VERS_ESPACE.includes(erreur?.code)) return REFUS[erreur.code];
-  return messageRefus(erreur) ?? MESSAGE_INDISPONIBLE;
+  const refus = messageRefus(erreur);
+  if (refus) return refus;
+  // Un autre 4xx n'est pas une panne : l'indisponibilité est réservée au réseau et aux 5xx.
+  if (erreur?.status >= 400 && erreur?.status < 500) return MESSAGE_REFUS_GENERIQUE;
+  return MESSAGE_INDISPONIBLE;
 }
 
 // Texte découpé autour de « votre espace », pour que la page y mette le lien. Sans ces mots : tout est dans `avant`.

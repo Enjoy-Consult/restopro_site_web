@@ -73,7 +73,7 @@ export function questionsTarifs(catalogue) {
     {
       question: "Que sont les équipiers ?",
       reponse:
-        "Les équipiers sont illimités et gratuits dans toutes les formules. Ils servent à signer les actions, avec les droits du compte auquel ils sont rattachés.",
+        "Les équipiers sont illimités et gratuits dans toutes les formules. Rattachés à l’établissement, ils n’ont pas de connexion propre : ils signent leurs actions avec un code PIN, sur un appareil où un compte est connecté.",
     },
     {
       question: "Quels moyens de paiement acceptez-vous ?",

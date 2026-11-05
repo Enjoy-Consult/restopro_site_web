@@ -2,7 +2,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { readFileSync } from 'node:fs'
 import path from 'path'
-import { messageGardeFou, problemesVente } from './scripts/garde-fou-vente.mjs'
+import { avertissementMaquette, messageGardeFou, problemesVente } from './scripts/garde-fou-vente.mjs'
 import { construireHistorique, construireIndex, lireDocuments, RACINE_LEGALE } from './scripts/legal.mjs'
 
 // Garde-fou de la vente (règles dans scripts/garde-fou-vente.mjs).
@@ -13,6 +13,8 @@ function gardeFouVente() {
     configResolved({ command, mode, env }) {
       const problemes = problemesVente({ commande: command, mode, env, documents: lireDocuments() })
       if (problemes.length > 0) throw new Error(messageGardeFou(problemes))
+      const avertissement = avertissementMaquette({ commande: command, mode, env })
+      if (avertissement) console.warn(`\n${avertissement}\n`)
     },
   }
 }

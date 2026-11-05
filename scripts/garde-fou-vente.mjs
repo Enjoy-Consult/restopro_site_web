@@ -34,6 +34,13 @@ export function problemesVente({ commande, mode, env, documents }) {
   ];
 }
 
+// La maquette n'est pas bloquée, mais un build de production qui simule le paiement ne doit pas passer en silence.
+export function avertissementMaquette({ commande, mode, env }) {
+  if (commande !== "build" || mode !== "production") return null;
+  if (!vrai(env.VITE_BILLING_ACTIF) || !vrai(env.VITE_BILLING_MOCK)) return null;
+  return "Attention : ce build de production simule le paiement (VITE_BILLING_MOCK=true). Ne le publiez pas.";
+}
+
 export function messageGardeFou(problemes) {
   return [
     "Build de production refusé : VITE_BILLING_ACTIF=true ouvre la vente, mais :",
