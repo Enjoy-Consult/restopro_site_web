@@ -33,7 +33,8 @@ export default function DocumentLegal({ cle, nu = false, avant = null, apres = n
   const doc = DOCUMENTS_LEGAUX[cle];
   const { version: demandee } = useParams();
   const version = demandee ?? doc.versionEnVigueur;
-  const source = doc.sources[version];
+  // /cgv/constructor : seules les versions du document comptent, pas ce qu'un objet hérite.
+  const source = Object.hasOwn(doc.sources, version) ? doc.sources[version] : null;
   if (!source) return <PageNotFound />;
   const archivee = version !== doc.versionEnVigueur;
   const chemin = demandee ? `${doc.chemin}/${version}` : doc.chemin;

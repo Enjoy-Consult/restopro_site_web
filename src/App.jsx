@@ -12,6 +12,7 @@ import Tarifs from './pages/Tarifs';
 import Inscription from './pages/Inscription';
 import AbonnementRetour from './pages/AbonnementRetour';
 import DocumentLegal from './pages/DocumentLegal';
+import ErrorBoundary from '@/components/billing/ErrorBoundary';
 import { DOCUMENTS_LEGAUX } from '@/content/legal';
 import { BILLING_ACTIF } from '@/lib/billing/config';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
@@ -86,12 +87,13 @@ const AuthenticatedApp = () => {
       <Route path="/cgu" element={<Navigate to="/application/cgu" replace />} />
       {/* Ancienne URL déclarée aux magasins : 301 côté serveur (.htaccess), et repli ici */}
       <Route path="/PolitiqueConfidentialite" element={<Navigate to="/application/confidentialite" replace />} />
-      {/* Vente d'abonnements : routes enregistrées seulement si BILLING_ACTIF */}
+      {/* Vente d'abonnements : routes enregistrées seulement si BILLING_ACTIF.
+          La clé de chaque filet le remet à zéro quand on passe d'une de ces pages à l'autre. */}
       {BILLING_ACTIF && (
         <>
-          <Route path="/tarifs" element={<LayoutWrapper currentPageName="tarifs"><Tarifs /></LayoutWrapper>} />
-          <Route path="/inscription" element={<LayoutWrapper currentPageName="inscription"><Inscription /></LayoutWrapper>} />
-          <Route path="/abonnement/retour" element={<LayoutWrapper currentPageName="abonnement-retour"><AbonnementRetour /></LayoutWrapper>} />
+          <Route path="/tarifs" element={<LayoutWrapper currentPageName="tarifs"><ErrorBoundary key="tarifs"><Tarifs /></ErrorBoundary></LayoutWrapper>} />
+          <Route path="/inscription" element={<LayoutWrapper currentPageName="inscription"><ErrorBoundary key="inscription"><Inscription /></ErrorBoundary></LayoutWrapper>} />
+          <Route path="/abonnement/retour" element={<LayoutWrapper currentPageName="abonnement-retour"><ErrorBoundary key="abonnement-retour"><AbonnementRetour /></ErrorBoundary></LayoutWrapper>} />
         </>
       )}
       <Route path="*" element={<PageNotFound />} />

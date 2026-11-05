@@ -7,10 +7,10 @@ import Etapes from "@/components/billing/Etapes";
 import Message from "@/components/billing/Message";
 import Recapitulatif from "@/components/billing/Recapitulatif";
 import { BUSINESS } from "@/lib/business-info";
-import { ApiError, getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
+import { getCatalogue, inscrire, lancerCheckout, urlDePaiement } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
 import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
-import { MESSAGE_INDISPONIBLE, messageRefus, traiterSessionExpiree } from "@/lib/billing/erreurs";
+import { MESSAGE_INDISPONIBLE, messageCatalogue, messageErreur, traiterSessionExpiree } from "@/lib/billing/erreurs";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
 import { nettoyerSiret, validerInscription } from "@/lib/billing/validation";
 import { INDEX_LEGAL } from "virtual:documents-legaux";
@@ -53,24 +53,19 @@ function Champ({ label, name, valeur, erreur, onChange, aide, facultatif, type =
   );
 }
 
-// Redirection vers la page de paiement hébergée : on ne suit qu'une URL http(s).
+// Redirection vers la page de paiement hébergée : on ne suit qu'une URL https valide.
+// Sinon l'appelant affiche l'indisponibilité.
 function suivre(url) {
-  try {
-    const cible = new URL(url, window.location.href);
-    if (cible.protocol === "https:" || cible.protocol === "http:") {
-      window.location.assign(cible.href);
-      return true;
-    }
-  } catch {
-    // URL illisible : traitée comme une erreur par l'appelant
-  }
-  return false;
+  const cible = urlDePaiement(url);
+  if (!cible) return false;
+  window.location.assign(cible);
+  return true;
 }
 
 export default function Inscription() {
   const { search } = useLocation();
   const navigate = useNavigate();
-  const { data: catalogue, isPending, isError, refetch } = useQuery({
+  const { data: catalogue, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["billing", "catalogue"],
     queryFn: getCatalogue,
     retry: 1,
@@ -93,6 +88,17 @@ export default function Inscription() {
     if (erreurRecap && recapRef.current) recapRef.current.focus();
   }, [erreurRecap]);
 
+  // Retour arrière depuis la page de paiement : le navigateur restaure la page telle quelle, bouton désactivé compris.
+  useEffect(() => {
+    const auRetour = (e) => {
+      if (!e.persisted) return;
+      envoiEnCours.current = false;
+      setEnvoi(false);
+    };
+    window.addEventListener("pageshow", auRetour);
+    return () => window.removeEventListener("pageshow", auRetour);
+  }, []);
+
   if (isPending) {
     return (
       <div className="max-w-[1200px] mx-auto px-6 py-24" role="status">
@@ -100,12 +106,18 @@ export default function Inscription() {
       </div>
     );
   }
-  if (isError) {
+  // Un rafraîchissement raté garde le catalogue déjà reçu : le formulaire en cours reste à l'écran.
+  if (isError && !catalogue) {
     return (
       <div className="max-w-[1200px] mx-auto px-6 py-24">
         <Message type="error">
-          <p>{MESSAGE_INDISPONIBLE}</p>
-          <button type="button" onClick={() => refetch()} className="link-underline mt-2">Réessayer</button>
+          <p>
+            {messageCatalogue(error) ?? MESSAGE_INDISPONIBLE} Vous pouvez aussi nous appeler au{" "}
+            <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+          </p>
+          <button type="button" onClick={() => refetch()} disabled={isFetching} className="link-underline mt-2 disabled:opacity-60">
+            {isFetching ? "Nouvelle tentative…" : "Réessayer"}
+          </button>
         </Message>
       </div>
     );
@@ -176,8 +188,8 @@ export default function Inscription() {
       }
       else if (erreur.code === "ABONNEMENT_DEJA_ACTIF")
         setErreurGenerale("Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace.");
-      // 403 : le refus reçu (ou le message générique pour un code inconnu)
-      else setErreurGenerale(messageRefus(erreur) ?? MESSAGE_INDISPONIBLE);
+      // 429 : trop d'essais ; 403 : le refus reçu (ou le message générique pour un code inconnu)
+      else setErreurGenerale(messageErreur(erreur));
     }
     setEnvoi(false);
     envoiEnCours.current = false;
@@ -220,7 +232,6 @@ export default function Inscription() {
         cgvVersion: CGV.version,
         cgvSha256: CGV.sha256,
       });
-      if (!token) throw new ApiError("ERREUR_INCONNUE");
       const nouvelle = { token, email };
       ecrireSession(nouvelle);
       setSession(nouvelle);
@@ -260,7 +271,7 @@ export default function Inscription() {
       } else if (erreur.code === "SIRET_INVALIDE") {
         setErreurs({ siret: "Ce numéro SIRET n’est pas reconnu. Vérifiez-le." });
         document.getElementById("champ-siret")?.focus();
-      } else setErreurGenerale(messageRefus(erreur) ?? MESSAGE_INDISPONIBLE);
+      } else setErreurGenerale(messageErreur(erreur));
       setEnvoi(false);
       envoiEnCours.current = false;
     }

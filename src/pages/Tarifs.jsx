@@ -8,6 +8,7 @@ import OffreCard from "@/components/billing/OffreCard";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
+import { messageCatalogue } from "@/lib/billing/erreurs";
 import { selectionDepuisQuery } from "@/lib/billing/pricing";
 
 const ATOUTS = [
@@ -61,7 +62,7 @@ export default function Tarifs() {
   const [params] = useSearchParams();
   const { search } = useLocation();
   const annule = params.get("paiement") === "annule";
-  const { data: catalogue, isPending, isError, refetch, isFetching } = useQuery({
+  const { data: catalogue, isPending, isError, error, refetch, isFetching } = useQuery({
     queryKey: ["billing", "catalogue"],
     queryFn: getCatalogue,
     retry: 1,
@@ -135,7 +136,10 @@ export default function Tarifs() {
 
           {isError && (
             <Message type="error">
-              <p>Les tarifs sont momentanément indisponibles. Réessayez dans quelques minutes, ou appelez-nous au {BUSINESS.phone.display}.</p>
+              <p>
+                {messageCatalogue(error) ?? "Les tarifs sont momentanément indisponibles. Réessayez dans quelques minutes."} Vous pouvez aussi nous appeler au{" "}
+                <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+              </p>
               <button type="button" onClick={() => refetch()} disabled={isFetching} className="link-underline mt-2 disabled:opacity-60">
                 {isFetching ? "Nouvelle tentative…" : "Réessayer"}
               </button>

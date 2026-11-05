@@ -1,7 +1,18 @@
 // Erreurs de l'API à présenter à l'utilisateur.
+import { BUSINESS } from "../business-info.js";
 import { effacerSession } from "./session.js";
 
 export const MESSAGE_INDISPONIBLE = "Le service est momentanément indisponible. Réessayez dans quelques minutes.";
+
+// 429 : le service répond et limite les essais. Ce n'est pas une panne.
+export const MESSAGE_TROP_D_ESSAIS = "Trop d’essais. Réessayez plus tard.";
+
+// Catalogue vide ou illisible : l'API répond, mais les formules ne peuvent pas s'afficher.
+export const MESSAGE_CATALOGUE_INVALIDE = "Les formules ne peuvent pas s’afficher pour le moment. Réessayez dans quelques minutes.";
+
+// Inscription acceptée sans jeton : le compte existe sans doute, on ne propose pas d'en recréer un.
+export const MESSAGE_INSCRIPTION_SANS_JETON =
+  `Votre compte a peut-être été créé, mais le paiement n’a pas pu démarrer. Connectez-vous à votre espace pour choisir une formule, ou appelez-nous au ${BUSINESS.phone.display}.`;
 
 // Refus (403) au code inconnu : message neutre, l'indisponibilité est réservée au réseau et aux 5xx.
 export const MESSAGE_REFUS_GENERIQUE = "Cette action n’est pas possible pour le moment. Contactez-nous si le problème persiste.";
@@ -38,4 +49,22 @@ const REFUS = {
 export function messageRefus(erreur) {
   if (erreur?.status !== 403) return null;
   return REFUS[erreur.code] ?? MESSAGE_REFUS_GENERIQUE;
+}
+
+export function estTropDEssais(erreur) {
+  return erreur?.status === 429;
+}
+
+// Texte à afficher quand le catalogue manque : trop d'essais ou catalogue inutilisable.
+// Renvoie null pour une panne : chaque page garde son message.
+export function messageCatalogue(erreur) {
+  if (estTropDEssais(erreur)) return MESSAGE_TROP_D_ESSAIS;
+  return erreur?.code === "CATALOGUE_INVALIDE" ? MESSAGE_CATALOGUE_INVALIDE : null;
+}
+
+// Texte à afficher quand aucun traitement plus précis ne s'applique.
+export function messageErreur(erreur) {
+  if (estTropDEssais(erreur)) return MESSAGE_TROP_D_ESSAIS;
+  if (erreur?.code === "INSCRIPTION_SANS_JETON") return MESSAGE_INSCRIPTION_SANS_JETON;
+  return messageRefus(erreur) ?? MESSAGE_INDISPONIBLE;
 }

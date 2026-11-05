@@ -10,15 +10,22 @@ const DELAI_MAX_MS = 15000;
 const EN_TETE_AUTH = "Authorization";
 const SCHEMA_AUTH = "Bearer";
 
-// Le format d'erreur d'Apirest n'est pas détaillé dans le contrat : on lit les variantes courantes.
-function lireErreur(data) {
-  const brut = data?.code ?? data?.error?.code ?? data?.erreur?.code ?? data?.error ?? data?.erreur;
-  const code = typeof brut === "string" && /^[A-Z][A-Z_]+$/.test(brut) ? brut : null;
-  const detail = data?.detail ?? data?.details ?? data?.error?.detail ?? data?.erreur?.detail ?? null;
+const estObjet = (v) => Boolean(v) && typeof v === "object" && !Array.isArray(v);
+const texte = (v) => (typeof v === "string" ? v.trim() : "");
+const liste = (v) => (Array.isArray(v) ? v : []);
+const sansEnveloppe = (corps) => (estObjet(corps) && estObjet(corps.data) ? corps.data : corps);
+
+// Format d'erreur d'Apirest : { code, message, details }. Un 429 n'a pas de code : { message, retryAfter }.
+// Les variantes (error, erreur, enveloppe data, detail au singulier) restent lues par tolérance.
+export function lireErreur(data) {
+  const niveaux = [data, data?.error, data?.erreur, data?.data].filter(estObjet);
+  const candidats = [...niveaux.map((n) => n.code), data?.error, data?.erreur];
+  const code = candidats.find((c) => typeof c === "string" && /^[A-Z][A-Z_]+$/.test(c)) ?? null;
+  const detail = niveaux.map((n) => n.detail ?? n.details).find((d) => d !== undefined && d !== null) ?? null;
   return { code, detail };
 }
 
-async function requete(methode, chemin, { corps, token } = {}) {
+export async function requete(methode, chemin, { corps, token } = {}) {
   if (BILLING_MOCK) {
     const { mockRequete } = await import("./mock.js");
     return mockRequete(methode, chemin, { corps, token, pms: BILLING_MOCK_PMS });
@@ -31,6 +38,7 @@ async function requete(methode, chemin, { corps, token } = {}) {
   const controleur = new AbortController();
   const minuteur = setTimeout(() => controleur.abort(), DELAI_MAX_MS);
   let reponse;
+  let data;
   try {
     reponse = await fetch(`${API_URL}${chemin}`, {
       method: methode,
@@ -38,21 +46,153 @@ async function requete(methode, chemin, { corps, token } = {}) {
       body: corps === undefined ? undefined : JSON.stringify(corps),
       signal: controleur.signal,
     });
+    // Le délai couvre aussi la lecture du corps : un corps qui n'arrive jamais ne fige pas le bouton.
+    data = await reponse.json().catch(() => null);
+    if (controleur.signal.aborted) throw new ApiError("RESEAU");
   } catch {
     throw new ApiError("RESEAU");
   } finally {
     clearTimeout(minuteur);
   }
 
-  const data = await reponse.json().catch(() => null);
   if (!reponse.ok) {
     const { code, detail } = lireErreur(data);
-    throw new ApiError(code ?? "ERREUR_INCONNUE", reponse.status, detail);
+    throw new ApiError(code ?? (reponse.status === 429 ? "TROP_D_ESSAIS" : "ERREUR_INCONNUE"), reponse.status, detail);
   }
   return data;
 }
 
-export const getCatalogue = () => requete("GET", "/api/billing/catalogue");
-export const inscrire = (corps) => requete("POST", "/api/billing/inscription", { corps });
-export const lancerCheckout = (token, corps) => requete("POST", "/api/billing/checkout", { corps, token });
-export const getCompte = (token) => requete("GET", "/api/billing/compte", { token });
+// --- Lecture tolérante des réponses : une réponse illisible ou incomplète devient une ApiError connue. ---
+
+const TVA_PAR_DEFAUT = 20; // taux du contrat, si le catalogue ne le donne pas
+const DDPP = ["non", "incluse", "option"];
+const PERIODES = ["mois", "an"];
+const PMS = ["premier_paiement", "troisieme_paiement"];
+const STATUTS_COMPTE = ["sans_abonnement", "en_attente_paiement", "activation_provisoire", "actif", "impaye", "resilie"];
+
+// Nombre positif ou nul (nombre ou chaîne numérique), sinon null.
+function nombre(v) {
+  const n = typeof v === "number" ? v : typeof v === "string" && v.trim() !== "" ? Number(v) : NaN;
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+function entier(v) {
+  const n = nombre(v);
+  return n === null ? null : Math.round(n);
+}
+
+// { cle: montant ou quantité } : seules les valeurs lisibles sont gardées.
+function lireMontants(brut) {
+  if (!estObjet(brut)) return {};
+  return Object.fromEntries(
+    Object.entries(brut)
+      .map(([cle, v]) => [cle, entier(v)])
+      .filter(([, n]) => n !== null)
+  );
+}
+
+// [{ cle, libelle }] : une entrée sans clé ou sans libellé est écartée.
+function lireLibelles(brut) {
+  return liste(brut)
+    .map((e) => ({ cle: texte(e?.cle), libelle: texte(e?.libelle) }))
+    .filter((e) => e.cle && e.libelle);
+}
+
+function lireOption(brut) {
+  const cle = texte(brut?.cle);
+  const libelle = texte(brut?.libelle);
+  const prixCentimes = entier(brut?.prixCentimes);
+  return cle && libelle && prixCentimes !== null ? { cle, libelle, prixCentimes } : null;
+}
+
+// Version sans prix, sans libellé ou sans période : écartée. Sans PMS, aucune version engagée n'est proposée.
+function lireVersion(brut, pmsDisponible) {
+  const cle = texte(brut?.cle);
+  const libelle = texte(brut?.libelle);
+  const prixBaseCentimes = entier(brut?.prixBaseCentimes);
+  if (!cle || !libelle || !prixBaseCentimes || !PERIODES.includes(brut.periode)) return null;
+  if (cle === "mensuel_engage" && !pmsDisponible) return null;
+  return {
+    cle,
+    libelle,
+    periode: brut.periode,
+    engagementMois: entier(brut.engagementMois) ?? 0,
+    pms: PMS.includes(brut.pms) ? brut.pms : "non",
+    prixBaseCentimes,
+    prixCompteSupplementaireCentimes: lireMontants(brut.prixCompteSupplementaireCentimes),
+    options: liste(brut.options).map(lireOption).filter(Boolean),
+  };
+}
+
+// Offre incomplète : écartée plutôt qu'affichée avec des mentions fausses (« DDPP : non », « Inclus : »).
+function lireOffre(brut, pmsDisponible, modules) {
+  const cle = texte(brut?.cle);
+  const nom = texte(brut?.nom);
+  const versions = liste(brut?.versions).map((v) => lireVersion(v, pmsDisponible)).filter(Boolean);
+  if (!cle || !nom || versions.length === 0) return null;
+  const comptesInclus = lireMontants(brut.comptesInclus);
+  const { categoriesAutorisees, fonctions } = brut;
+  if (!Object.values(comptesInclus).some((n) => n > 0) || !Array.isArray(categoriesAutorisees) || !Array.isArray(brut.modules)) return null;
+  if (!DDPP.includes(fonctions?.ddpp)) return null;
+  return {
+    cle,
+    nom,
+    comptesInclus,
+    categoriesAutorisees: categoriesAutorisees.filter((c) => typeof c === "string"),
+    modules: brut.modules.filter((m) => modules.some((connu) => connu.cle === m)),
+    fonctions: { accesOrdinateur: fonctions.accesOrdinateur === true, ddpp: fonctions.ddpp, superviseur: fonctions.superviseur === true },
+    versions,
+  };
+}
+
+export function lireCatalogue(brut) {
+  const corps = sansEnveloppe(brut);
+  const pmsDisponible = corps?.pmsDisponible === true;
+  const categories = lireLibelles(corps?.categories);
+  const modules = lireLibelles(corps?.modules);
+  const offres = liste(corps?.offres).map((o) => lireOffre(o, pmsDisponible, modules)).filter(Boolean);
+  if (categories.length === 0 || modules.length === 0 || offres.length === 0) throw new ApiError("CATALOGUE_INVALIDE");
+  const tva = nombre(corps.tvaPourcentage);
+  return { pmsDisponible, tvaPourcentage: tva !== null && tva <= 100 ? tva : TVA_PAR_DEFAUT, categories, modules, offres };
+}
+
+export function lireInscription(brut) {
+  const corps = sansEnveloppe(brut);
+  const token = texte(corps?.token);
+  if (!token) throw new ApiError("INSCRIPTION_SANS_JETON");
+  return { ...corps, token };
+}
+
+export function lireCheckout(brut) {
+  const url = texte(sansEnveloppe(brut)?.url);
+  if (!url) throw new ApiError("CHECKOUT_SANS_URL");
+  return { url };
+}
+
+export function lireCompte(brut) {
+  const corps = sansEnveloppe(brut);
+  if (!STATUTS_COMPTE.includes(corps?.statut)) throw new ApiError("COMPTE_SANS_STATUT");
+  return {
+    ...corps,
+    offre: texte(corps.offre) || null,
+    titulaire: estObjet(corps.titulaire) ? { nom: texte(corps.titulaire.nom), email: texte(corps.titulaire.email) } : null,
+  };
+}
+
+// Page de paiement : https uniquement et jamais d'adresse relative (pas de /undefined). Renvoie l'adresse ou null.
+// En maquette, la fausse page de paiement est sur l'origine du site (http en local).
+export function urlDePaiement(brute, origineMaquette = BILLING_MOCK ? globalThis.location?.origin : null) {
+  if (typeof brute !== "string") return null;
+  try {
+    const cible = new URL(brute);
+    const maquette = cible.protocol === "http:" && cible.origin === origineMaquette;
+    return cible.protocol === "https:" || maquette ? cible.href : null;
+  } catch {
+    return null;
+  }
+}
+
+export const getCatalogue = () => requete("GET", "/api/billing/catalogue").then(lireCatalogue);
+export const inscrire = (corps) => requete("POST", "/api/billing/inscription", { corps }).then(lireInscription);
+export const lancerCheckout = (token, corps) => requete("POST", "/api/billing/checkout", { corps, token }).then(lireCheckout);
+export const getCompte = (token) => requete("GET", "/api/billing/compte", { token }).then(lireCompte);

@@ -1,7 +1,8 @@
 // Configuration de la vente d'abonnements, lue dans les variables de build (VITE_*).
 // Aucune URL n'est écrite en dur dans les pages : voir .env.example.
 
-const env = import.meta.env;
+// import.meta.env n'existe qu'avec Vite ; sous node (tests), on lit process.env.
+const env = import.meta.env ?? globalThis.process?.env ?? {};
 
 const vrai = (valeur) => String(valeur ?? "").trim().toLowerCase() === "true";
 const url = (valeur) => String(valeur ?? "").trim().replace(/\/+$/, "");

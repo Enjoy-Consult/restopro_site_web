@@ -183,6 +183,20 @@ test("paramètres d'URL absents ou invalides -> null", () => {
   assert.equal(selectionDepuisQuery("offre=essentiel&version=mensuel&comptes=cuisinier:999", catalogue), null);
 });
 
+test("config importable sous node : sans variable, tout est désactivé et aucun appel ne part", async (t) => {
+  for (const nom of ["VITE_BILLING_ACTIF", "VITE_BILLING_MOCK", "VITE_API_URL", "VITE_APP_WEB_URL"]) delete process.env[nom];
+  const config = await import("./config.js");
+  assert.equal(config.BILLING_ACTIF, false);
+  assert.equal(config.BILLING_MOCK, false);
+  assert.equal(config.API_URL, "");
+  assert.equal(config.URL_MON_COMPTE, "");
+
+  const faux = t.mock.method(globalThis, "fetch", async () => new Response("{}"));
+  const { requete } = await import("./api.js");
+  await assert.rejects(requete("GET", "/api/billing/catalogue"), { code: "SERVICE_PAIEMENT_INDISPONIBLE" });
+  assert.equal(faux.mock.callCount(), 0);
+});
+
 // --- Jeton expiré : message vers l'espace client, jeton supprimé de sessionStorage ---
 function faussePageSession() {
   const stockage = new Map();
