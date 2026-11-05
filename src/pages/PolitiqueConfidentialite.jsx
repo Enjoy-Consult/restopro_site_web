@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { BUSINESS } from "@/lib/business-info";
 import SEO from "@/components/SEO";
 
@@ -14,6 +16,12 @@ import SEO from "@/components/SEO";
  * aux trois endroits.
  */
 export default function PolitiqueConfidentialite() {
+  // Lien du bandeau de consentement (#cookies) : le navigateur ne peut pas défiler seul, la page s'affiche après le chargement.
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView();
+  }, [hash]);
+
   const H2 = "text-ink font-semibold text-lg mb-3";
   const H3 = "text-ink font-medium text-[15px] mt-4 mb-2";
   const UL = "list-disc pl-5 mt-2 space-y-1";
@@ -76,14 +84,19 @@ export default function PolitiqueConfidentialite() {
             <h2 className={H2}>Données collectées</h2>
 
             <h3 className={H3}>Site vitrine</h3>
-            <p>Uniquement les informations que vous saisissez dans le formulaire de contact :</p>
+            <p>Les informations que vous saisissez dans les formulaires de contact et d'essai gratuit :</p>
             <ul className={UL}>
               <li>Nom et prénom</li>
               <li>Adresse email</li>
               <li>Numéro de téléphone</li>
               <li>Nom de l'établissement</li>
-              <li>Message libre</li>
+              <li>Poste (demande d'essai)</li>
+              <li>Message libre (demande de contact)</li>
             </ul>
+            <p className="mt-3">
+              Avec votre accord, Google Ads et Google Analytics collectent aussi des données de navigation (voir
+              « Cookies et traceurs »).
+            </p>
 
             <h3 className={H3}>Application RestoClair</h3>
             <p>Données de compte, saisies par vous ou par l'administrateur de votre établissement :</p>
@@ -164,10 +177,15 @@ export default function PolitiqueConfidentialite() {
                 <strong>Gérer la facturation</strong> et satisfaire aux obligations comptables —
                 obligation légale.
               </li>
+              <li>
+                <strong>Mesurer l'efficacité de nos annonces, montrer des publicités RestOclair sur d'autres
+                sites et mesurer la fréquentation du site</strong> (Google Ads et Google Analytics, voir
+                « Cookies et traceurs ») — consentement.
+              </li>
             </ul>
             <p className="mt-3">
-              Aucune donnée n'est utilisée à des fins publicitaires. Aucun profilage ni décision
-              automatisée produisant des effets juridiques n'est mis en œuvre.
+              En dehors de ces traceurs du site, aucune donnée n'est utilisée à des fins publicitaires. Aucun
+              profilage ni décision automatisée produisant des effets juridiques n'est mis en œuvre.
             </p>
           </section>
 
@@ -211,6 +229,21 @@ export default function PolitiqueConfidentialite() {
                 <strong>OVHcloud</strong> (France) — hébergement des serveurs, de la base de données
                 et des médias. Les données enregistrées dans l'application — comptes, registres,
                 photos — restent hébergées en France.
+              </li>
+              <li>
+                <strong>Airtable</strong> (Formagrid Inc., États-Unis) — enregistrement des demandes de contact
+                et d'essai du site.
+              </li>
+              <li>
+                <strong>FormSubmit</strong> — envoi de la notification d'une demande d'essai à la messagerie de
+                l'équipe.
+              </li>
+              <li>
+                <strong>Google Cloud France</strong> (Google Workspace) — messagerie de l'équipe.
+              </li>
+              <li>
+                <strong>Google Ireland Limited</strong> — Google Ads et Google Analytics, seulement avec votre
+                accord (voir « Cookies et traceurs »).
               </li>
             </ul>
 
@@ -266,8 +299,13 @@ export default function PolitiqueConfidentialite() {
 
             <h3 className={H3}>Transferts hors Union européenne</h3>
             <p>
-              Aucun transfert de données personnelles n'est effectué en dehors de l'Union européenne
-              dans le cadre du site vitrine. Pour l'application RestoClair, Google et Apple, pour les
+              Pour le site vitrine, des données peuvent être traitées hors de l'Union européenne : par
+              Airtable, aux États-Unis, sur la base des clauses contractuelles types de la Commission
+              européenne ; par Google (Google Fonts, messagerie de l'équipe et, avec votre accord, Google Ads
+              et Google Analytics), sur la base du cadre de protection des données UE–États-Unis
+              (<em>Data Privacy Framework</em>), auquel Google LLC a adhéré ; par Unsplash, au Canada, pays
+              qui bénéficie d'une décision d'adéquation de la Commission européenne ; par FormSubmit, dont le
+              pays de traitement n'est pas établi. Pour l'application RestoClair, Google et Apple, pour les
               notifications et, sur Android, pour le moteur de lecture des étiquettes, et Resend, pour
               les emails, peuvent traiter les données décrites ci-dessus hors de l'Union européenne,
               notamment aux États-Unis : ces transferts reposent sur le cadre de protection des données
@@ -327,13 +365,53 @@ export default function PolitiqueConfidentialite() {
             </p>
           </section>
 
-          <section>
+          <section id="cookies" className="scroll-mt-24">
             <h2 className={H2}>Cookies et traceurs</h2>
             <p>
-              Aucun cookie publicitaire, aucun traceur tiers, aucun outil de mesure d'audience
-              externe n'est utilisé. Seuls sont déposés les cookies strictement nécessaires au
-              fonctionnement des services : maintien de la session authentifiée et sécurisation des
-              échanges. Ces cookies sont exemptés de consentement préalable au sens des
+              Avec votre accord, et seulement après celui-ci, le site charge Google Tag Manager, qui active Google Ads
+              et Google Analytics. Ces deux outils relèvent d'un seul choix dans le bandeau de consentement, décoché par
+              défaut. Tant que vous n'avez pas accepté, aucune de leurs balises n'est chargée et aucun de leurs cookies
+              n'est déposé.
+            </p>
+            <h3 className={H3}>Si vous acceptez</h3>
+            <ul className={UL}>
+              <li>
+                Google Ads mesure l'efficacité de nos annonces (clic sur notre numéro de téléphone, envoi du formulaire
+                de contact) et peut vous montrer ensuite des publicités RestOclair sur d'autres sites (remarketing). Il
+                dépose sur restoclair.fr le cookie _gcl_au et, si vous venez d'une annonce, le cookie _gcl_aw, conservés
+                90 jours, ainsi que ses propres cookies sur les domaines de Google. Votre navigateur peut figurer 180
+                jours dans nos listes d'audience.
+              </li>
+              <li>
+                Quand vous envoyez le formulaire de contact, la balise de Google Ads peut relever dans la page votre
+                adresse e-mail, votre numéro de téléphone et votre adresse, et les transmettre à Google sous forme
+                hachée, pour rattacher votre demande à une annonce (conversions améliorées).
+              </li>
+              <li>
+                Google Analytics mesure la fréquentation du site : pages vues, défilement, clics vers d'autres sites,
+                recherches, vidéos, téléchargements de fichiers et utilisation des formulaires. Il fonctionne sans ses
+                cookies : le réglage analytics_storage reste refusé, et les cookies _ga et _ga_Z0ZKBK12KB ne sont ni
+                déposés ni lus. Google Analytics reçoit le nom de l'événement, l'adresse et le titre de la page, sa
+                provenance, la langue, la taille de l'écran, le navigateur, le système et un numéro aléatoire créé à
+                chaque chargement de page. Sans ces cookies, votre navigateur n'est pas reconnu d'une visite à l'autre
+                par Google Analytics. Google indique que l'adresse IP des visiteurs de l'Union européenne sert seulement
+                à déduire une localisation approximative, puis est effacée, et conserve les données détaillées 14 mois au
+                plus, selon le réglage du compte.
+              </li>
+            </ul>
+            <p className="mt-3">
+              Ces informations sont transmises à Google Ireland Limited (Gordon House, Barrow Street, Dublin 4, Irlande)
+              et peuvent être transférées aux États-Unis ; Google LLC adhère au cadre de protection des données
+              UE–États-Unis (Data Privacy Framework). Ce traitement repose sur votre consentement. Votre choix est
+              conservé 6 mois au plus. Vous pouvez le modifier à tout moment avec le lien « Gérer mes cookies », en bas de
+              chaque page : si vous retirez votre accord, les cookies de Google Ads déposés sur restoclair.fr sont
+              effacés et la page est rechargée sans Google Tag Manager.
+            </p>
+            <p className="mt-3">
+              Quel que soit votre choix, les polices de caractères sont chargées depuis Google Fonts et certaines images
+              depuis Unsplash : ces services reçoivent votre adresse IP dès l'affichage des pages concernées. Les autres
+              cookies sont strictement nécessaires au fonctionnement des services : maintien de la session authentifiée
+              et sécurisation des échanges. Ces cookies sont exemptés de consentement préalable au sens des
               recommandations de la CNIL.
             </p>
             <p className="mt-3">
