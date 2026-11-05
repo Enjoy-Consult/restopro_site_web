@@ -5,13 +5,36 @@
 //   existant@…  -> EMAIL_DEJA_UTILISE          indispo@…  -> SERVICE_PAIEMENT_INDISPONIBLE
 //   ko@…        -> le 1er checkout échoue, le 2e réussit (reprise sans recréer le compte)
 //   role@…      -> ROLE_NON_AUTORISE_POUR_OFFRE   comptes@… -> COMPTES_INSUFFISANTS
-//   sepa@…      -> retour en « activation_provisoire »   lent@… -> la confirmation n'arrive pas
+//   sepa@…      -> retour en « activation_provisoire »   lent@… -> la confirmation n'arrive pas (texte du délai à 60 s)
+//   expire@…    -> le checkout répond 401 (jeton expiré)   refus@… -> le checkout répond 403 NON_TITULAIRE
+//   bloque@…    -> la page de retour reçoit un 403 NON_TITULAIRE de /compte
+//   cgvobsolete@… -> l'inscription répond 409 CGV_VERSION_OBSOLETE
+//   validation@… -> l'inscription répond 400 VALIDATION_ERROR sur l'e-mail et le code postal
+//   validationautre@… -> 400 VALIDATION_ERROR sur un chemin inconnu (message général)
+//   dejaactif@… -> le checkout répond 409 ABONNEMENT_DEJA_ACTIF   gere@… -> 403 GERE_PAR_ABONNEMENT
+//   cgvpaiement@… -> le checkout répond 409 CGV_VERSION_OBSOLETE
+//   activation@… -> le checkout répond 409 ABONNEMENT_DEJA_ACTIF, motif activation_en_cours : relecture du compte, sans Checkout
 //   SIRET commençant par 000000 -> SIRET_INVALIDE
+//   Inscription ou checkout sans bloc cgv -> 409 CGV_VERSION_OBSOLETE, comme Apirest
 // Toute autre adresse : abonnement « actif » après quelques interrogations.
+//
+// En développement seulement (npm run dev), sans passer par le formulaire :
+//   annule@…  -> le 1er checkout revient sur /tarifs?paiement=annule, le compte reste créé
+//   /abonnement/retour?maquette=X, avec X parmi :
+//     sans_abonnement, en_attente_paiement, impaye, resilie -> ce statut, sans fin (issue à 60 s)
+//       ajouter &session_id=x pour jouer le retour de Stripe : sans_abonnement et en_attente_paiement donnent le délai
+//     actif, activation_provisoire, actif_sans_email        -> succès immédiat
+//     attente_puis_actif                                    -> « actif » à la 3e interrogation
+//     401 -> jeton refusé ; 429 -> Retry-After de 5 s, sans fin ; 429_puis_actif -> « actif » à la 3e
+//     sans_jeton -> efface la session (aussi après un succès : c'est le rechargement)
+//   /tarifs?paiement=annule&maquette=avec_jeton (ou sans_jeton) -> annulation avec ou sans compte créé
+// Le scénario reste dans la session de l'onglet : maquette=sans_jeton, ou fermer l'onglet, pour en sortir.
 import { ApiError } from "./errors.js";
+import { EMAIL_SCENARIO, PREFIXE_JETON_SCENARIO } from "./scenarios.js";
 
 const CLE_ETAT = "restoclair_billing_mock";
 const PAUSE_MS = 250;
+const RETRY_AFTER_SCENARIO_MS = 5000;
 
 const MODULES_COMMUNS = [
   ["produits_dlc", "Produits et DLC secondaires (ouverture, décongélation, étiquettes)"],
@@ -150,16 +173,76 @@ function etatDuJeton(token) {
   return etat;
 }
 
-export async function mockRequete(methode, chemin, { corps, token, pms = false } = {}) {
+const compteScenario = (statut, titulaire = { nom: "Marie Martin", email: EMAIL_SCENARIO }) => ({
+  restaurantId: "r-mock",
+  statut,
+  offre: "serenite",
+  version: "mensuel",
+  options: { ddpp: false },
+  estTitulaire: true,
+  titulaire,
+});
+
+// Réponse de GET /compte pour un scénario, à sa n-ième interrogation (à partir de 1).
+export function reponseScenario(scenario, interrogation) {
+  const trop = () => new ApiError("TROP_D_ESSAIS", 429, null, RETRY_AFTER_SCENARIO_MS);
+  switch (scenario) {
+    case "401":
+      throw new ApiError("INVALID_TOKEN", 401);
+    case "429":
+      throw trop();
+    case "429_puis_actif":
+      if (interrogation < 3) throw trop();
+      return compteScenario("actif");
+    case "actif_sans_email":
+      return compteScenario("actif", null);
+    case "attente_puis_actif":
+    case "avec_jeton":
+      return compteScenario(interrogation < 3 ? "en_attente_paiement" : "actif");
+    default:
+      return compteScenario(scenario);
+  }
+}
+
+// En mémoire seulement : un rechargement repart de la première interrogation.
+const interrogationsScenario = new Map();
+
+// Contrat final d'Apirest (§ D) : bloc absent ou incomplet, 409 sur l'inscription et le checkout.
+function exigerCgv(corps) {
+  if (!corps?.cgv?.version || !corps?.cgv?.sha256) throw new ApiError("CGV_VERSION_OBSOLETE", 409);
+}
+
+export async function mockRequete(methode, chemin, { corps, token, pms = false, scenarios = false } = {}) {
   await attendre(PAUSE_MS);
   const route = `${methode} ${chemin}`;
 
   if (route === "GET /api/billing/catalogue") return mockCatalogue(pms);
 
+  if (scenarios && token?.startsWith(PREFIXE_JETON_SCENARIO)) {
+    if (route === "POST /api/billing/checkout") {
+      exigerCgv(corps);
+      return { url: `${window.location.origin}/abonnement/retour?session_id=cs_test_maquette` };
+    }
+    if (route === "GET /api/billing/compte") {
+      const n = (interrogationsScenario.get(token) ?? 0) + 1;
+      interrogationsScenario.set(token, n);
+      return reponseScenario(token.slice(PREFIXE_JETON_SCENARIO.length), n);
+    }
+  }
+
   if (route === "POST /api/billing/inscription") {
+    exigerCgv(corps);
     const email = String(corps?.responsable?.email ?? "").toLowerCase();
     if (email.startsWith("indispo")) throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
     if (email.startsWith("existant")) throw new ApiError("EMAIL_DEJA_UTILISE", 409);
+    if (email.startsWith("cgvobsolete")) throw new ApiError("CGV_VERSION_OBSOLETE", 409);
+    if (email.startsWith("validationautre"))
+      throw new ApiError("VALIDATION_ERROR", 400, [{ path: "restaurant.autre", code: "custom", message: "Refusé" }]);
+    if (email.startsWith("validation"))
+      throw new ApiError("VALIDATION_ERROR", 400, [
+        { path: "restaurant.adresse.codePostal", code: "invalid_string", message: "Code postal invalide" },
+        { path: "responsable.email", code: "invalid_string", message: "E-mail invalide" },
+      ]);
     if (String(corps?.restaurant?.siret ?? "").startsWith("000000")) throw new ApiError("SIRET_INVALIDE", 422);
     const jeton = `mock-${Math.random().toString(36).slice(2)}`;
     const { prenom, nom } = corps.responsable;
@@ -169,12 +252,23 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false }
 
   if (route === "POST /api/billing/checkout") {
     const etat = etatDuJeton(token);
+    exigerCgv(corps);
+    if (etat.email.startsWith("expire")) throw new ApiError("ACTION_NON_AUTORISEE", 401);
+    if (etat.email.startsWith("refus")) throw new ApiError("NON_TITULAIRE", 403);
+    if (etat.email.startsWith("dejaactif")) throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409);
+    if (etat.email.startsWith("activation")) throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409, { motif: "activation_en_cours" });
+    if (etat.email.startsWith("gere")) throw new ApiError("GERE_PAR_ABONNEMENT", 403);
+    if (etat.email.startsWith("cgvpaiement")) throw new ApiError("CGV_VERSION_OBSOLETE", 409);
     if (etat.email.includes("role")) throw new ApiError("ROLE_NON_AUTORISE_POUR_OFFRE", 422, { categorie: "superviseur" });
     if (etat.email.includes("comptes")) throw new ApiError("COMPTES_INSUFFISANTS", 422, { requis: { cuisinier: 2 } });
     etat.essaisCheckout += 1;
     if (etat.email.startsWith("ko") && etat.essaisCheckout === 1) {
       ecrireEtat(etat);
       throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
+    }
+    if (scenarios && etat.email.startsWith("annule") && etat.essaisCheckout === 1) {
+      ecrireEtat(etat);
+      return { url: `${window.location.origin}/tarifs?paiement=annule` };
     }
     etat.choix = { offre: corps.offre, version: corps.version, options: corps.options ?? { ddpp: false } };
     etat.interrogations = 0;
@@ -184,6 +278,7 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false }
 
   if (route === "GET /api/billing/compte") {
     const etat = etatDuJeton(token);
+    if (etat.email.startsWith("bloque")) throw new ApiError("NON_TITULAIRE", 403);
     etat.interrogations += 1;
     ecrireEtat(etat);
     let statut = "en_attente_paiement";

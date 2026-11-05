@@ -19,6 +19,40 @@ export function selectionParDefaut(catalogue, offre) {
   return { offre: offre.cle, version: versions[0]?.cle ?? "", comptesSupplementaires: {}, options: { ddpp: false } };
 }
 
+// Catégories de comptes supplémentaires proposées pour une version : autorisées par l'offre et tarifées.
+export function categoriesSupplementaires(catalogue, offre, version) {
+  return catalogue.categories.filter(
+    (c) => offre.categoriesAutorisees.includes(c.cle) && version.prixCompteSupplementaireCentimes?.[c.cle] !== undefined
+  );
+}
+
+// Nombre d'ajouts d'une sélection : comptes supplémentaires et option DDPP.
+export function nombreAjouts(selection) {
+  const comptes = Object.values(selection.comptesSupplementaires ?? {}).reduce((somme, n) => somme + n, 0);
+  return comptes + (selection.options?.ddpp ? 1 : 0);
+}
+
+// Même offre et même version, sans comptes supplémentaires ni option.
+export function sansAjouts(selection) {
+  return { ...selection, comptesSupplementaires: {}, options: { ddpp: false } };
+}
+
+// Garde les ajouts encore valables pour l'offre et la version choisies (catégories proposées,
+// quantités entières de 1 à MAX, option DDPP si la version la propose) et retire les autres.
+export function restreindreAjouts(catalogue, selection) {
+  const offre = catalogue.offres.find((o) => o.cle === selection.offre);
+  const version = offre && versionsDisponibles(catalogue, offre).find((v) => v.cle === selection.version);
+  if (!version) return sansAjouts(selection);
+  const proposees = categoriesSupplementaires(catalogue, offre, version).map((c) => c.cle);
+  const comptesSupplementaires = Object.fromEntries(
+    Object.entries(selection.comptesSupplementaires ?? {}).filter(
+      ([categorie, n]) => proposees.includes(categorie) && Number.isInteger(n) && n > 0 && n <= MAX_COMPTES_SUPPLEMENTAIRES
+    )
+  );
+  const ddpp = Boolean(selection.options?.ddpp) && version.options.some((o) => o.cle === "ddpp");
+  return { ...selection, comptesSupplementaires, options: { ddpp } };
+}
+
 // Renvoie { ok: false, erreur } ou { ok: true, offre, version, lignes, totaux... }.
 export function calculer(catalogue, selection) {
   const offre = catalogue.offres.find((o) => o.cle === selection.offre);
@@ -71,7 +105,10 @@ export function remiseAnnuelle(offre, catalogue) {
 // Modules affichés sous une formule, par rapport à la précédente (Essentiel, Sérénité, Expert).
 export function modulesAffichage(catalogue, offre, precedente) {
   const libelle = (cle) => catalogue.modules.find((m) => m.cle === cle)?.libelle ?? cle;
-  if (!precedente) return { mode: "complet", modules: offre.modules.map(libelle) };
+  // « Les mêmes » et « tous les modules, plus » ne sont vrais que s'il ne manque aucun module de la précédente.
+  if (!precedente || precedente.modules.some((cle) => !offre.modules.includes(cle))) {
+    return { mode: "complet", modules: offre.modules.map(libelle) };
+  }
   const supplementaires = offre.modules.filter((cle) => !precedente.modules.includes(cle));
   if (supplementaires.length === 0) return { mode: "identiques", modules: [] };
   return { mode: "plus", modules: supplementaires.map(libelle) };
@@ -110,8 +147,8 @@ export function selectionDepuisQuery(search, catalogue) {
   return calculer(catalogue, selection).ok ? selection : null;
 }
 
-// Corps de POST /api/billing/checkout (hors origine).
-export function selectionVersCheckout(selection) {
+// Corps de POST /api/billing/checkout. cgv : { version, sha256 } ; sans ce bloc, Apirest répond 409 CGV_VERSION_OBSOLETE.
+export function selectionVersCheckout(selection, cgv) {
   const comptesSupplementaires = Object.fromEntries(
     Object.entries(selection.comptesSupplementaires ?? {}).filter(([, n]) => n > 0)
   );
@@ -120,6 +157,7 @@ export function selectionVersCheckout(selection) {
     version: selection.version,
     comptesSupplementaires,
     options: { ddpp: Boolean(selection.options?.ddpp) },
+    cgv,
     origine: "site",
   };
 }

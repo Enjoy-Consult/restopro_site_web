@@ -10,6 +10,9 @@
   RewriteEngine On
   RewriteBase /
 
+  # Ancienne URL de confidentialité déclarée aux magasins d'applications : redirection permanente
+  RewriteRule ^PolitiqueConfidentialite/?$ /application/confidentialite [R=301,L]
+
   # Ne pas rediriger les fichiers existants (assets, images, etc.)
   RewriteCond %{REQUEST_FILENAME} !-f
 
