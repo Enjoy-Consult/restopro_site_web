@@ -6,7 +6,19 @@ import Etapes from "@/components/billing/Etapes";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, getCompte } from "@/lib/billing/api";
 import { APP_STORE_URL, BILLING_MOCK_DEV, PLAY_STORE_URL, URL_MON_COMPTE } from "@/lib/billing/config";
-import { TEXTE_DELAI, TEXTE_INVERIFIABLE, TEXTE_NON_CONFIRME, decisionDepart, decisionRetour, estRetourStripe, phraseIdentifiants } from "@/lib/billing/retour";
+import {
+  TEXTE_ACTIVATION_EN_COURS,
+  TEXTE_DELAI,
+  TEXTE_DELAI_REPRISE,
+  TEXTE_IMPAYE,
+  TEXTE_INVERIFIABLE,
+  TEXTE_NON_CONFIRME,
+  decisionDepart,
+  decisionRetour,
+  estActivationEnCours,
+  estRetourStripe,
+  phraseIdentifiants,
+} from "@/lib/billing/retour";
 import { preparerScenario } from "@/lib/billing/scenarios";
 import { effacerSession, lireSession } from "@/lib/billing/session";
 
@@ -15,6 +27,8 @@ const TITRES = {
   actif: "Votre abonnement est actif.",
   provisoire: "Votre prélèvement est en cours de validation.",
   delai: "Confirmation en cours.",
+  delai_reprise: "Confirmation en cours.",
+  impaye: "Paiement à régulariser.",
   refus: "Confirmation impossible.",
   inverifiable: "Votre abonnement.",
   non_confirme: "Paiement non confirmé.",
@@ -136,7 +150,7 @@ export default function AbonnementRetour() {
 
             {phase === "attente" && (
               <p className="text-muted text-lg leading-relaxed" role="status">
-                Merci de patienter quelques instants.
+                {estActivationEnCours(window.location.search) ? TEXTE_ACTIVATION_EN_COURS : "Merci de patienter quelques instants."}
               </p>
             )}
 
@@ -167,6 +181,31 @@ export default function AbonnementRetour() {
             {phase === "delai" && (
               <>
                 <p className="text-muted text-lg leading-relaxed">{TEXTE_DELAI}</p>
+                <button type="button" className="link-underline mt-4" onClick={relancer}>
+                  Vérifier à nouveau
+                </button>
+                <Aide />
+              </>
+            )}
+
+            {phase === "delai_reprise" && (
+              <>
+                <p className="text-muted text-lg leading-relaxed">{TEXTE_DELAI_REPRISE}</p>
+                <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-4">
+                  <Link to="/tarifs" className="btn-primary text-center">
+                    Reprendre le paiement
+                  </Link>
+                  <button type="button" className="link-underline text-[15px] text-left" onClick={relancer}>
+                    Vérifier à nouveau
+                  </button>
+                </div>
+                <Aide />
+              </>
+            )}
+
+            {phase === "impaye" && (
+              <>
+                <p className="text-muted text-lg leading-relaxed">{TEXTE_IMPAYE}</p>
                 <button type="button" className="link-underline mt-4" onClick={relancer}>
                   Vérifier à nouveau
                 </button>

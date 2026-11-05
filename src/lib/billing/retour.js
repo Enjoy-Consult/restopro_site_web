@@ -10,13 +10,22 @@ export const RALENTI_429_MS = 10000;
 // Juste après Stripe, ces statuts peuvent précéder « actif » de quelques secondes :
 // on ne conclut qu'à la fin de la fenêtre de confirmation.
 const NON_CONFIRMES = ["sans_abonnement", "en_attente_paiement", "impaye", "resilie"];
-// Après un retour de Stripe, ces deux-là disent seulement que la confirmation du paiement n'est pas encore arrivée.
+// Après un retour de Stripe, ces deux-là ne disent rien du paiement : il peut être fait et pas encore confirmé,
+// ou ne jamais avoir abouti (en_attente_paiement veut dire « jamais souscrit » et ne finit jamais seul).
 const CONFIRMATION_ATTENDUE = ["sans_abonnement", "en_attente_paiement"];
 
 export const TEXTE_INVERIFIABLE =
   "Nous ne pouvons pas vérifier votre abonnement depuis cette page. Si vous venez de payer, vous recevrez un e-mail de confirmation.";
 export const TEXTE_DELAI =
   "La confirmation prend plus de temps que prévu. Vous recevrez un e-mail dès que votre abonnement sera actif.";
+export const TEXTE_DELAI_REPRISE =
+  "La confirmation prend plus de temps que prévu. Si vous avez payé, vous recevrez un e-mail dès que votre abonnement sera actif. Si le paiement n’a pas abouti, vous pouvez le reprendre : votre compte est conservé.";
+// Texte du serveur pour le 409 activation_en_cours.
+export const TEXTE_ACTIVATION_EN_COURS =
+  "Votre paiement est en cours de validation : votre abonnement sera actif dans quelques instants.";
+// Impayé : l'abonnement existe chez Stripe, on règle la facture ouverte, on n'ouvre pas de nouveau paiement.
+export const TEXTE_IMPAYE =
+  "Un paiement de votre abonnement n’a pas abouti. Réglez la facture en attente depuis votre espace : votre compte est conservé.";
 export const TEXTE_NON_CONFIRME =
   "Votre paiement n’est pas confirmé à ce stade. S’il n’a pas abouti, vous pouvez le reprendre en choisissant de nouveau votre formule : votre compte est conservé.";
 
@@ -35,16 +44,26 @@ export function phraseIdentifiants(email) {
 //   { type: "fin", phase, compte?, refus?, effacerJeton? }  afficher l'issue
 // reprendreDansMs (sur un 429) : aucun appel avant ce délai, même après « Vérifier à nouveau ».
 
-// Stripe ne met session_id que sur l'adresse de succès : l'annulation revient sur /tarifs, sans lui.
-export function estRetourStripe(search) {
-  return Boolean(new URLSearchParams(search).get("session_id"));
+// 409 activation_en_cours au checkout : le paiement attend sa confirmation. La page de retour relit le compte,
+// sans nouveau Checkout.
+export const ADRESSE_ACTIVATION_EN_COURS = "/abonnement/retour?activation=en_cours";
+
+export function estActivationEnCours(search) {
+  return new URLSearchParams(search).get("activation") === "en_cours";
 }
 
-// Fin de la fenêtre. Retour de Stripe et statut en attente : le client vient de payer, donc le texte du délai,
-// et jamais de reprise, qui ouvrirait une seconde session de paiement.
-// Dans les autres cas, un statut lu non confirmé exclut ce texte, qui promet un e-mail.
+// Stripe ne met session_id que sur l'adresse de succès : l'annulation revient sur /tarifs, sans lui.
+export function estRetourStripe(search) {
+  return Boolean(new URLSearchParams(search).get("session_id")) || estActivationEnCours(search);
+}
+
+// Fin de la fenêtre. Retour de Stripe et statut en attente : le client doit toujours pouvoir payer, donc délai et
+// reprise. Il n'y a pas de double paiement : si un abonnement vit déjà chez Stripe, le serveur refuse le Checkout
+// (409 ABONNEMENT_DEJA_ACTIF, activation_en_cours).
+// Dans les autres cas, un statut lu non confirmé exclut le texte du délai, qui promet un e-mail.
 export function conclusionRetour(dernierStatut, retourStripe = false) {
-  if (retourStripe && CONFIRMATION_ATTENDUE.includes(dernierStatut)) return { type: "fin", phase: "delai" };
+  if (retourStripe && CONFIRMATION_ATTENDUE.includes(dernierStatut)) return { type: "fin", phase: "delai_reprise" };
+  if (dernierStatut === "impaye") return { type: "fin", phase: "impaye" };
   return { type: "fin", phase: NON_CONFIRMES.includes(dernierStatut) ? "non_confirme" : "delai" };
 }
 

@@ -73,6 +73,11 @@ export function traiterFinDeSession(erreur) {
   return { type: "info", texte: REFUS.ABONNEMENT_DEJA_ACTIF };
 }
 
+// 409 du serveur : un abonnement vit déjà chez Stripe et attend sa confirmation. Le jeton reste : il sert à relire le compte.
+export function estActivationEnCoursRefus(erreur) {
+  return erreur?.code === "ABONNEMENT_DEJA_ACTIF" && erreur?.detail?.motif === "activation_en_cours";
+}
+
 export function estTropDEssais(erreur) {
   return erreur?.status === 429;
 }

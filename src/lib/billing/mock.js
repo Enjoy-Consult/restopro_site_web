@@ -13,6 +13,7 @@
 //   validationautre@… -> 400 VALIDATION_ERROR sur un chemin inconnu (message général)
 //   dejaactif@… -> le checkout répond 409 ABONNEMENT_DEJA_ACTIF   gere@… -> 403 GERE_PAR_ABONNEMENT
 //   cgvpaiement@… -> le checkout répond 409 CGV_VERSION_OBSOLETE
+//   activation@… -> le checkout répond 409 ABONNEMENT_DEJA_ACTIF, motif activation_en_cours : relecture du compte, sans Checkout
 //   SIRET commençant par 000000 -> SIRET_INVALIDE
 //   Inscription ou checkout sans bloc cgv -> 409 CGV_VERSION_OBSOLETE, comme Apirest
 // Toute autre adresse : abonnement « actif » après quelques interrogations.
@@ -255,6 +256,7 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false, 
     if (etat.email.startsWith("expire")) throw new ApiError("ACTION_NON_AUTORISEE", 401);
     if (etat.email.startsWith("refus")) throw new ApiError("NON_TITULAIRE", 403);
     if (etat.email.startsWith("dejaactif")) throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409);
+    if (etat.email.startsWith("activation")) throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409, { motif: "activation_en_cours" });
     if (etat.email.startsWith("gere")) throw new ApiError("GERE_PAR_ABONNEMENT", 403);
     if (etat.email.startsWith("cgvpaiement")) throw new ApiError("CGV_VERSION_OBSOLETE", 409);
     if (etat.email.includes("role")) throw new ApiError("ROLE_NON_AUTORISE_POUR_OFFRE", 422, { categorie: "superviseur" });

@@ -73,10 +73,13 @@ test("401 après plusieurs lectures : pas d'attente jusqu'à la fin de la fenêt
 
 // --- c) : statuts non confirmés, arrivée sans session_id ---
 
+// Un impayé se règle sur la facture ouverte ; les autres statuts se reprennent par un paiement.
+const issueNonConfirme = (s) => (s === "impaye" ? "impaye" : "non_confirme");
+
 for (const s of NON_CONFIRMES) {
   test(`${s} stable, sans retour de Stripe : on interroge jusqu'à 60 s, puis issue claire, jeton conservé`, () => {
     const { fin, finMs, appels } = derouler(statut(s));
-    assert.equal(fin.phase, "non_confirme");
+    assert.equal(fin.phase, issueNonConfirme(s));
     assert.equal(finMs, DUREE_MAX_MS, "ne conclut qu'à la fin de la fenêtre");
     assert.ok(!fin.effacerJeton, "le jeton sert à reprendre le paiement sans recréer le compte");
     assert.equal(appels.length, DUREE_MAX_MS / INTERVALLE_MS);
@@ -91,7 +94,7 @@ for (const s of NON_CONFIRMES) {
 
   test(`${s} : le statut reste retenu si les lectures suivantes échouent`, () => {
     const { fin } = derouler((n) => (n === 1 ? { compte: { statut: s } } : { erreur: new ApiError("RESEAU") }));
-    assert.equal(fin.phase, "non_confirme");
+    assert.equal(fin.phase, issueNonConfirme(s));
   });
 }
 
@@ -109,32 +112,32 @@ test("retour de Stripe : session_id présent et non vide, quel que soit le reste
 });
 
 for (const s of ["sans_abonnement", "en_attente_paiement"]) {
-  test(`${s} stable après Stripe : texte du délai à 60 s, sans reprise, jeton conservé`, () => {
+  test(`${s} stable après Stripe : à 60 s, délai et reprise du paiement, jeton conservé`, () => {
     const { fin, finMs, appels } = derouler(statut(s), { depart: RETOUR_STRIPE });
-    assert.deepEqual(fin, { type: "fin", phase: "delai" });
+    assert.deepEqual(fin, { type: "fin", phase: "delai_reprise" });
     assert.equal(finMs, DUREE_MAX_MS);
     assert.equal(appels.length, DUREE_MAX_MS / INTERVALLE_MS);
   });
 
   test(`${s} après Stripe : le délai aussi si les lectures suivantes échouent ou sont freinées`, () => {
     const reseau = derouler((n) => (n === 1 ? { compte: { statut: s } } : { erreur: new ApiError("RESEAU") }), { depart: RETOUR_STRIPE });
-    assert.equal(reseau.fin.phase, "delai");
+    assert.equal(reseau.fin.phase, "delai_reprise");
     const freine = derouler((n) => (n === 1 ? { compte: { statut: s } } : { erreur: new ApiError("TROP_D_ESSAIS", 429, null, 120000) }), { depart: RETOUR_STRIPE });
-    assert.equal(freine.fin.phase, "delai");
+    assert.equal(freine.fin.phase, "delai_reprise");
   });
 
   test(`${s} après Stripe : « Vérifier à nouveau » conclut pareil, Retry-After en cours ou fenêtre écoulée`, () => {
     const long = derouler(statut("actif"), { depart: { ...RETOUR_STRIPE, attenteMs: 90000, dernierStatut: s } });
     assert.deepEqual(long.appels, []);
-    assert.equal(long.fin.phase, "delai");
-    assert.deepEqual(planifierRetour(s, DUREE_MAX_MS, INTERVALLE_MS, true), { type: "fin", phase: "delai" });
+    assert.equal(long.fin.phase, "delai_reprise");
+    assert.deepEqual(planifierRetour(s, DUREE_MAX_MS, INTERVALLE_MS, true), { type: "fin", phase: "delai_reprise" });
   });
 }
 
 for (const s of ["impaye", "resilie"]) {
-  test(`${s} après Stripe : reste un paiement non confirmé, pas une attente`, () => {
+  test(`${s} après Stripe : reste une issue claire, pas une attente`, () => {
     const { fin, finMs } = derouler(statut(s), { depart: RETOUR_STRIPE });
-    assert.equal(fin.phase, "non_confirme");
+    assert.equal(fin.phase, issueNonConfirme(s));
     assert.equal(finMs, DUREE_MAX_MS);
   });
 }
@@ -165,7 +168,7 @@ test("une lecture tardive d'actif l'emporte même après la fenêtre", () => {
 test("la conclusion d'un statut inconnu ou absent reste le délai", () => {
   assert.equal(conclusionRetour(null).phase, "delai");
   assert.equal(conclusionRetour("statut_futur").phase, "delai");
-  for (const s of NON_CONFIRMES) assert.equal(conclusionRetour(s).phase, "non_confirme");
+  for (const s of NON_CONFIRMES) assert.equal(conclusionRetour(s).phase, issueNonConfirme(s));
 });
 
 // --- d) : succès ---
@@ -224,7 +227,7 @@ test("429 : jamais plus vite que l'intervalle normal, ralenti par défaut sans d
 
 test("429 puis statut non confirmé : pas de promesse d'e-mail à la fin de la fenêtre", () => {
   const { fin } = derouler((n) => (n === 1 ? { compte: { statut: "impaye" } } : { erreur: new ApiError("TROP_D_ESSAIS", 429, null, 5000) }));
-  assert.equal(fin.phase, "non_confirme");
+  assert.equal(fin.phase, "impaye");
 });
 
 test("« Vérifier à nouveau » respecte le Retry-After déjà reçu et le dernier statut lu", () => {
@@ -235,7 +238,7 @@ test("« Vérifier à nouveau » respecte le Retry-After déjà reçu et le dern
 
   const long = derouler(statut("actif"), { depart: { jeton: true, attenteMs: 90000, dernierStatut: "impaye" } });
   assert.deepEqual(long.appels, []);
-  assert.equal(long.fin.phase, "non_confirme");
+  assert.equal(long.fin.phase, "impaye");
 
   assert.deepEqual(decisionDepart({ jeton: true, attenteMs: -1000 }), { type: "interroger" });
   assert.deepEqual(decisionDepart({ jeton: true }), { type: "interroger" });
@@ -243,7 +246,8 @@ test("« Vérifier à nouveau » respecte le Retry-After déjà reçu et le dern
 
 test("fenêtre déjà écoulée : conclusion immédiate, sans attente", () => {
   assert.deepEqual(planifierRetour(null, DUREE_MAX_MS), { type: "fin", phase: "delai" });
-  assert.deepEqual(planifierRetour("impaye", DUREE_MAX_MS + 1), { type: "fin", phase: "non_confirme" });
+  assert.deepEqual(planifierRetour("impaye", DUREE_MAX_MS + 1), { type: "fin", phase: "impaye" });
+  assert.deepEqual(planifierRetour("resilie", DUREE_MAX_MS + 1), { type: "fin", phase: "non_confirme" });
 });
 
 test("403 : le refus reçu s'affiche, le jeton reste", () => {
@@ -329,7 +333,7 @@ test("scénarios : le jeton de maquette n'ouvre rien hors développement", async
   assert.equal(lu.statut, "impaye");
 });
 
-test("maquette : lent@ revient de Stripe avec session_id, la confirmation n'arrive pas : le délai, pas la reprise", async (t) => {
+test("maquette : lent@ revient de Stripe avec session_id, la confirmation n'arrive pas : délai et reprise", async (t) => {
   const donnees = new Map();
   globalThis.window = {
     location: { origin: "http://localhost:5173" },
@@ -352,7 +356,7 @@ test("maquette : lent@ revient de Stripe avec session_id, la confirmation n'arri
 
   const compte = await mockRequete("GET", "/api/billing/compte", { token });
   assert.equal(compte.statut, "en_attente_paiement");
-  assert.deepEqual(decisionRetour({ compte, dernierStatut: compte.statut, ecouleMs: DUREE_MAX_MS, retourStripe }), { type: "fin", phase: "delai" });
+  assert.deepEqual(decisionRetour({ compte, dernierStatut: compte.statut, ecouleMs: DUREE_MAX_MS, retourStripe }), { type: "fin", phase: "delai_reprise" });
 });
 
 test("scénarios : du premier appel à l'issue, les statuts de la maquette suivent la décision", () => {
@@ -373,11 +377,44 @@ test("scénarios : du premier appel à l'issue, les statuts de la maquette suive
   assert.equal(issue("429_puis_actif"), "actif");
   assert.equal(issue("401"), "inverifiable");
   assert.equal(issue("429"), "delai");
-  for (const s of NON_CONFIRMES) assert.equal(issue(s), "non_confirme");
+  for (const s of NON_CONFIRMES) assert.equal(issue(s), issueNonConfirme(s));
   // Même scénario, avec &session_id=x dans l'adresse.
-  assert.equal(issue("en_attente_paiement", RETOUR_STRIPE), "delai");
-  assert.equal(issue("sans_abonnement", RETOUR_STRIPE), "delai");
-  assert.equal(issue("impaye", RETOUR_STRIPE), "non_confirme");
+  assert.equal(issue("en_attente_paiement", RETOUR_STRIPE), "delai_reprise");
+  assert.equal(issue("sans_abonnement", RETOUR_STRIPE), "delai_reprise");
+  assert.equal(issue("impaye", RETOUR_STRIPE), "impaye");
   assert.equal(issue("resilie", RETOUR_STRIPE), "non_confirme");
   assert.equal(issue("attente_puis_actif", RETOUR_STRIPE), "actif");
+});
+
+// --- garde serveur du double paiement et règlement d'un impayé ---
+
+test("délai après Stripe : le texte reste conditionnel et propose de reprendre", async () => {
+  const { TEXTE_DELAI_REPRISE, TEXTE_IMPAYE } = await import("./retour.js");
+  assert.match(TEXTE_DELAI_REPRISE, /Si vous avez payé, vous recevrez un e-mail/);
+  assert.match(TEXTE_DELAI_REPRISE, /vous pouvez le reprendre/);
+  assert.ok(!/e-?mail|recevrez/i.test(TEXTE_IMPAYE), "un impayé ne promet pas d'e-mail");
+  assert.match(TEXTE_IMPAYE, /facture/);
+});
+
+test("409 activation_en_cours : relecture du compte sans nouveau Checkout, jeton conservé", async () => {
+  const { estActivationEnCoursRefus, traiterFinDeSession } = await import("./erreurs.js");
+  const { ADRESSE_ACTIVATION_EN_COURS, estActivationEnCours, TEXTE_ACTIVATION_EN_COURS } = await import("./retour.js");
+  const refus = new ApiError("ABONNEMENT_DEJA_ACTIF", 409, { motif: "activation_en_cours" });
+  assert.equal(estActivationEnCoursRefus(refus), true);
+  assert.equal(estActivationEnCoursRefus(new ApiError("ABONNEMENT_DEJA_ACTIF", 409)), false, "SEPA : 409 sans motif");
+  assert.equal(estActivationEnCoursRefus(new ApiError("ABONNEMENT_DEJA_ACTIF", 409, { motif: "autre" })), false);
+  assert.equal(estActivationEnCoursRefus(new ApiError("GERE_PAR_ABONNEMENT", 409, { motif: "activation_en_cours" })), false);
+
+  const recherche = new URL(ADRESSE_ACTIVATION_EN_COURS, "https://restoclair.fr").search;
+  assert.equal(estActivationEnCours(recherche), true);
+  assert.equal(estRetourStripe(recherche), true);
+  assert.equal(estActivationEnCours("?session_id=x"), false);
+  assert.equal(TEXTE_ACTIVATION_EN_COURS, "Votre paiement est en cours de validation : votre abonnement sera actif dans quelques instants.");
+  // Le traitement général efface le jeton : la page doit tester l'activation en cours avant lui.
+  assert.equal(typeof traiterFinDeSession, "function");
+  // Attente bornée, puis reprise si l'abonnement n'arrive pas.
+  const { fin, finMs } = derouler(statut("en_attente_paiement"), { depart: { jeton: true, retourStripe: estRetourStripe(recherche) } });
+  assert.equal(fin.phase, "delai_reprise");
+  assert.equal(finMs, DUREE_MAX_MS);
+  assert.ok(!fin.effacerJeton);
 });

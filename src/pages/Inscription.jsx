@@ -10,8 +10,9 @@ import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
 import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
-import { MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperEspace, erreursDeValidation, messageCatalogue, messageErreur, traiterFinDeSession } from "@/lib/billing/erreurs";
+import { MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperEspace, erreursDeValidation, estActivationEnCoursRefus, messageCatalogue, messageErreur, traiterFinDeSession } from "@/lib/billing/erreurs";
 import { blocCgv, cheminVersionne, corpsInscription, lireSaisie, mentionsAbonnement, retenirExplicationChoix, retenirSaisie, suivrePaiement } from "@/lib/billing/inscription";
+import { ADRESSE_ACTIVATION_EN_COURS } from "@/lib/billing/retour";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
 import { BORNES, validerInscription } from "@/lib/billing/validation";
 import { INDEX_LEGAL } from "virtual:documents-legaux";
@@ -201,6 +202,11 @@ export default function Inscription() {
       if (suivrePaiement(url)) return; // la page se quitte : le bouton reste désactivé
       setErreurGenerale(MESSAGE_INDISPONIBLE);
     } catch (erreur) {
+      // Le paiement attend sa confirmation : on relit le compte, sans nouveau Checkout. Le jeton reste.
+      if (estActivationEnCoursRefus(erreur)) {
+        navigate(ADRESSE_ACTIVATION_EN_COURS);
+        return;
+      }
       const fin = traiterFinDeSession(erreur);
       const explication = fin ? null : expliquerChoix(erreur);
       if (fin) {
