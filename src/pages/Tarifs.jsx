@@ -9,6 +9,7 @@ import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue } from "@/lib/billing/api";
 import { BILLING_MOCK_DEV, URL_MON_COMPTE } from "@/lib/billing/config";
 import { messageCatalogue } from "@/lib/billing/erreurs";
+import { prendreExplicationChoix } from "@/lib/billing/inscription";
 import { selectionDepuisQuery } from "@/lib/billing/pricing";
 import { decisionAnnulation } from "@/lib/billing/retour";
 import { preparerScenario } from "@/lib/billing/scenarios";
@@ -82,6 +83,8 @@ export default function Tarifs() {
   });
   const annulation = decisionAnnulation({ annule, jeton: Boolean(session), selection: choixPrecedent });
   const [repriseSansChoix, setRepriseSansChoix] = useState(false);
+  // Renvoi depuis /inscription sans choix valable : l'explication vient de la mémoire, une seule fois.
+  const [explicationChoix] = useState(prendreExplicationChoix);
 
   // Carrousel des téléphones : Sérénité (la formule mise en avant) est centrée à l'ouverture.
   const pisteRef = useRef(null);
@@ -137,6 +140,8 @@ export default function Tarifs() {
 
       <section className="pb-14 md:pb-20" aria-label="Formules">
         <div className="max-w-[1200px] mx-auto px-5 md:px-6">
+          {explicationChoix && <Message type="info" className="mb-8">{explicationChoix}</Message>}
+
           {annulation && (
             <Message type="info" className="mb-8">
               <p>Paiement annulé. Aucun montant n’a été débité.</p>

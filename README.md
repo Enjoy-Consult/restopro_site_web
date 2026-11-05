@@ -12,7 +12,7 @@ npm test                     # calculs, formats et contrôles de la vente d'abon
 npm run build
 ```
 
-En mode maquette (`VITE_BILLING_MOCK=true`), l'API est simulée. L'adresse e-mail saisie à l'inscription choisit le scénario (voir `src/lib/billing/mock.js`) : `existant@`, `indispo@`, `ko@`, `role@`, `comptes@`, `expire@` (401), `refus@` (403), `bloque@` (403 sur la page de retour), `sepa@`, `lent@`, ou un SIRET commençant par `000000`. Avec `npm run dev` seulement, `annule@` et le paramètre `?maquette=` (par exemple `/abonnement/retour?maquette=impaye`, liste dans le même fichier) simulent l'annulation, chaque statut de compte, le 401 et le 429.
+En mode maquette (`VITE_BILLING_MOCK=true`), l'API est simulée. L'adresse e-mail saisie à l'inscription choisit le scénario (voir `src/lib/billing/mock.js`) : `existant@`, `indispo@`, `ko@`, `role@`, `comptes@`, `expire@` (401), `refus@` (403), `bloque@` (403 sur la page de retour), `sepa@`, `lent@`, `validation@`, `validationautre@` (400 VALIDATION_ERROR), `cgvobsolete@`, `cgvpaiement@`, `dejaactif@`, `gere@`, ou un SIRET commençant par `000000`. Avec `npm run dev` seulement, `annule@` et le paramètre `?maquette=` (par exemple `/abonnement/retour?maquette=impaye`, liste dans le même fichier) simulent l'annulation, chaque statut de compte, le 401 et le 429.
 
 ## Déploiement
 
@@ -58,7 +58,7 @@ Source unique pour le site, l'application et l'API : `src/content/legal/<documen
 - `/PolitiqueConfidentialite` (ancienne URL des magasins) redirige en 301 vers `/application/confidentialite` (`public/.htaccess`).
 - Une version publiée ne se modifie plus : on ajoute un fichier `<version>.md`, on le déclare dans `documents.json` et on change `versionEnVigueur`. Quand le statut d'une version n'est plus `projet`, son `sha256` doit être enregistré dans `documents.json` ; `npm test` échoue si le texte change ensuite.
 - Le build publie `https://restoclair.fr/legal/index.json` (versions en vigueur), `https://restoclair.fr/legal/historique.json` (toutes les versions) et chaque texte sous `https://restoclair.fr/legal/<document>/<version>.md`. `npm run legal:index` affiche le même index en local.
-- L'inscription envoie `cgvVersion` et `cgvSha256` de la version en vigueur ; un 409 `CGV_VERSION_OBSOLETE` demande de recharger la page pour accepter la nouvelle version.
+- L'inscription envoie `cgvVersion` et `cgvSha256` de la version en vigueur ; un 409 `CGV_VERSION_OBSOLETE` demande de recharger la page pour accepter la nouvelle version. Au checkout, le compte existe déjà et la page n'a plus de case à cocher : le même code renvoie vers l'espace client ou le téléphone.
 
 Format de l'index (une entrée par document) :
 

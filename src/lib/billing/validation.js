@@ -2,6 +2,19 @@
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+// Bornes de POST /api/billing/inscription, en caractères. Le SIRET et le code postal ont leur propre format.
+export const BORNES = {
+  prenom: 50,
+  nom: 50,
+  email: 100,
+  motDePasse: 200,
+  nomCommercial: 100,
+  raisonSociale: 255,
+  ligne1: 255,
+  ligne2: 255,
+  ville: 100,
+};
+
 export function nettoyerSiret(valeur) {
   return String(valeur ?? "").replace(/[\s.]/g, "");
 }
@@ -50,7 +63,7 @@ export function estCodePostalValide(valeur) {
 
 export function estMotDePasseValide(valeur) {
   const mdp = String(valeur ?? "");
-  return mdp.length >= 8 && /\p{L}/u.test(mdp) && /\d/.test(mdp);
+  return mdp.length >= 8 && mdp.length <= BORNES.motDePasse && /\p{L}/u.test(mdp) && /\d/.test(mdp);
 }
 
 const REQUIS = {
@@ -60,6 +73,17 @@ const REQUIS = {
   raisonSociale: "Indiquez la raison sociale.",
   ligne1: "Indiquez l’adresse de l’établissement.",
   ville: "Indiquez la ville.",
+};
+
+const NOMS = {
+  prenom: "Le prénom",
+  nom: "Le nom",
+  email: "L’adresse e-mail",
+  nomCommercial: "Le nom commercial",
+  raisonSociale: "La raison sociale",
+  ligne1: "L’adresse",
+  ligne2: "Le complément d’adresse",
+  ville: "La ville",
 };
 
 // Renvoie { champ: message } ; objet vide si tout est valide.
@@ -74,6 +98,8 @@ export function validerInscription(v) {
   else if (!estEmailValide(v.email)) erreurs.email = "Cette adresse e-mail n’est pas valide.";
 
   if (!v.motDePasse) erreurs.motDePasse = "Choisissez un mot de passe.";
+  else if (v.motDePasse.length > BORNES.motDePasse)
+    erreurs.motDePasse = `Le mot de passe ne doit pas dépasser ${BORNES.motDePasse} caractères.`;
   else if (!estMotDePasseValide(v.motDePasse))
     erreurs.motDePasse = "Le mot de passe doit faire au moins 8 caractères, dont une lettre et un chiffre.";
 
@@ -87,6 +113,12 @@ export function validerInscription(v) {
 
   if (!String(v.codePostal ?? "").trim()) erreurs.codePostal = "Indiquez le code postal.";
   else if (!estCodePostalValide(v.codePostal)) erreurs.codePostal = "Le code postal comporte 5 chiffres.";
+
+  // On mesure ce qui sera envoyé : le texte sans les espaces autour.
+  for (const [champ, nom] of Object.entries(NOMS)) {
+    if (!erreurs[champ] && String(v[champ] ?? "").trim().length > BORNES[champ])
+      erreurs[champ] = `${nom} ne doit pas dépasser ${BORNES[champ]} caractères.`;
+  }
 
   if (!v.cgv) erreurs.cgv = "Vous devez accepter les conditions pour continuer.";
 

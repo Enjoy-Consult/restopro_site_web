@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
@@ -5,7 +6,7 @@ import NavigationTracker from '@/lib/NavigationTracker'
 import ConsentementCookies from '@/components/ConsentementCookies'
 import { ouvrirGestionCookies } from '@/lib/consentement'
 import { pagesConfig } from './pages.config'
-import { BrowserRouter as Router, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Navigate, Route, Routes, useLocation, useNavigationType } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import EssaiGratuit from './pages/EssaiGratuit';
 import Tarifs from './pages/Tarifs';
@@ -25,6 +26,20 @@ const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   <Layout currentPageName={currentPageName}>{children}</Layout>
   : <>{children}</>;
+
+// Haut de page à chaque changement de chemin. Une ancre garde sa cible ; au retour arrière, le navigateur rétablit la position.
+const RetourEnHaut = () => {
+  const { pathname, hash } = useLocation();
+  const navigation = useNavigationType();
+
+  useEffect(() => {
+    if (hash || navigation === 'POP') return;
+    window.scrollTo(0, 0);
+    // seulement au changement de chemin : régler ses comptes sur /inscription change l'URL sans faire remonter la page
+  }, [pathname]);
+
+  return null;
+};
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -109,6 +124,7 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <NavigationTracker />
+          <RetourEnHaut />
           <ConsentementCookies />
           <AuthenticatedApp />
         </Router>

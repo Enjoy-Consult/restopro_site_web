@@ -9,6 +9,10 @@
 //   expire@…    -> le checkout répond 401 (jeton expiré)   refus@… -> le checkout répond 403 NON_TITULAIRE
 //   bloque@…    -> la page de retour reçoit un 403 NON_TITULAIRE de /compte
 //   cgvobsolete@… -> l'inscription répond 409 CGV_VERSION_OBSOLETE
+//   validation@… -> l'inscription répond 400 VALIDATION_ERROR sur l'e-mail et le code postal
+//   validationautre@… -> 400 VALIDATION_ERROR sur un chemin inconnu (message général)
+//   dejaactif@… -> le checkout répond 409 ABONNEMENT_DEJA_ACTIF   gere@… -> 403 GERE_PAR_ABONNEMENT
+//   cgvpaiement@… -> le checkout répond 409 CGV_VERSION_OBSOLETE
 //   SIRET commençant par 000000 -> SIRET_INVALIDE
 // Toute autre adresse : abonnement « actif » après quelques interrogations.
 //
@@ -220,6 +224,13 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false, 
     if (email.startsWith("indispo")) throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
     if (email.startsWith("existant")) throw new ApiError("EMAIL_DEJA_UTILISE", 409);
     if (email.startsWith("cgvobsolete")) throw new ApiError("CGV_VERSION_OBSOLETE", 409);
+    if (email.startsWith("validationautre"))
+      throw new ApiError("VALIDATION_ERROR", 400, [{ path: "restaurant.autre", code: "custom", message: "Refusé" }]);
+    if (email.startsWith("validation"))
+      throw new ApiError("VALIDATION_ERROR", 400, [
+        { path: "restaurant.adresse.codePostal", code: "invalid_string", message: "Code postal invalide" },
+        { path: "responsable.email", code: "invalid_string", message: "E-mail invalide" },
+      ]);
     if (String(corps?.restaurant?.siret ?? "").startsWith("000000")) throw new ApiError("SIRET_INVALIDE", 422);
     const jeton = `mock-${Math.random().toString(36).slice(2)}`;
     const { prenom, nom } = corps.responsable;
@@ -231,6 +242,9 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false, 
     const etat = etatDuJeton(token);
     if (etat.email.startsWith("expire")) throw new ApiError("ACTION_NON_AUTORISEE", 401);
     if (etat.email.startsWith("refus")) throw new ApiError("NON_TITULAIRE", 403);
+    if (etat.email.startsWith("dejaactif")) throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409);
+    if (etat.email.startsWith("gere")) throw new ApiError("GERE_PAR_ABONNEMENT", 403);
+    if (etat.email.startsWith("cgvpaiement")) throw new ApiError("CGV_VERSION_OBSOLETE", 409);
     if (etat.email.includes("role")) throw new ApiError("ROLE_NON_AUTORISE_POUR_OFFRE", 422, { categorie: "superviseur" });
     if (etat.email.includes("comptes")) throw new ApiError("COMPTES_INSUFFISANTS", 422, { requis: { cuisinier: 2 } });
     etat.essaisCheckout += 1;

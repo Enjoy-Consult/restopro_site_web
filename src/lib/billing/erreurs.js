@@ -22,6 +22,18 @@ export const MESSAGE_REFUS_GENERIQUE = "Cette action n’est pas possible pour l
 export const MESSAGE_SESSION_EXPIREE =
   "Votre session a expiré. Connectez-vous à votre espace pour finaliser votre abonnement.";
 
+// 400 VALIDATION_ERROR sans champ à désigner.
+export const MESSAGE_VALIDATION = "Certaines informations n’ont pas été acceptées. Vérifiez-les et réessayez.";
+
+// E-mail déjà connu après un essai interrompu : le compte reste créé et se finalise depuis l'espace (CGV, article 5).
+export const PHRASE_ESSAI_INTERROMPU =
+  "Si votre inscription s’est interrompue avant le paiement, votre compte est conservé : finalisez votre abonnement depuis votre espace.";
+
+// CGV changées alors que le compte existe déjà : la page n'a plus de case à cocher et le checkout n'envoie pas
+// de version. Recharger ne changerait rien : on renvoie vers l'espace ou le téléphone.
+export const MESSAGE_CGV_OBSOLETE_PAIEMENT =
+  `Les conditions générales de vente ont été mises à jour. Connectez-vous à votre espace pour finaliser votre abonnement, ou appelez-nous au ${BUSINESS.phone.display}.`;
+
 // Seul un 401 signifie que la session a expiré ; un 403 est un refus (voir messageRefus).
 export function estSessionExpiree(erreur) {
   return erreur?.status === 401;
@@ -62,9 +74,53 @@ export function messageCatalogue(erreur) {
   return erreur?.code === "CATALOGUE_INVALIDE" ? MESSAGE_CATALOGUE_INVALIDE : null;
 }
 
+// Ces refus se règlent depuis l'espace client, quel que soit le statut HTTP (le contrat ne le fixe pas).
+const VERS_ESPACE = ["ABONNEMENT_DEJA_ACTIF", "GERE_PAR_ABONNEMENT"];
+
 // Texte à afficher quand aucun traitement plus précis ne s'applique.
 export function messageErreur(erreur) {
   if (estTropDEssais(erreur)) return MESSAGE_TROP_D_ESSAIS;
   if (erreur?.code === "INSCRIPTION_SANS_JETON") return MESSAGE_INSCRIPTION_SANS_JETON;
+  if (erreur?.code === "VALIDATION_ERROR") return MESSAGE_VALIDATION;
+  if (erreur?.code === "CGV_VERSION_OBSOLETE") return MESSAGE_CGV_OBSOLETE_PAIEMENT;
+  if (VERS_ESPACE.includes(erreur?.code)) return REFUS[erreur.code];
   return messageRefus(erreur) ?? MESSAGE_INDISPONIBLE;
+}
+
+// Texte découpé autour de « votre espace », pour que la page y mette le lien. Sans ces mots : tout est dans `avant`.
+const MOTS_ESPACE = "votre espace";
+
+export function decouperEspace(texte) {
+  const debut = texte.indexOf(MOTS_ESPACE);
+  if (debut < 0) return { avant: texte, espace: null, apres: "" };
+  return { avant: texte.slice(0, debut), espace: MOTS_ESPACE, apres: texte.slice(debut + MOTS_ESPACE.length) };
+}
+
+// details[].path de l'API -> champ du formulaire, dans l'ordre de la page (le premier reçoit le focus).
+// Le texte est le nôtre : details[].message n'est pas écrit pour le visiteur.
+const CHAMPS_API = [
+  ["responsable.prenom", "prenom", "Vérifiez votre prénom."],
+  ["responsable.nom", "nom", "Vérifiez votre nom."],
+  ["responsable.email", "email", "Vérifiez votre adresse e-mail."],
+  ["responsable.motDePasse", "motDePasse", "Ce mot de passe n’est pas accepté. Il faut de 8 à 200 caractères, dont une lettre et un chiffre."],
+  ["restaurant.nomCommercial", "nomCommercial", "Vérifiez le nom commercial."],
+  ["restaurant.raisonSociale", "raisonSociale", "Vérifiez la raison sociale."],
+  ["restaurant.siret", "siret", "Ce numéro SIRET n’est pas reconnu. Vérifiez-le."],
+  ["restaurant.adresse.ligne1", "ligne1", "Vérifiez l’adresse."],
+  ["restaurant.adresse.ligne2", "ligne2", "Vérifiez le complément d’adresse."],
+  ["restaurant.adresse.codePostal", "codePostal", "Le code postal comporte 5 chiffres."],
+  ["restaurant.adresse.ville", "ville", "Vérifiez la ville."],
+  ["cgvAcceptees", "cgv", "Vous devez accepter les conditions pour continuer."],
+];
+
+// 400 VALIDATION_ERROR : { champs: { champ: message }, general: message ou null }.
+// Le message général couvre ce qu'aucun champ ne peut porter : chemin inconnu, details absents ou illisibles.
+export function erreursDeValidation(detail) {
+  const chemins = [detail].flat().filter(Boolean).map((d) => (Array.isArray(d.path) ? d.path.join(".") : d.path));
+  const champs = {};
+  for (const [chemin, champ, message] of CHAMPS_API) {
+    if (chemins.includes(chemin)) champs[champ] = message;
+  }
+  const inconnu = chemins.some((chemin) => !CHAMPS_API.some(([connu]) => connu === chemin));
+  return { champs, general: chemins.length === 0 || inconnu ? MESSAGE_VALIDATION : null };
 }

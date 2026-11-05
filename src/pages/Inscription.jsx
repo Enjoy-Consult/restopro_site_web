@@ -7,16 +7,25 @@ import Etapes from "@/components/billing/Etapes";
 import Message from "@/components/billing/Message";
 import Recapitulatif from "@/components/billing/Recapitulatif";
 import { BUSINESS } from "@/lib/business-info";
-import { getCatalogue, inscrire, lancerCheckout, urlDePaiement } from "@/lib/billing/api";
+import { getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
 import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
-import { MESSAGE_INDISPONIBLE, messageCatalogue, messageErreur, traiterSessionExpiree } from "@/lib/billing/erreurs";
+import { MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperEspace, erreursDeValidation, messageCatalogue, messageErreur, traiterSessionExpiree } from "@/lib/billing/erreurs";
+import { cheminVersionne, lireSaisie, mentionsAbonnement, retenirExplicationChoix, retenirSaisie, suivrePaiement } from "@/lib/billing/inscription";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
-import { nettoyerSiret, validerInscription } from "@/lib/billing/validation";
+import { BORNES, nettoyerSiret, validerInscription } from "@/lib/billing/validation";
 import { INDEX_LEGAL } from "virtual:documents-legaux";
 
 // Version des CGV acceptée à l'inscription (Apirest refuse une version qui n'est plus en vigueur : 409).
 const CGV = INDEX_LEGAL.find((d) => d.document === "cgv");
+
+// Liens de la case d'acceptation : la version précise que le visiteur accepte (routes /<document>/:version de App.jsx).
+const LIEN_CGV = cheminVersionne(INDEX_LEGAL, "cgv") ?? "/cgv";
+const LIEN_ACCORD = cheminVersionne(INDEX_LEGAL, "accord-sous-traitance") ?? "/accord-sous-traitance";
+const LIEN_CGU = cheminVersionne(INDEX_LEGAL, "cgu-app") ?? "/application/cgu";
+
+// Un caractère de plus que la borne : un mot de passe collé trop long est signalé par le contrôle, jamais tronqué sans le dire.
+const MAX_SAISIE_MOT_DE_PASSE = BORNES.motDePasse + 1;
 
 const VIDE = {
   prenom: "", nom: "", email: "", motDePasse: "", confirmation: "",
@@ -53,13 +62,21 @@ function Champ({ label, name, valeur, erreur, onChange, aide, facultatif, type =
   );
 }
 
-// Redirection vers la page de paiement hébergée : on ne suit qu'une URL https valide.
-// Sinon l'appelant affiche l'indisponibilité.
-function suivre(url) {
-  const cible = urlDePaiement(url);
-  if (!cible) return false;
-  window.location.assign(cible);
-  return true;
+// Message général : « votre espace » devient un lien si l'adresse est configurée, et une panne donne le téléphone.
+function TexteErreur({ texte }) {
+  const { avant, espace, apres } = decouperEspace(texte);
+  return (
+    <>
+      {avant}
+      {espace && (URL_MON_COMPTE ? <a href={URL_MON_COMPTE} className="link-underline">{espace}</a> : espace)}
+      {apres}
+      {texte === MESSAGE_INDISPONIBLE && (
+        <>
+          {" "}Vous pouvez aussi nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+        </>
+      )}
+    </>
+  );
 }
 
 export default function Inscription() {
@@ -72,7 +89,8 @@ export default function Inscription() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const [valeurs, setValeurs] = useState(VIDE);
+  // Retour de « Modifier mon choix » : la saisie gardée en mémoire revient, sans le mot de passe.
+  const [valeurs, setValeurs] = useState(() => ({ ...VIDE, ...lireSaisie() }));
   const [erreurs, setErreurs] = useState({});
   const [session, setSession] = useState(() => lireSession());
   const [envoi, setEnvoi] = useState(false);
@@ -124,7 +142,10 @@ export default function Inscription() {
   }
 
   const selection = selectionDepuisQuery(search, catalogue);
-  if (!selection) return <Navigate to="/tarifs" replace />;
+  if (!selection) {
+    retenirExplicationChoix(search);
+    return <Navigate to="/tarifs" replace />;
+  }
   const calcul = calculer(catalogue, selection);
   const ouvrirAjouts = ajoutsOuverts ?? nombreAjouts(selection) > 0;
 
@@ -174,7 +195,7 @@ export default function Inscription() {
   const paiement = async (jeton) => {
     try {
       const { url } = await lancerCheckout(jeton, selectionVersCheckout(selection));
-      if (suivre(url)) return; // la page se quitte : le bouton reste désactivé
+      if (suivrePaiement(url)) return; // la page se quitte : le bouton reste désactivé
       setErreurGenerale(MESSAGE_INDISPONIBLE);
     } catch (erreur) {
       const messageExpiree = traiterSessionExpiree(erreur);
@@ -186,9 +207,8 @@ export default function Inscription() {
         setErreurRecap({ texte: explication });
         if (erreur.code === "ROLE_NON_AUTORISE_POUR_OFFRE" || erreur.code === "COMPTES_INSUFFISANTS") setAjoutsOuverts(true);
       }
-      else if (erreur.code === "ABONNEMENT_DEJA_ACTIF")
-        setErreurGenerale("Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace.");
-      // 429 : trop d'essais ; 403 : le refus reçu (ou le message générique pour un code inconnu)
+      // 429 : trop d'essais ; 403 : le refus reçu (ou le message générique pour un code inconnu) ;
+      // ABONNEMENT_DEJA_ACTIF, GERE_PAR_ABONNEMENT, CGV_VERSION_OBSOLETE : renvoi vers l'espace client
       else setErreurGenerale(messageErreur(erreur));
     }
     setEnvoi(false);
@@ -209,6 +229,7 @@ export default function Inscription() {
       return;
     }
 
+    setErreurs({});
     envoiEnCours.current = true;
     setEnvoi(true);
     try {
@@ -248,7 +269,7 @@ export default function Inscription() {
               ) : (
                 "Connectez-vous à votre espace"
               )}{" "}
-              pour choisir une formule.
+              pour choisir une formule. {PHRASE_ESSAI_INTERROMPU}
             </>
           ),
         });
@@ -271,6 +292,12 @@ export default function Inscription() {
       } else if (erreur.code === "SIRET_INVALIDE") {
         setErreurs({ siret: "Ce numéro SIRET n’est pas reconnu. Vérifiez-le." });
         document.getElementById("champ-siret")?.focus();
+      } else if (erreur.code === "VALIDATION_ERROR") {
+        const { champs, general } = erreursDeValidation(erreur.detail);
+        setErreurs(champs);
+        if (general) setErreurGenerale(general);
+        const premier = Object.keys(champs)[0];
+        if (premier) document.getElementById(`champ-${premier}`)?.focus();
       } else setErreurGenerale(messageErreur(erreur));
       setEnvoi(false);
       envoiEnCours.current = false;
@@ -331,8 +358,17 @@ export default function Inscription() {
                 )}
               </Recapitulatif>
               <p className="mt-4 text-[15px]">
-                <Link to={`/tarifs${search}`} className="link-underline">Modifier mon choix</Link>
+                <Link to={`/tarifs${search}`} onClick={() => retenirSaisie(valeurs)} className="link-underline">Modifier mon choix</Link>
               </p>
+              <div className="mt-5 flex flex-col gap-2 text-muted text-[13px] leading-relaxed">
+                {mentionsAbonnement(calcul.version).map((mention) => (
+                  <p key={mention}>{mention}</p>
+                ))}
+                <p>
+                  Détail et cas particuliers :{" "}
+                  <Link to={LIEN_CGV} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>.
+                </p>
+              </div>
             </aside>
 
             <div className="md:col-span-7 md:row-start-1">
@@ -348,7 +384,7 @@ export default function Inscription() {
                   <Message type="info">
                     Votre compte est créé pour <strong>{session.email}</strong>. Il reste à régler votre abonnement.
                   </Message>
-                  {erreurGenerale && <Message type="error" className="mt-4">{erreurGenerale}</Message>}
+                  {erreurGenerale && <Message type="error" className="mt-4"><TexteErreur texte={erreurGenerale} /></Message>}
                   <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-4">
                     <button type="button" className="btn-primary w-full sm:w-auto text-center disabled:opacity-60 disabled:cursor-wait" disabled={envoi} aria-busy={envoi} onClick={reprendrePaiement}>
                       {envoi ? "Redirection…" : "Passer au paiement"}
@@ -360,35 +396,40 @@ export default function Inscription() {
                 </div>
               ) : (
                 <form onSubmit={soumettre} noValidate className="border-t border-border pt-8">
+                  {URL_MON_COMPTE && (
+                    <p className="text-muted text-[15px] mb-8">
+                      Vous avez déjà un compte ? <a href={URL_MON_COMPTE} className="link-underline">Reprenez depuis votre espace</a>
+                    </p>
+                  )}
                   <fieldset className="mb-12">
                     <legend className="text-ink font-serif text-[24px] mb-6">Le responsable du compte</legend>
                     <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
-                      <Champ label="Prénom" name="prenom" valeur={valeurs.prenom} erreur={erreurs.prenom} onChange={modifier} autoComplete="given-name" maxLength={100} />
-                      <Champ label="Nom" name="nom" valeur={valeurs.nom} erreur={erreurs.nom} onChange={modifier} autoComplete="family-name" maxLength={100} />
+                      <Champ label="Prénom" name="prenom" valeur={valeurs.prenom} erreur={erreurs.prenom} onChange={modifier} autoComplete="given-name" maxLength={BORNES.prenom} />
+                      <Champ label="Nom" name="nom" valeur={valeurs.nom} erreur={erreurs.nom} onChange={modifier} autoComplete="family-name" maxLength={BORNES.nom} />
                       <div className="sm:col-span-2">
-                        <Champ label="Adresse e-mail" name="email" type="email" valeur={valeurs.email} erreur={erreurs.email} onChange={modifier} autoComplete="email" maxLength={254} />
+                        <Champ label="Adresse e-mail" name="email" type="email" valeur={valeurs.email} erreur={erreurs.email} onChange={modifier} autoComplete="email" maxLength={BORNES.email} />
                       </div>
-                      <Champ label="Mot de passe" name="motDePasse" type="password" valeur={valeurs.motDePasse} erreur={erreurs.motDePasse} onChange={modifier} autoComplete="new-password" aide="8 caractères minimum, avec au moins une lettre et un chiffre." />
-                      <Champ label="Confirmation du mot de passe" name="confirmation" type="password" valeur={valeurs.confirmation} erreur={erreurs.confirmation} onChange={modifier} autoComplete="new-password" />
+                      <Champ label="Mot de passe" name="motDePasse" type="password" valeur={valeurs.motDePasse} erreur={erreurs.motDePasse} onChange={modifier} autoComplete="new-password" maxLength={MAX_SAISIE_MOT_DE_PASSE} aide="8 caractères minimum, avec au moins une lettre et un chiffre." />
+                      <Champ label="Confirmation du mot de passe" name="confirmation" type="password" valeur={valeurs.confirmation} erreur={erreurs.confirmation} onChange={modifier} autoComplete="new-password" maxLength={MAX_SAISIE_MOT_DE_PASSE} />
                     </div>
                   </fieldset>
 
                   <fieldset className="mb-8">
                     <legend className="text-ink font-serif text-[24px] mb-6">L’établissement</legend>
                     <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
-                      <Champ label="Nom commercial" name="nomCommercial" valeur={valeurs.nomCommercial} erreur={erreurs.nomCommercial} onChange={modifier} autoComplete="organization" maxLength={150} />
-                      <Champ label="Raison sociale" name="raisonSociale" valeur={valeurs.raisonSociale} erreur={erreurs.raisonSociale} onChange={modifier} maxLength={150} />
+                      <Champ label="Nom commercial" name="nomCommercial" valeur={valeurs.nomCommercial} erreur={erreurs.nomCommercial} onChange={modifier} autoComplete="organization" maxLength={BORNES.nomCommercial} />
+                      <Champ label="Raison sociale" name="raisonSociale" valeur={valeurs.raisonSociale} erreur={erreurs.raisonSociale} onChange={modifier} maxLength={BORNES.raisonSociale} />
                       <div className="sm:col-span-2">
                         <Champ label="SIRET" name="siret" valeur={valeurs.siret} erreur={erreurs.siret} onChange={modifier} inputMode="numeric" autoComplete="off" aide="14 chiffres." maxLength={20} />
                       </div>
                       <div className="sm:col-span-2">
-                        <Champ label="Adresse" name="ligne1" valeur={valeurs.ligne1} erreur={erreurs.ligne1} onChange={modifier} autoComplete="address-line1" maxLength={200} />
+                        <Champ label="Adresse" name="ligne1" valeur={valeurs.ligne1} erreur={erreurs.ligne1} onChange={modifier} autoComplete="address-line1" maxLength={BORNES.ligne1} />
                       </div>
                       <div className="sm:col-span-2">
-                        <Champ label="Complément d’adresse" name="ligne2" facultatif valeur={valeurs.ligne2} erreur={erreurs.ligne2} onChange={modifier} autoComplete="address-line2" maxLength={200} />
+                        <Champ label="Complément d’adresse" name="ligne2" facultatif valeur={valeurs.ligne2} erreur={erreurs.ligne2} onChange={modifier} autoComplete="address-line2" maxLength={BORNES.ligne2} />
                       </div>
                       <Champ label="Code postal" name="codePostal" valeur={valeurs.codePostal} erreur={erreurs.codePostal} onChange={modifier} inputMode="numeric" autoComplete="postal-code" maxLength={5} />
-                      <Champ label="Ville" name="ville" valeur={valeurs.ville} erreur={erreurs.ville} onChange={modifier} autoComplete="address-level2" maxLength={100} />
+                      <Champ label="Ville" name="ville" valeur={valeurs.ville} erreur={erreurs.ville} onChange={modifier} autoComplete="address-level2" maxLength={BORNES.ville} />
                     </div>
                   </fieldset>
 
@@ -406,15 +447,15 @@ export default function Inscription() {
                       />
                       <span>
                         J’accepte les{" "}
-                        <Link to={`/cgv/${CGV.version}`} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>{" "}
-                        (et leur annexe, l’<Link to="/accord-sous-traitance" target="_blank" rel="noopener noreferrer" className="link-underline">accord de sous-traitance des données</Link>) et les{" "}
-                        <Link to="/application/cgu" target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales d’utilisation</Link>
+                        <Link to={LIEN_CGV} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>{" "}
+                        (et leur annexe, l’<Link to={LIEN_ACCORD} target="_blank" rel="noopener noreferrer" className="link-underline">accord de sous-traitance des données</Link>) et les{" "}
+                        <Link to={LIEN_CGU} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales d’utilisation</Link>
                       </span>
                     </label>
                     {erreurs.cgv && <p id="champ-cgv-erreur" className="text-[#8a2424] text-[14px] mt-1.5">{erreurs.cgv}</p>}
                   </div>
 
-                  {erreurGenerale && <Message type="error" className="mt-6">{erreurGenerale}</Message>}
+                  {erreurGenerale && <Message type="error" className="mt-6"><TexteErreur texte={erreurGenerale} /></Message>}
 
                   <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
                     <button type="submit" className="btn-primary w-full sm:w-auto text-center disabled:opacity-60 disabled:cursor-wait" disabled={envoi} aria-busy={envoi}>
@@ -422,6 +463,11 @@ export default function Inscription() {
                     </button>
                     <span className="text-faint text-sm">Besoin d’aide ? {BUSINESS.phone.display}</span>
                   </div>
+
+                  <p className="text-muted text-[13px] leading-relaxed mt-6">
+                    Pour savoir comment nous traitons vos données, lisez notre{" "}
+                    <Link to="/confidentialite" target="_blank" rel="noopener noreferrer" className="link-underline">politique de confidentialité</Link>.
+                  </p>
                 </form>
               )}
             </div>
