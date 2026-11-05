@@ -77,3 +77,39 @@ test("consentement : les anciens cookies _ga sont effacés au chargement, sans t
   assert.equal(nav.cookies(), "_gcl_au=1.1.123; autre=ok");
   assert.equal(nav.scripts.length, 0);
 });
+
+test("consentement : un retrait impossible à écrire ne laisse pas revenir l'ancien accord au rechargement", async () => {
+  const nav = fauxNavigateur();
+  const c = await import("./consentement.js?ecriture=1");
+  c.enregistrerConsentement(true, new Date("2026-11-03T10:00:00Z"));
+  assert.equal(nav.scripts.length, 1);
+  const stockageLocal = globalThis.window.localStorage;
+  stockageLocal.setItem = () => { throw new Error("stockage plein"); };
+
+  const { rechargement } = c.enregistrerConsentement(false, new Date("2026-11-03T11:00:00Z"));
+  assert.equal(rechargement, true);
+  assert.equal(nav.stockage.has(c.CLE_CONSENTEMENT), false);
+  // Sur la page en cours, le choix le plus récent reste le refus.
+  assert.equal(c.lireConsentement(Date.parse("2026-11-03T12:00:00Z")).publicite, false);
+
+  // Après le rechargement (nouvelle page, mémoire vide) : aucun accord, donc rien de chargé, et la question revient.
+  nav.scripts.length = 0;
+  const recharge = await import("./consentement.js?ecriture=2");
+  assert.equal(recharge.lireConsentement(Date.parse("2026-11-03T12:00:00Z")), null);
+  recharge.appliquerConsentement(null);
+  assert.equal(nav.scripts.length, 0);
+});
+
+test("consentement : si l'ancien accord ne peut pas être retiré non plus, la page n'est pas rechargée", async () => {
+  const nav = fauxNavigateur();
+  const c = await import("./consentement.js?ecriture=3");
+  c.enregistrerConsentement(true, new Date("2026-11-03T10:00:00Z"));
+  const stockageLocal = globalThis.window.localStorage;
+  stockageLocal.setItem = () => { throw new Error("stockage plein"); };
+  stockageLocal.removeItem = () => { throw new Error("stockage bloqué"); };
+
+  // Recharger rétablirait l'accord : on reste sur la page, où tout est refusé.
+  assert.equal(c.enregistrerConsentement(false, new Date("2026-11-03T11:00:00Z")).rechargement, false);
+  assert.equal(nav.stockage.has(c.CLE_CONSENTEMENT), true);
+  assert.equal(c.lireConsentement(Date.parse("2026-11-03T12:00:00Z")).publicite, false);
+});
