@@ -162,6 +162,18 @@ test("modules : complet, identiques, plus", () => {
   assert.equal(plus.modules.length, 9);
 });
 
+test("modules : s'il en manque un de la formule précédente, liste complète plutôt que « les mêmes » ou « tous, plus »", () => {
+  const [ess, ser, exp] = catalogue.offres;
+  const moinsUn = { ...ser, modules: ser.modules.slice(1) };
+  assert.deepEqual(modulesAffichage(catalogue, moinsUn, ess).mode, "complet");
+  assert.equal(modulesAffichage(catalogue, moinsUn, ess).modules.length, 14);
+  const expertSansFormation = { ...exp, modules: exp.modules.filter((m) => m !== "formation") };
+  assert.equal(modulesAffichage(catalogue, expertSansFormation, ser).mode, "complet");
+  assert.equal(modulesAffichage(catalogue, expertSansFormation, ser).modules.length, 23);
+  // L'ordre des clés ne change rien.
+  assert.equal(modulesAffichage(catalogue, { ...ser, modules: [...ser.modules].reverse() }, ess).mode, "identiques");
+});
+
 test("sélection <-> URL d'inscription", () => {
   const sel = { offre: "expert", version: "mensuel", comptesSupplementaires: { cuisinier: 2, responsable: 0 }, options: { ddpp: true } };
   const query = selectionVersQuery(sel);

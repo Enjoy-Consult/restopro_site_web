@@ -150,13 +150,15 @@ function lireOffre(brut, pmsDisponible, modules) {
   const { categoriesAutorisees, fonctions } = brut;
   if (!Object.values(comptesInclus).some((n) => n > 0) || !Array.isArray(categoriesAutorisees) || !Array.isArray(brut.modules)) return null;
   if (!DDPP.includes(fonctions?.ddpp)) return null;
+  // Accès sur ordinateur absent ou illisible : null, la carte ne dit ni « inclus » ni « non inclus ».
+  const accesOrdinateur = typeof fonctions.accesOrdinateur === "boolean" ? fonctions.accesOrdinateur : null;
   return {
     cle,
     nom,
     comptesInclus,
     categoriesAutorisees: categoriesAutorisees.filter((c) => typeof c === "string"),
     modules: brut.modules.filter((m) => modules.some((connu) => connu.cle === m)),
-    fonctions: { accesOrdinateur: fonctions.accesOrdinateur === true, ddpp: fonctions.ddpp, superviseur: fonctions.superviseur === true },
+    fonctions: { accesOrdinateur, ddpp: fonctions.ddpp, superviseur: fonctions.superviseur === true },
     versions,
   };
 }

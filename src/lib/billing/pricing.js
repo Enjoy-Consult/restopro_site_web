@@ -105,7 +105,10 @@ export function remiseAnnuelle(offre, catalogue) {
 // Modules affichés sous une formule, par rapport à la précédente (Essentiel, Sérénité, Expert).
 export function modulesAffichage(catalogue, offre, precedente) {
   const libelle = (cle) => catalogue.modules.find((m) => m.cle === cle)?.libelle ?? cle;
-  if (!precedente) return { mode: "complet", modules: offre.modules.map(libelle) };
+  // « Les mêmes » et « tous les modules, plus » ne sont vrais que s'il ne manque aucun module de la précédente.
+  if (!precedente || precedente.modules.some((cle) => !offre.modules.includes(cle))) {
+    return { mode: "complet", modules: offre.modules.map(libelle) };
+  }
   const supplementaires = offre.modules.filter((cle) => !precedente.modules.includes(cle));
   if (supplementaires.length === 0) return { mode: "identiques", modules: [] };
   return { mode: "plus", modules: supplementaires.map(libelle) };

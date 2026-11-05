@@ -9,6 +9,11 @@ export const RACINE_LEGALE = join(dirname(fileURLToPath(import.meta.url)), "..",
 export const SITE_URL = "https://restoclair.fr";
 const AVERTISSEMENT = "Projet à faire relire par un avocat";
 
+// Statuts admis d'une version dans documents.json.
+// « projet » : texte de travail, avec bandeau et marques `[À VALIDER…]`, qui n'a pas de valeur contractuelle.
+// « publie » : texte validé et immuable (sha256 enregistré), sans bandeau ni marque.
+export const STATUTS_ADMIS = ["projet", "publie"];
+
 // Texte publié, normalisé :
 // 1. décodé en UTF-8, sans marque d'ordre des octets (BOM) ;
 // 2. fins de ligne converties en \n ;

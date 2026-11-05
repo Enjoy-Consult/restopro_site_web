@@ -298,6 +298,17 @@ test("catalogue : une offre incomplète est écartée, les autres restent", () =
   }
 });
 
+test("catalogue : accès sur ordinateur lu tel quel, null s'il est absent ou illisible", () => {
+  const base = mockCatalogue(false);
+  const lu = (accesOrdinateur) => lireCatalogue({
+    ...base,
+    offres: [{ ...base.offres[0], fonctions: { ...base.offres[0].fonctions, accesOrdinateur } }],
+  }).offres[0].fonctions.accesOrdinateur;
+  assert.equal(lu(true), true);
+  assert.equal(lu(false), false);
+  for (const illisible of [undefined, null, "true", 1]) assert.equal(lu(illisible), null);
+});
+
 test("catalogue : lecture tolérante des champs secondaires", () => {
   const base = mockCatalogue(false);
   const version = base.offres[0].versions[0];

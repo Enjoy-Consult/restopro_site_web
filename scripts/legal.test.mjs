@@ -4,8 +4,12 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import ReactMarkdown from "react-markdown";
 import {
   RACINE_LEGALE,
+  STATUTS_ADMIS,
   construireHistorique,
   construireIndex,
   empreinteTexteLegal,
@@ -70,6 +74,48 @@ test("format : titre, version, bandeau « projet » tant que le statut est « pr
       if (v.statut === "projet") assert.ok(texte.includes("Projet à faire relire par un avocat"), `${doc.document} : bandeau`);
       assert.ok(!texte.includes("RestoClair"), `${doc.document} : écrire « RestOclair »`);
       assert.ok(!/^\|.*\|\s*$/m.test(texte), `${doc.document} : pas de tableau Markdown`);
+    }
+  }
+});
+
+test("statuts : chaque version a un statut de la liste admise", () => {
+  assert.deepEqual(STATUTS_ADMIS, ["projet", "publie"]);
+  for (const doc of lireDocuments()) {
+    for (const v of doc.versions) assert.ok(STATUTS_ADMIS.includes(v.statut), `${doc.document} ${v.version} : statut « ${v.statut} »`);
+  }
+});
+
+// Ce qui ne doit plus rester dans un texte publié. Même moteur que DocumentLegal.jsx, où chaque <code> du rendu
+// devient une marque jaune : un code en ligne, un bloc entre ``` ou un bloc indenté.
+function defautsPublication(texte) {
+  const defauts = [];
+  if (/projet (à faire relire|de travail)/i.test(texte)) defauts.push("bandeau");
+  if (/<code[\s>]/.test(renderToStaticMarkup(createElement(ReactMarkdown, null, texte)))) defauts.push("marque jaune");
+  if (/\[À [^\]]*\]/.test(texte)) defauts.push("renvoi à compléter");
+  return defauts;
+}
+
+test("contrôle inverse : il repère le bandeau, les marques jaunes et les renvois, et laisse passer un texte propre", () => {
+  assert.deepEqual(defautsPublication("# T\n\nVersion 1.0\n\n> Une citation\n\n## 1. Objet\n\nTexte et [lien](/cgv), avec [crochets].\n\n  - liste imbriquée\n"), []);
+  assert.deepEqual(defautsPublication("# T\n\n> **Projet à faire relire par un avocat.** Texte.\n\nCorps\n"), ["bandeau"]);
+  assert.deepEqual(defautsPublication("# T\n\nCe document est un projet de travail.\n"), ["bandeau"]);
+  assert.deepEqual(defautsPublication("# T\n\nTexte `[À VALIDER PAR L’AVOCAT : motif]`\n"), ["marque jaune", "renvoi à compléter"]);
+  assert.deepEqual(defautsPublication("# T\n\nTexte `autre chose`\n"), ["marque jaune"]);
+  assert.deepEqual(defautsPublication("# T\n\n```\nbloc\n```\n"), ["marque jaune"]);
+  assert.deepEqual(defautsPublication("# T\n\n    bloc indenté\n"), ["marque jaune"]);
+  assert.deepEqual(defautsPublication("# T\n\nOublié [À CONFIRMER : durée]\n"), ["renvoi à compléter"]);
+  // Sur les vrais textes : tant qu'une version est en projet, son bandeau est bien repéré.
+  for (const doc of lireDocuments()) {
+    for (const v of doc.versions.filter((version) => version.statut === "projet")) {
+      assert.ok(defautsPublication(lireTexte(doc.document, v.version)).includes("bandeau"), `${doc.document} ${v.version}`);
+    }
+  }
+});
+
+test("hors statut « projet » : ni bandeau, ni marque jaune, ni renvoi à compléter", () => {
+  for (const doc of lireDocuments()) {
+    for (const v of doc.versions.filter((version) => version.statut !== "projet")) {
+      assert.deepEqual(defautsPublication(lireTexte(doc.document, v.version)), [], `${doc.document} ${v.version}`);
     }
   }
 });

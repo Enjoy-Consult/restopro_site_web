@@ -2,7 +2,20 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { readFileSync } from 'node:fs'
 import path from 'path'
+import { messageGardeFou, problemesVente } from './scripts/garde-fou-vente.mjs'
 import { construireHistorique, construireIndex, lireDocuments, RACINE_LEGALE } from './scripts/legal.mjs'
+
+// Garde-fou de la vente (règles dans scripts/garde-fou-vente.mjs).
+// config.env contient les variables que verra le site : .env*, puis celles du processus, qui passent devant.
+function gardeFouVente() {
+  return {
+    name: 'garde-fou-vente',
+    configResolved({ command, mode, env }) {
+      const problemes = problemesVente({ commande: command, mode, env, documents: lireDocuments() })
+      if (problemes.length > 0) throw new Error(messageGardeFou(problemes))
+    },
+  }
+}
 
 // Documents légaux : index et textes publiés sous /legal/ (index.json, historique.json, <document>/<version>.md),
 // et module virtuel « virtual:documents-legaux » (versions en vigueur et empreintes) pour le site.
@@ -47,6 +60,7 @@ function documentsLegaux() {
 export default defineConfig({
   logLevel: 'error',
   plugins: [
+    gardeFouVente(),
     react(),
     documentsLegaux(),
   ],

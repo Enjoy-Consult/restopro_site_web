@@ -14,40 +14,7 @@ import { selectionDepuisQuery } from "@/lib/billing/pricing";
 import { decisionAnnulation } from "@/lib/billing/retour";
 import { preparerScenario } from "@/lib/billing/scenarios";
 import { lireSession } from "@/lib/billing/session";
-
-const ATOUTS = [
-  ["Équipiers illimités", "Gratuits dans toutes les formules, pour signer les actions."],
-  ["Sans engagement", "Les formules mensuelles se résilient depuis votre espace client."],
-  ["Paiement sécurisé", "Par carte bancaire ou prélèvement SEPA. Le montant exact figure sur la page de paiement."],
-];
-
-const QUESTIONS = [
-  {
-    question: "Y a-t-il un engagement ?",
-    reponse:
-      "Les formules mensuelles sont sans engagement. La formule annuelle est payée d’avance pour douze mois.",
-  },
-  {
-    question: "Puis-je ajouter des comptes supplémentaires ?",
-    reponse:
-      "Oui : vous les choisissez lors de l’inscription, puis vous pouvez en ajouter à tout moment depuis votre espace client. Leur prix figure dans le détail de chaque formule.",
-  },
-  {
-    question: "Que sont les équipiers ?",
-    reponse:
-      "Les équipiers sont illimités et gratuits dans toutes les formules. Ils servent à signer les actions, avec les droits du compte auquel ils sont rattachés.",
-  },
-  {
-    question: "Quels moyens de paiement acceptez-vous ?",
-    reponse:
-      "Le paiement se fait par carte bancaire ou par prélèvement SEPA, sur la page de paiement sécurisée de notre prestataire.",
-  },
-  {
-    question: "Comment résilier ?",
-    reponse:
-      "Depuis votre espace client. Après la résiliation, vos données restent consultables pendant deux mois en lecture seule, avec un export complet, puis elles sont supprimées.",
-  },
-];
+import { atoutsTarifs, questionsTarifs } from "@/lib/billing/textes-tarifs";
 
 function Chargement() {
   return (
@@ -238,7 +205,7 @@ export default function Tarifs() {
       <hr className="rule" />
       <section className="py-14 md:py-20" aria-label="Ce qui est inclus partout">
         <div className="max-w-[1200px] mx-auto px-5 md:px-6 grid md:grid-cols-3 gap-8 md:gap-12">
-          {ATOUTS.map(([titre, texte]) => (
+          {atoutsTarifs(catalogue).map(([titre, texte]) => (
             <div key={titre}>
               <h3 className="text-ink font-sans font-semibold text-[17px] mb-2">{titre}</h3>
               <p className="text-muted text-[15px] leading-relaxed">{texte}</p>
@@ -255,7 +222,7 @@ export default function Tarifs() {
               <h2 id="faq-titre" className="text-ink">Questions fréquentes</h2>
             </div>
             <div className="md:col-span-8 divide-y divide-border border-y border-border">
-              {QUESTIONS.map(({ question, reponse }) => (
+              {questionsTarifs(catalogue).map(({ question, reponse }) => (
                 <details key={question} className="group">
                   <summary className="cursor-pointer list-none flex items-center justify-between gap-4 py-5 text-ink font-medium text-[17px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-bottle">
                     {question}

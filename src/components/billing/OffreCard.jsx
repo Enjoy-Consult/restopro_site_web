@@ -17,6 +17,7 @@ import {
   selectionVersQuery,
   versionsDisponibles,
 } from "@/lib/billing/pricing";
+import { intituleModules } from "@/lib/billing/textes-tarifs";
 
 const PMS_TEXTE = {
   premier_paiement: "Inclus dès le 1er paiement, mises à jour illimitées",
@@ -101,6 +102,14 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
           <span className="text-ink font-medium">Inclus : </span>
           {inclus.join(", ")}
         </p>
+        {/* CGV 3.1 : l'accès depuis un ordinateur dépend de la formule. Ni le contrat ni les CGV ne disent
+            « sur téléphone et tablette uniquement », et l'abonnement se gère sur le web : ne pas l'écrire. */}
+        {offre.fonctions.accesOrdinateur === false && (
+          <p className="text-muted text-[13px] leading-snug mt-1.5">
+            <span className="text-ink font-medium">Non inclus : </span>
+            accès sur ordinateur
+          </p>
+        )}
       </header>
 
       {/* 2. Version */}
@@ -167,19 +176,18 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
                   dès {formatHTParPeriode(prixMiniSupplement, version.periode)}, à ajouter à l’étape suivante
                 </Ligne>
               )}
-              {offre.fonctions.accesOrdinateur && <Ligne label="Accès sur ordinateur">Inclus</Ligne>}
+              {offre.fonctions.accesOrdinateur === true && <Ligne label="Accès sur ordinateur">Inclus</Ligne>}
+              {offre.fonctions.accesOrdinateur === false && (
+                <Ligne label="Accès sur ordinateur">Non inclus. Votre abonnement se gère tout de même sur le web, depuis votre espace client.</Ligne>
+              )}
               <Ligne label="Assistance DDPP niveau 1">
                 {offre.fonctions.ddpp === "incluse" && "Incluse"}
-                {offre.fonctions.ddpp === "option" && `En option, ${optionDdpp ? formatHTParPeriode(optionDdpp.prixCentimes, "mois") : "sur demande"}`}
+                {offre.fonctions.ddpp === "option" && (optionDdpp ? `En option, ${formatHTParPeriode(optionDdpp.prixCentimes, version.periode)}` : "Non proposée avec cette version")}
                 {offre.fonctions.ddpp === "non" && "Non"}
               </Ligne>
               {pms && <Ligne label="PMS">{PMS_TEXTE[pms]}</Ligne>}
               <Ligne label="Équipiers">Illimités, sans supplément</Ligne>
-              <Ligne label="Modules">
-                {modules.mode === "identiques" && "Les mêmes que l’Essentiel :"}
-                {modules.mode === "plus" && `Tous les modules du ${precedente.nom}, plus :`}
-                {modules.mode === "complet" && "Liste complète :"}
-              </Ligne>
+              <Ligne label="Modules">{intituleModules(modules.mode, precedente)}</Ligne>
             </dl>
             <ul className="mt-1 text-[13px] text-muted flex flex-col gap-1.5">
               {listeModules.map((m) => (

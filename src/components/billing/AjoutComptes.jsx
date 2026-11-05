@@ -67,7 +67,7 @@ export default function AjoutComptes({ catalogue, calcul, selection, onChange, o
                 />
                 <span>
                   {optionDdpp.libelle}
-                  <span className="block text-faint text-[13px] mt-0.5">+{formatHTParPeriode(optionDdpp.prixCentimes, "mois")}</span>
+                  <span className="block text-faint text-[13px] mt-0.5">+{formatHTParPeriode(optionDdpp.prixCentimes, version.periode)}</span>
                 </span>
               </label>
             )}
