@@ -5,7 +5,7 @@
 //   existant@…  -> EMAIL_DEJA_UTILISE          indispo@…  -> SERVICE_PAIEMENT_INDISPONIBLE
 //   ko@…        -> le 1er checkout échoue, le 2e réussit (reprise sans recréer le compte)
 //   role@…      -> ROLE_NON_AUTORISE_POUR_OFFRE   comptes@… -> COMPTES_INSUFFISANTS
-//   sepa@…      -> retour en « activation_provisoire »   lent@… -> la confirmation n'arrive pas
+//   sepa@…      -> retour en « activation_provisoire »   lent@… -> la confirmation n'arrive pas (texte du délai à 60 s)
 //   expire@…    -> le checkout répond 401 (jeton expiré)   refus@… -> le checkout répond 403 NON_TITULAIRE
 //   bloque@…    -> la page de retour reçoit un 403 NON_TITULAIRE de /compte
 //   cgvobsolete@… -> l'inscription répond 409 CGV_VERSION_OBSOLETE
@@ -14,12 +14,14 @@
 //   dejaactif@… -> le checkout répond 409 ABONNEMENT_DEJA_ACTIF   gere@… -> 403 GERE_PAR_ABONNEMENT
 //   cgvpaiement@… -> le checkout répond 409 CGV_VERSION_OBSOLETE
 //   SIRET commençant par 000000 -> SIRET_INVALIDE
+//   Inscription ou checkout sans bloc cgv -> 409 CGV_VERSION_OBSOLETE, comme Apirest
 // Toute autre adresse : abonnement « actif » après quelques interrogations.
 //
 // En développement seulement (npm run dev), sans passer par le formulaire :
 //   annule@…  -> le 1er checkout revient sur /tarifs?paiement=annule, le compte reste créé
 //   /abonnement/retour?maquette=X, avec X parmi :
 //     sans_abonnement, en_attente_paiement, impaye, resilie -> ce statut, sans fin (issue à 60 s)
+//       ajouter &session_id=x pour jouer le retour de Stripe : sans_abonnement et en_attente_paiement donnent le délai
 //     actif, activation_provisoire, actif_sans_email        -> succès immédiat
 //     attente_puis_actif                                    -> « actif » à la 3e interrogation
 //     401 -> jeton refusé ; 429 -> Retry-After de 5 s, sans fin ; 429_puis_actif -> « actif » à la 3e
@@ -204,6 +206,11 @@ export function reponseScenario(scenario, interrogation) {
 // En mémoire seulement : un rechargement repart de la première interrogation.
 const interrogationsScenario = new Map();
 
+// Contrat final d'Apirest (§ D) : bloc absent ou incomplet, 409 sur l'inscription et le checkout.
+function exigerCgv(corps) {
+  if (!corps?.cgv?.version || !corps?.cgv?.sha256) throw new ApiError("CGV_VERSION_OBSOLETE", 409);
+}
+
 export async function mockRequete(methode, chemin, { corps, token, pms = false, scenarios = false } = {}) {
   await attendre(PAUSE_MS);
   const route = `${methode} ${chemin}`;
@@ -211,7 +218,10 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false, 
   if (route === "GET /api/billing/catalogue") return mockCatalogue(pms);
 
   if (scenarios && token?.startsWith(PREFIXE_JETON_SCENARIO)) {
-    if (route === "POST /api/billing/checkout") return { url: `${window.location.origin}/abonnement/retour?session_id=cs_test_maquette` };
+    if (route === "POST /api/billing/checkout") {
+      exigerCgv(corps);
+      return { url: `${window.location.origin}/abonnement/retour?session_id=cs_test_maquette` };
+    }
     if (route === "GET /api/billing/compte") {
       const n = (interrogationsScenario.get(token) ?? 0) + 1;
       interrogationsScenario.set(token, n);
@@ -220,6 +230,7 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false, 
   }
 
   if (route === "POST /api/billing/inscription") {
+    exigerCgv(corps);
     const email = String(corps?.responsable?.email ?? "").toLowerCase();
     if (email.startsWith("indispo")) throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
     if (email.startsWith("existant")) throw new ApiError("EMAIL_DEJA_UTILISE", 409);
@@ -240,6 +251,7 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false, 
 
   if (route === "POST /api/billing/checkout") {
     const etat = etatDuJeton(token);
+    exigerCgv(corps);
     if (etat.email.startsWith("expire")) throw new ApiError("ACTION_NON_AUTORISEE", 401);
     if (etat.email.startsWith("refus")) throw new ApiError("NON_TITULAIRE", 403);
     if (etat.email.startsWith("dejaactif")) throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409);

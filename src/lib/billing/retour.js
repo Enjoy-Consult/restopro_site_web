@@ -10,6 +10,8 @@ export const RALENTI_429_MS = 10000;
 // Juste après Stripe, ces statuts peuvent précéder « actif » de quelques secondes :
 // on ne conclut qu'à la fin de la fenêtre de confirmation.
 const NON_CONFIRMES = ["sans_abonnement", "en_attente_paiement", "impaye", "resilie"];
+// Après un retour de Stripe, ces deux-là disent seulement que la confirmation du paiement n'est pas encore arrivée.
+const CONFIRMATION_ATTENDUE = ["sans_abonnement", "en_attente_paiement"];
 
 export const TEXTE_INVERIFIABLE =
   "Nous ne pouvons pas vérifier votre abonnement depuis cette page. Si vous venez de payer, vous recevrez un e-mail de confirmation.";
@@ -33,28 +35,37 @@ export function phraseIdentifiants(email) {
 //   { type: "fin", phase, compte?, refus?, effacerJeton? }  afficher l'issue
 // reprendreDansMs (sur un 429) : aucun appel avant ce délai, même après « Vérifier à nouveau ».
 
-// Fin de la fenêtre. Un statut lu non confirmé exclut le texte du délai, qui promet un e-mail.
-export function conclusionRetour(dernierStatut) {
+// Stripe ne met session_id que sur l'adresse de succès : l'annulation revient sur /tarifs, sans lui.
+export function estRetourStripe(search) {
+  return Boolean(new URLSearchParams(search).get("session_id"));
+}
+
+// Fin de la fenêtre. Retour de Stripe et statut en attente : le client vient de payer, donc le texte du délai,
+// et jamais de reprise, qui ouvrirait une seconde session de paiement.
+// Dans les autres cas, un statut lu non confirmé exclut ce texte, qui promet un e-mail.
+export function conclusionRetour(dernierStatut, retourStripe = false) {
+  if (retourStripe && CONFIRMATION_ATTENDUE.includes(dernierStatut)) return { type: "fin", phase: "delai" };
   return { type: "fin", phase: NON_CONFIRMES.includes(dernierStatut) ? "non_confirme" : "delai" };
 }
 
 // Prochain appel après attenteMs, s'il tombe dans la fenêtre ; sinon on attend sa fin, sans nouvel appel.
-export function planifierRetour(dernierStatut, ecouleMs, attenteMs = INTERVALLE_MS) {
+export function planifierRetour(dernierStatut, ecouleMs, attenteMs = INTERVALLE_MS, retourStripe = false) {
   const resteMs = DUREE_MAX_MS - ecouleMs;
-  if (resteMs <= 0) return conclusionRetour(dernierStatut);
+  const conclusion = conclusionRetour(dernierStatut, retourStripe);
+  if (resteMs <= 0) return conclusion;
   return attenteMs < resteMs
     ? { type: "attendre", delaiMs: attenteMs, puis: { type: "interroger" } }
-    : { type: "attendre", delaiMs: resteMs, puis: conclusionRetour(dernierStatut) };
+    : { type: "attendre", delaiMs: resteMs, puis: conclusion };
 }
 
 // Arrivée sur la page ou « Vérifier à nouveau ». attenteMs : reste d'un Retry-After déjà reçu.
-export function decisionDepart({ jeton, attenteMs = 0, dernierStatut = null }) {
+export function decisionDepart({ jeton, attenteMs = 0, dernierStatut = null, retourStripe = false }) {
   if (!jeton) return { type: "fin", phase: "inverifiable" };
-  return attenteMs > 0 ? planifierRetour(dernierStatut, 0, attenteMs) : { type: "interroger" };
+  return attenteMs > 0 ? planifierRetour(dernierStatut, 0, attenteMs, retourStripe) : { type: "interroger" };
 }
 
 // Après une interrogation : compte lu, ou erreur.
-export function decisionRetour({ compte = null, erreur = null, dernierStatut = null, ecouleMs = 0 }) {
+export function decisionRetour({ compte = null, erreur = null, dernierStatut = null, ecouleMs = 0, retourStripe = false }) {
   if (compte?.statut === "actif") return { type: "fin", phase: "actif", compte, effacerJeton: true };
   if (compte?.statut === "activation_provisoire") return { type: "fin", phase: "provisoire", compte, effacerJeton: true };
   if (estSessionExpiree(erreur)) return { type: "fin", phase: "inverifiable", effacerJeton: true };
@@ -64,9 +75,9 @@ export function decisionRetour({ compte = null, erreur = null, dernierStatut = n
   const statut = compte?.statut ?? dernierStatut;
   if (estTropDEssais(erreur)) {
     const attenteMs = Math.max(erreur.retryAfterMs ?? RALENTI_429_MS, INTERVALLE_MS);
-    return { ...planifierRetour(statut, ecouleMs, attenteMs), reprendreDansMs: attenteMs };
+    return { ...planifierRetour(statut, ecouleMs, attenteMs, retourStripe), reprendreDansMs: attenteMs };
   }
-  return planifierRetour(statut, ecouleMs);
+  return planifierRetour(statut, ecouleMs, INTERVALLE_MS, retourStripe);
 }
 
 // Message de /tarifs?paiement=annule. Stripe ne rend aucun paramètre et le choix n'est pas stocké :

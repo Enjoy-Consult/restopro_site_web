@@ -85,7 +85,7 @@ Source unique pour le site, l'application et l'API : `src/content/legal/<documen
 - Statuts admis dans `documents.json` : `projet` et `publie` (`STATUTS_ADMIS`, `scripts/legal.mjs`). Hors `projet`, un texte ne contient ni bandeau, ni marque jaune, ni renvoi `[À VALIDER…]` (vérifié par `npm test`). Toute portion de texte entre accents graves s'affiche en jaune.
 - Une version publiée ne se modifie plus : on ajoute un fichier `<version>.md`, on le déclare dans `documents.json` et on change `versionEnVigueur`. Quand le statut d'une version n'est plus `projet`, son `sha256` doit être enregistré dans `documents.json` ; `npm test` échoue si le texte change ensuite.
 - Le build publie `https://restoclair.fr/legal/index.json` (versions en vigueur), `https://restoclair.fr/legal/historique.json` (toutes les versions) et chaque texte sous `https://restoclair.fr/legal/<document>/<version>.md`. `npm run legal:index` affiche le même index en local.
-- L'inscription envoie `cgvVersion` et `cgvSha256` de la version en vigueur ; un 409 `CGV_VERSION_OBSOLETE` demande de recharger la page pour accepter la nouvelle version. Au checkout, le compte existe déjà et la page n'a plus de case à cocher : le même code renvoie vers l'espace client ou le téléphone.
+- L'inscription et le checkout envoient `cgv: { version, sha256 }` de la version en vigueur (contrat final d'Apirest du 05/11, § D : bloc absent ou différent, 409 `CGV_VERSION_OBSOLETE`). À l'inscription, ce 409 demande de recharger la page pour accepter la nouvelle version. Au checkout, le compte existe déjà et la page n'a plus de case à cocher : le même code renvoie vers l'espace client ou le téléphone.
 
 Format de l'index (une entrée par document) :
 

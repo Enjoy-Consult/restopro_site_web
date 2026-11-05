@@ -10,14 +10,14 @@ import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
 import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
-import { MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperEspace, erreursDeValidation, messageCatalogue, messageErreur, traiterSessionExpiree } from "@/lib/billing/erreurs";
-import { cheminVersionne, lireSaisie, mentionsAbonnement, retenirExplicationChoix, retenirSaisie, suivrePaiement } from "@/lib/billing/inscription";
+import { MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperEspace, erreursDeValidation, messageCatalogue, messageErreur, traiterFinDeSession } from "@/lib/billing/erreurs";
+import { blocCgv, cheminVersionne, corpsInscription, lireSaisie, mentionsAbonnement, retenirExplicationChoix, retenirSaisie, suivrePaiement } from "@/lib/billing/inscription";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
-import { BORNES, nettoyerSiret, validerInscription } from "@/lib/billing/validation";
+import { BORNES, validerInscription } from "@/lib/billing/validation";
 import { INDEX_LEGAL } from "virtual:documents-legaux";
 
-// Version des CGV acceptée à l'inscription (Apirest refuse une version qui n'est plus en vigueur : 409).
-const CGV = INDEX_LEGAL.find((d) => d.document === "cgv");
+// Version des CGV, envoyée à l'inscription et au checkout (Apirest refuse un bloc absent ou qui n'est plus en vigueur : 409).
+const CGV = blocCgv(INDEX_LEGAL);
 
 // Liens de la case d'acceptation : la version précise que le visiteur accepte (routes /<document>/:version de App.jsx).
 const LIEN_CGV = cheminVersionne(INDEX_LEGAL, "cgv") ?? "/cgv";
@@ -96,7 +96,8 @@ export default function Inscription() {
   const [envoi, setEnvoi] = useState(false);
   const [erreurGenerale, setErreurGenerale] = useState(null);
   const [erreurRecap, setErreurRecap] = useState(null);
-  const [sessionExpiree, setSessionExpiree] = useState(null);
+  // Session expirée ou abonnement déjà actif : { type, texte } remplace le paiement.
+  const [finSession, setFinSession] = useState(null);
   // null : ouvert seulement si des comptes ou l'option sont déjà choisis.
   const [ajoutsOuverts, setAjoutsOuverts] = useState(null);
   const envoiEnCours = useRef(false);
@@ -106,12 +107,14 @@ export default function Inscription() {
     if (erreurRecap && recapRef.current) recapRef.current.focus();
   }, [erreurRecap]);
 
-  // Retour arrière depuis la page de paiement : le navigateur restaure la page telle quelle, bouton désactivé compris.
+  // Retour arrière depuis la page de paiement : le navigateur restaure la page telle quelle, bouton désactivé compris,
+  // et sans savoir que la page de retour a pu effacer le jeton depuis.
   useEffect(() => {
     const auRetour = (e) => {
       if (!e.persisted) return;
       envoiEnCours.current = false;
       setEnvoi(false);
+      setSession(lireSession());
     };
     window.addEventListener("pageshow", auRetour);
     return () => window.removeEventListener("pageshow", auRetour);
@@ -194,21 +197,21 @@ export default function Inscription() {
 
   const paiement = async (jeton) => {
     try {
-      const { url } = await lancerCheckout(jeton, selectionVersCheckout(selection));
+      const { url } = await lancerCheckout(jeton, selectionVersCheckout(selection, CGV));
       if (suivrePaiement(url)) return; // la page se quitte : le bouton reste désactivé
       setErreurGenerale(MESSAGE_INDISPONIBLE);
     } catch (erreur) {
-      const messageExpiree = traiterSessionExpiree(erreur);
-      const explication = messageExpiree ? null : expliquerChoix(erreur);
-      if (messageExpiree) {
+      const fin = traiterFinDeSession(erreur);
+      const explication = fin ? null : expliquerChoix(erreur);
+      if (fin) {
         setSession(null);
-        setSessionExpiree(messageExpiree);
+        setFinSession(fin);
       } else if (explication) {
         setErreurRecap({ texte: explication });
         if (erreur.code === "ROLE_NON_AUTORISE_POUR_OFFRE" || erreur.code === "COMPTES_INSUFFISANTS") setAjoutsOuverts(true);
       }
       // 429 : trop d'essais ; 403 : le refus reçu (ou le message générique pour un code inconnu) ;
-      // ABONNEMENT_DEJA_ACTIF, GERE_PAR_ABONNEMENT, CGV_VERSION_OBSOLETE : renvoi vers l'espace client
+      // GERE_PAR_ABONNEMENT, CGV_VERSION_OBSOLETE : renvoi vers l'espace client
       else setErreurGenerale(messageErreur(erreur));
     }
     setEnvoi(false);
@@ -233,27 +236,8 @@ export default function Inscription() {
     envoiEnCours.current = true;
     setEnvoi(true);
     try {
-      const adresse = {
-        ligne1: valeurs.ligne1.trim(),
-        codePostal: valeurs.codePostal.trim(),
-        ville: valeurs.ville.trim(),
-      };
-      if (valeurs.ligne2.trim()) adresse.ligne2 = valeurs.ligne2.trim();
-
-      const email = valeurs.email.trim();
-      const { token } = await inscrire({
-        responsable: { prenom: valeurs.prenom.trim(), nom: valeurs.nom.trim(), email, motDePasse: valeurs.motDePasse },
-        restaurant: {
-          nomCommercial: valeurs.nomCommercial.trim(),
-          raisonSociale: valeurs.raisonSociale.trim(),
-          siret: nettoyerSiret(valeurs.siret),
-          adresse,
-        },
-        cgvAcceptees: true,
-        cgvVersion: CGV.version,
-        cgvSha256: CGV.sha256,
-      });
-      const nouvelle = { token, email };
+      const { token } = await inscrire(corpsInscription(valeurs, CGV));
+      const nouvelle = { token, email: valeurs.email.trim() };
       ecrireSession(nouvelle);
       setSession(nouvelle);
       setValeurs((v) => ({ ...v, motDePasse: "", confirmation: "" }));
@@ -372,9 +356,9 @@ export default function Inscription() {
             </aside>
 
             <div className="md:col-span-7 md:row-start-1">
-              {sessionExpiree ? (
+              {finSession ? (
                 <div className="border-t border-border pt-8">
-                  <Message type="error">{sessionExpiree}</Message>
+                  <Message type={finSession.type}>{finSession.texte}</Message>
                   {URL_MON_COMPTE && (
                     <a href={URL_MON_COMPTE} className="btn-primary mt-6 w-full sm:w-auto text-center">Accéder à mon espace</a>
                   )}
@@ -382,7 +366,7 @@ export default function Inscription() {
               ) : session ? (
                 <div className="border-t border-border pt-8">
                   <Message type="info">
-                    Votre compte est créé pour <strong>{session.email}</strong>. Il reste à régler votre abonnement.
+                    Votre compte est créé pour <strong>{session.email}</strong>. Si votre abonnement n’est pas encore réglé, passez au paiement. Si vous venez de payer, ne recommencez pas : vous recevrez un e-mail dès que votre abonnement sera actif.
                   </Message>
                   {erreurGenerale && <Message type="error" className="mt-4"><TexteErreur texte={erreurGenerale} /></Message>}
                   <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-4">
@@ -393,6 +377,11 @@ export default function Inscription() {
                       Ce n’est pas le bon compte ?
                     </button>
                   </div>
+                  {/* Le checkout envoie la version de cette page : le visiteur doit voir ce qu'il accepte, sans case à cocher ici. */}
+                  <p className="text-muted text-[13px] leading-relaxed mt-4">
+                    En passant au paiement, vous acceptez les{" "}
+                    <Link to={LIEN_CGV} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>.
+                  </p>
                 </div>
               ) : (
                 <form onSubmit={soumettre} noValidate className="border-t border-border pt-8">

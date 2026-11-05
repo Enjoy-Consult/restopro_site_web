@@ -147,8 +147,8 @@ export function selectionDepuisQuery(search, catalogue) {
   return calculer(catalogue, selection).ok ? selection : null;
 }
 
-// Corps de POST /api/billing/checkout (hors origine).
-export function selectionVersCheckout(selection) {
+// Corps de POST /api/billing/checkout. cgv : { version, sha256 } ; sans ce bloc, Apirest répond 409 CGV_VERSION_OBSOLETE.
+export function selectionVersCheckout(selection, cgv) {
   const comptesSupplementaires = Object.fromEntries(
     Object.entries(selection.comptesSupplementaires ?? {}).filter(([, n]) => n > 0)
   );
@@ -157,6 +157,7 @@ export function selectionVersCheckout(selection) {
     version: selection.version,
     comptesSupplementaires,
     options: { ddpp: Boolean(selection.options?.ddpp) },
+    cgv,
     origine: "site",
   };
 }

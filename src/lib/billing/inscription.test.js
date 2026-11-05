@@ -20,7 +20,9 @@ import {
 import {
   TEXTE_CHOIX_ABSENT,
   TEXTE_CHOIX_INVALIDE,
+  blocCgv,
   cheminVersionne,
+  corpsInscription,
   effacerSaisie,
   lireSaisie,
   mentionsAbonnement,
@@ -30,6 +32,7 @@ import {
   suivrePaiement,
 } from "./inscription.js";
 import { mockCatalogue, mockRequete } from "./mock.js";
+import { selectionVersCheckout } from "./pricing.js";
 import { BORNES, estMotDePasseValide, validerInscription } from "./validation.js";
 
 const VALIDE = {
@@ -129,8 +132,9 @@ test("VALIDATION_ERROR : message général pour ce qu'aucun champ ne peut porter
     [{ path: "restaurant.inconnu" }],
     [{ path: "constructor" }],
     [{ path: "__proto__" }],
-    [{ path: "cgvVersion" }],
-    [{ path: "cgvSha256" }],
+    [{ path: "cgv" }],
+    [{ path: "cgv.version" }],
+    [{ path: "cgv.sha256" }],
   ]) {
     const { champs, general } = erreursDeValidation(detail);
     assert.deepEqual(champs, {}, JSON.stringify(detail));
@@ -323,6 +327,38 @@ test("liens de la case d'acceptation : la version en vigueur, en chemin relatif,
   assert.equal(cheminVersionne(index, "inconnu"), null);
 });
 
+// --- g) Bloc cgv : contrat final d'Apirest, § D ---
+
+const CGV = { version: "0.1", sha256: "a".repeat(64) };
+
+test("bloc cgv : la version en vigueur et son empreinte, rien d'autre de l'index", () => {
+  const index = construireIndex();
+  const doc = lireDocuments().find((d) => d.document === "cgv");
+  const bloc = blocCgv(index);
+  assert.deepEqual(Object.keys(bloc).sort(), ["sha256", "version"]);
+  assert.equal(bloc.version, doc.versionEnVigueur);
+  assert.match(bloc.sha256, /^[0-9a-f]{64}$/);
+  assert.equal(bloc.sha256, index.find((d) => d.document === "cgv").sha256);
+});
+
+test("corps de l'inscription : bloc cgv et case acceptée, plus aucun champ à plat", () => {
+  const corps = corpsInscription(VALIDE, CGV);
+  assert.deepEqual(corps.cgv, CGV);
+  assert.equal(corps.cgvAcceptees, true);
+  for (const absent of ["cgvVersion", "cgvSha256", "confirmation"]) assert.ok(!(absent in corps), absent);
+});
+
+test("corps de l'inscription : texte sans espaces autour, SIRET nettoyé, mot de passe intact, ligne 2 seulement si remplie", () => {
+  const corps = corpsInscription(
+    { ...VALIDE, prenom: " Marie ", email: " marie@exemple.fr ", motDePasse: " motdepasse1 ", siret: "732 829 320 00074", ville: " Paris ", ligne2: "  " },
+    CGV
+  );
+  assert.deepEqual(corps.responsable, { prenom: "Marie", nom: "Martin", email: "marie@exemple.fr", motDePasse: " motdepasse1 " });
+  assert.equal(corps.restaurant.siret, "73282932000074");
+  assert.deepEqual(corps.restaurant.adresse, { ligne1: "1 rue de la Paix", codePostal: "75002", ville: "Paris" });
+  assert.equal(corpsInscription({ ...VALIDE, ligne2: " Bâtiment B " }, CGV).restaurant.adresse.ligne2, "Bâtiment B");
+});
+
 // --- Maquette : les scénarios de la vérification à l'écran ---
 
 function simulerNavigateur(t) {
@@ -340,17 +376,38 @@ function simulerNavigateur(t) {
   });
 }
 
-const corpsInscription = (email) => ({ responsable: { email, prenom: "Marie", nom: "Martin" }, restaurant: { siret: "73282932000074" } });
+const corpsMaquette = (email) => corpsInscription({ ...VALIDE, email }, CGV);
+
+test("maquette : sans bloc cgv ou avec un bloc incomplet, 409 sur l'inscription et le checkout, comme Apirest", async (t) => {
+  simulerNavigateur(t);
+  const refuseCgv = (e) => e.status === 409 && e.code === "CGV_VERSION_OBSOLETE";
+  const corps = corpsMaquette("marie@exemple.fr");
+  for (const cgv of [undefined, {}, { version: "0.1" }, { sha256: CGV.sha256 }]) {
+    await assert.rejects(mockRequete("POST", "/api/billing/inscription", { corps: { ...corps, cgv } }), refuseCgv);
+  }
+  // Les anciens champs à plat ne remplacent pas le bloc.
+  const { cgv: _retire, ...sansBloc } = corps;
+  await assert.rejects(mockRequete("POST", "/api/billing/inscription", { corps: { ...sansBloc, cgvVersion: "0.1", cgvSha256: CGV.sha256 } }), refuseCgv);
+
+  const { token } = await mockRequete("POST", "/api/billing/inscription", { corps });
+  await assert.rejects(mockRequete("POST", "/api/billing/checkout", { corps: { offre: "serenite", version: "mensuel" }, token }), refuseCgv);
+  // Le jeton d'abord : un jeton refusé reste un 401, bloc ou non.
+  await assert.rejects(mockRequete("POST", "/api/billing/checkout", { corps: { offre: "serenite" }, token: "autre" }), (e) => e.status === 401);
+
+  const selection = { offre: "serenite", version: "mensuel", comptesSupplementaires: {}, options: { ddpp: false } };
+  const { url } = await mockRequete("POST", "/api/billing/checkout", { corps: selectionVersCheckout(selection, CGV), token });
+  assert.match(url, /session_id=/);
+});
 
 test("maquette : validation@ et validationautre@ passent par erreursDeValidation", async () => {
-  await assert.rejects(mockRequete("POST", "/api/billing/inscription", { corps: corpsInscription("validation@exemple.fr") }), (e) => {
+  await assert.rejects(mockRequete("POST", "/api/billing/inscription", { corps: corpsMaquette("validation@exemple.fr") }), (e) => {
     assert.equal(e.code, "VALIDATION_ERROR");
     const { champs, general } = erreursDeValidation(e.detail);
     assert.deepEqual(Object.keys(champs), ["email", "codePostal"]);
     assert.equal(general, null);
     return true;
   });
-  await assert.rejects(mockRequete("POST", "/api/billing/inscription", { corps: corpsInscription("validationautre@exemple.fr") }), (e) => {
+  await assert.rejects(mockRequete("POST", "/api/billing/inscription", { corps: corpsMaquette("validationautre@exemple.fr") }), (e) => {
     assert.equal(e.code, "VALIDATION_ERROR");
     assert.deepEqual(erreursDeValidation(e.detail), { champs: {}, general: MESSAGE_VALIDATION });
     return true;
@@ -360,8 +417,8 @@ test("maquette : validation@ et validationautre@ passent par erreursDeValidation
 test("maquette : dejaactif@, gere@ et cgvpaiement@ échouent au checkout, après la création du compte", async (t) => {
   simulerNavigateur(t);
   for (const [prefixe, code] of [["dejaactif", "ABONNEMENT_DEJA_ACTIF"], ["gere", "GERE_PAR_ABONNEMENT"], ["cgvpaiement", "CGV_VERSION_OBSOLETE"]]) {
-    const { token } = await mockRequete("POST", "/api/billing/inscription", { corps: corpsInscription(`${prefixe}@exemple.fr`) });
-    await assert.rejects(mockRequete("POST", "/api/billing/checkout", { corps: {}, token }), (e) => {
+    const { token } = await mockRequete("POST", "/api/billing/inscription", { corps: corpsMaquette(`${prefixe}@exemple.fr`) });
+    await assert.rejects(mockRequete("POST", "/api/billing/checkout", { corps: { cgv: CGV }, token }), (e) => {
       assert.equal(e.code, code);
       assert.notEqual(messageErreur(e), MESSAGE_INDISPONIBLE);
       return true;

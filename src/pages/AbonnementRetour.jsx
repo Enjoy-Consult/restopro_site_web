@@ -6,7 +6,7 @@ import Etapes from "@/components/billing/Etapes";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, getCompte } from "@/lib/billing/api";
 import { APP_STORE_URL, BILLING_MOCK_DEV, PLAY_STORE_URL, URL_MON_COMPTE } from "@/lib/billing/config";
-import { TEXTE_DELAI, TEXTE_INVERIFIABLE, TEXTE_NON_CONFIRME, decisionDepart, decisionRetour, phraseIdentifiants } from "@/lib/billing/retour";
+import { TEXTE_DELAI, TEXTE_INVERIFIABLE, TEXTE_NON_CONFIRME, decisionDepart, decisionRetour, estRetourStripe, phraseIdentifiants } from "@/lib/billing/retour";
 import { preparerScenario } from "@/lib/billing/scenarios";
 import { effacerSession, lireSession } from "@/lib/billing/session";
 
@@ -63,6 +63,7 @@ export default function AbonnementRetour() {
   useEffect(() => {
     preparerScenario(window.location.search, BILLING_MOCK_DEV);
     const session = lireSession();
+    const retourStripe = estRetourStripe(window.location.search);
     let arrete = false;
     let minuteur;
     const debut = Date.now();
@@ -76,7 +77,7 @@ export default function AbonnementRetour() {
       }
       if (arrete) return;
       if (lecture.compte) memoire.current.dernierStatut = lecture.compte.statut;
-      appliquer(decisionRetour({ ...lecture, dernierStatut: memoire.current.dernierStatut, ecouleMs: Date.now() - debut }));
+      appliquer(decisionRetour({ ...lecture, dernierStatut: memoire.current.dernierStatut, ecouleMs: Date.now() - debut, retourStripe }));
     };
 
     const appliquer = (decision) => {
@@ -96,6 +97,7 @@ export default function AbonnementRetour() {
         jeton: Boolean(session),
         attenteMs: memoire.current.pasAvant - debut,
         dernierStatut: memoire.current.dernierStatut,
+        retourStripe,
       })
     );
     return () => {

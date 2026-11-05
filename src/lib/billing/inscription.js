@@ -1,6 +1,30 @@
 // Formulaire d'inscription : décisions pures et mémoire de module, sans React, testées sous node.
 // Rien n'est écrit dans le navigateur : cette mémoire disparaît au rechargement de la page.
 import { urlDePaiement } from "./api.js";
+import { nettoyerSiret } from "./validation.js";
+
+// --- Corps de l'inscription ---
+
+// POST /api/billing/inscription. cgv : le bloc de blocCgv, le même qu'au checkout.
+export function corpsInscription(valeurs, cgv) {
+  const adresse = {
+    ligne1: valeurs.ligne1.trim(),
+    codePostal: valeurs.codePostal.trim(),
+    ville: valeurs.ville.trim(),
+  };
+  if (valeurs.ligne2.trim()) adresse.ligne2 = valeurs.ligne2.trim();
+  return {
+    responsable: { prenom: valeurs.prenom.trim(), nom: valeurs.nom.trim(), email: valeurs.email.trim(), motDePasse: valeurs.motDePasse },
+    restaurant: {
+      nomCommercial: valeurs.nomCommercial.trim(),
+      raisonSociale: valeurs.raisonSociale.trim(),
+      siret: nettoyerSiret(valeurs.siret),
+      adresse,
+    },
+    cgvAcceptees: true,
+    cgv,
+  };
+}
 
 // --- Saisie gardée sur « Modifier mon choix » ---
 
@@ -84,4 +108,10 @@ export function mentionsAbonnement(version) {
 export function cheminVersionne(index, document) {
   const url = index.find((d) => d.document === document)?.url;
   return url ? new URL(url).pathname : null;
+}
+
+// Bloc cgv exigé à l'inscription et au checkout (contrat final d'Apirest, § D) : version en vigueur et empreinte, rien d'autre.
+export function blocCgv(index) {
+  const cgv = index.find((d) => d.document === "cgv");
+  return { version: cgv?.version, sha256: cgv?.sha256 };
 }

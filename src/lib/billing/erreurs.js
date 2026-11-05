@@ -29,8 +29,8 @@ export const MESSAGE_VALIDATION = "Certaines informations n’ont pas été acce
 export const PHRASE_ESSAI_INTERROMPU =
   "Si votre inscription s’est interrompue avant le paiement, votre compte est conservé : finalisez votre abonnement depuis votre espace.";
 
-// CGV changées alors que le compte existe déjà : la page n'a plus de case à cocher et le checkout n'envoie pas
-// de version. Recharger ne changerait rien : on renvoie vers l'espace ou le téléphone.
+// CGV changées alors que le compte existe déjà : le checkout envoie la version de cette page, refusée,
+// et la page n'a plus de case à cocher. On renvoie vers l'espace ou le téléphone.
 export const MESSAGE_CGV_OBSOLETE_PAIEMENT =
   `Les conditions générales de vente ont été mises à jour. Connectez-vous à votre espace pour finaliser votre abonnement, ou appelez-nous au ${BUSINESS.phone.display}.`;
 
@@ -61,6 +61,16 @@ const REFUS = {
 export function messageRefus(erreur) {
   if (erreur?.status !== 403) return null;
   return REFUS[erreur.code] ?? MESSAGE_REFUS_GENERIQUE;
+}
+
+// Le jeton n'a plus d'usage : session expirée, ou abonnement déjà actif, qu'il ne reste donc plus à payer.
+// Supprime le jeton et renvoie { type, texte }, à afficher à la place du paiement. Sinon renvoie null et ne touche à rien.
+export function traiterFinDeSession(erreur) {
+  const expiree = traiterSessionExpiree(erreur);
+  if (expiree) return { type: "error", texte: expiree };
+  if (erreur?.code !== "ABONNEMENT_DEJA_ACTIF") return null;
+  effacerSession();
+  return { type: "info", texte: REFUS.ABONNEMENT_DEJA_ACTIF };
 }
 
 export function estTropDEssais(erreur) {

@@ -180,8 +180,9 @@ test("sélection <-> URL d'inscription", () => {
   const relue = selectionDepuisQuery(query, catalogue);
   assert.deepEqual(relue.comptesSupplementaires, { cuisinier: 2 });
   assert.equal(relue.options.ddpp, true);
-  assert.deepEqual(selectionVersCheckout(relue), {
-    offre: "expert", version: "mensuel", comptesSupplementaires: { cuisinier: 2 }, options: { ddpp: true }, origine: "site",
+  const cgv = { version: "0.1", sha256: "a".repeat(64) };
+  assert.deepEqual(selectionVersCheckout(relue, cgv), {
+    offre: "expert", version: "mensuel", comptesSupplementaires: { cuisinier: 2 }, options: { ddpp: true }, cgv, origine: "site",
   });
 });
 
@@ -269,6 +270,70 @@ test("403 : refus affiché, jeton conservé ; seul un 401 est une expiration", a
   assert.equal(messageRefus(new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503)), null);
 
   assert.ok(traiterSessionExpiree(new ApiError("ACTION_NON_AUTORISEE", 401)));
+  assert.equal(lireSession(), null);
+});
+
+test("fin de session : abonnement déjà actif, jeton supprimé et message seul, quel que soit le statut", async () => {
+  const stockage = faussePageSession();
+  const { ecrireSession, lireSession } = await import("./session.js");
+  const { traiterFinDeSession } = await import("./erreurs.js");
+  const { ApiError } = await import("./errors.js");
+
+  for (const status of [403, 409, 422]) {
+    ecrireSession({ token: "jeton-paye", email: "marie@exemple.fr" });
+    assert.deepEqual(traiterFinDeSession(new ApiError("ABONNEMENT_DEJA_ACTIF", status)), {
+      type: "info",
+      texte: "Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace.",
+    });
+    assert.equal(stockage.size, 0);
+    assert.equal(lireSession(), null);
+  }
+});
+
+test("fin de session : 401 en erreur ; les autres refus gardent le jeton", async () => {
+  const stockage = faussePageSession();
+  const { ecrireSession, lireSession } = await import("./session.js");
+  const { traiterFinDeSession, MESSAGE_SESSION_EXPIREE } = await import("./erreurs.js");
+  const { ApiError } = await import("./errors.js");
+
+  ecrireSession({ token: "jeton", email: "marie@exemple.fr" });
+  for (const erreur of [
+    new ApiError("CGV_VERSION_OBSOLETE", 409),
+    new ApiError("GERE_PAR_ABONNEMENT", 403),
+    new ApiError("NON_TITULAIRE", 403),
+    new ApiError("COMPTES_INSUFFISANTS", 422),
+    new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503),
+    new ApiError("RESEAU"),
+  ]) {
+    assert.equal(traiterFinDeSession(erreur), null);
+  }
+  assert.equal(lireSession().token, "jeton");
+
+  assert.deepEqual(traiterFinDeSession(new ApiError("INVALID_TOKEN", 401)), { type: "error", texte: MESSAGE_SESSION_EXPIREE });
+  assert.equal(stockage.size, 0);
+});
+
+test("session : un jeton effacé par une autre page de l'onglet ne ressort pas de la mémoire d'une page restaurée", async () => {
+  const stockage = faussePageSession();
+  const { ecrireSession, lireSession } = await import("./session.js");
+
+  ecrireSession({ token: "jeton", email: "marie@exemple.fr" });
+  assert.equal(lireSession().token, "jeton");
+  stockage.clear(); // la page de retour a conclu « actif » ; /inscription, restaurée par le navigateur, a gardé son état
+  assert.equal(lireSession(), null);
+});
+
+test("session : si sessionStorage refuse l'écriture, la copie en mémoire sert pour la page en cours", async () => {
+  const stockage = faussePageSession();
+  window.sessionStorage.setItem = () => {
+    throw new Error("stockage plein");
+  };
+  const { ecrireSession, effacerSession, lireSession } = await import("./session.js");
+
+  ecrireSession({ token: "jeton", email: "marie@exemple.fr" });
+  assert.equal(stockage.size, 0);
+  assert.equal(lireSession().token, "jeton");
+  effacerSession();
   assert.equal(lireSession(), null);
 });
 
