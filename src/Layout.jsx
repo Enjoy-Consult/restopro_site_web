@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { BUSINESS } from "@/lib/business-info";
+import { ouvrirGestionCookies } from "@/lib/consentement";
 import { BILLING_ACTIF } from "@/lib/billing/config";
 
 const navigation = [
@@ -187,6 +188,7 @@ export default function Layout({ children, currentPageName }) {
             <nav className="flex flex-wrap gap-5 text-xs">
               <Link to={createPageUrl("MentionsLegales")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Mentions legales</Link>
               <Link to={createPageUrl("PolitiqueConfidentialite")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Confidentialite</Link>
+              <button type="button" onClick={ouvrirGestionCookies} className="hover:underline transition-colors text-left" style={{ color: '#6b7268' }}>Gérer mes cookies</button>
               <Link to={createPageUrl("Sitemap")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Plan du site</Link>
             </nav>
           </div>
