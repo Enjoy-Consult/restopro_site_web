@@ -1,6 +1,6 @@
 // Appels à l'API publique d'Apirest ({API_URL}/api/billing/...).
 // Le site ne connaît ni le service de paiement ni Stripe : il suit l'`url` renvoyée par l'API.
-import { API_URL, BILLING_MOCK, BILLING_MOCK_PMS } from "./config.js";
+import { API_URL, BILLING_MOCK, BILLING_MOCK_DEV, BILLING_MOCK_PMS } from "./config.js";
 import { ApiError } from "./errors.js";
 
 export { ApiError };
@@ -25,10 +25,25 @@ export function lireErreur(data) {
   return { code, detail };
 }
 
+function dureeAttenteMs(valeur, maintenant) {
+  if (typeof valeur === "number") return Number.isFinite(valeur) && valeur >= 0 ? valeur * 1000 : null;
+  const brut = texte(valeur);
+  if (!brut) return null;
+  if (/^\d+(\.\d+)?$/.test(brut)) return Number(brut) * 1000;
+  const date = Date.parse(brut);
+  return Number.isNaN(date) ? null : Math.max(0, date - maintenant);
+}
+
+// Attente demandée par un 429, en millisecondes, ou null : en-tête Retry-After (secondes ou date), sinon champ
+// retryAfter du corps (secondes). Sur une autre origine, le navigateur ne montre l'en-tête que si l'API l'expose.
+export function lireRetryAfter(enTete, retryAfter, maintenant = Date.now()) {
+  return dureeAttenteMs(enTete, maintenant) ?? dureeAttenteMs(retryAfter, maintenant);
+}
+
 export async function requete(methode, chemin, { corps, token } = {}) {
   if (BILLING_MOCK) {
     const { mockRequete } = await import("./mock.js");
-    return mockRequete(methode, chemin, { corps, token, pms: BILLING_MOCK_PMS });
+    return mockRequete(methode, chemin, { corps, token, pms: BILLING_MOCK_PMS, scenarios: BILLING_MOCK_DEV });
   }
   if (!API_URL) throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE");
 
@@ -57,7 +72,8 @@ export async function requete(methode, chemin, { corps, token } = {}) {
 
   if (!reponse.ok) {
     const { code, detail } = lireErreur(data);
-    throw new ApiError(code ?? (reponse.status === 429 ? "TROP_D_ESSAIS" : "ERREUR_INCONNUE"), reponse.status, detail);
+    const attente = reponse.status === 429 ? lireRetryAfter(reponse.headers?.get?.("Retry-After"), sansEnveloppe(data)?.retryAfter) : null;
+    throw new ApiError(code ?? (reponse.status === 429 ? "TROP_D_ESSAIS" : "ERREUR_INCONNUE"), reponse.status, detail, attente);
   }
   return data;
 }

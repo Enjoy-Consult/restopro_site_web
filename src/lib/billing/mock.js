@@ -11,10 +11,23 @@
 //   cgvobsolete@… -> l'inscription répond 409 CGV_VERSION_OBSOLETE
 //   SIRET commençant par 000000 -> SIRET_INVALIDE
 // Toute autre adresse : abonnement « actif » après quelques interrogations.
+//
+// En développement seulement (npm run dev), sans passer par le formulaire :
+//   annule@…  -> le 1er checkout revient sur /tarifs?paiement=annule, le compte reste créé
+//   /abonnement/retour?maquette=X, avec X parmi :
+//     sans_abonnement, en_attente_paiement, impaye, resilie -> ce statut, sans fin (issue à 60 s)
+//     actif, activation_provisoire, actif_sans_email        -> succès immédiat
+//     attente_puis_actif                                    -> « actif » à la 3e interrogation
+//     401 -> jeton refusé ; 429 -> Retry-After de 5 s, sans fin ; 429_puis_actif -> « actif » à la 3e
+//     sans_jeton -> efface la session (aussi après un succès : c'est le rechargement)
+//   /tarifs?paiement=annule&maquette=avec_jeton (ou sans_jeton) -> annulation avec ou sans compte créé
+// Le scénario reste dans la session de l'onglet : maquette=sans_jeton, ou fermer l'onglet, pour en sortir.
 import { ApiError } from "./errors.js";
+import { EMAIL_SCENARIO, PREFIXE_JETON_SCENARIO } from "./scenarios.js";
 
 const CLE_ETAT = "restoclair_billing_mock";
 const PAUSE_MS = 250;
+const RETRY_AFTER_SCENARIO_MS = 5000;
 
 const MODULES_COMMUNS = [
   ["produits_dlc", "Produits et DLC secondaires (ouverture, décongélation, étiquettes)"],
@@ -153,11 +166,54 @@ function etatDuJeton(token) {
   return etat;
 }
 
-export async function mockRequete(methode, chemin, { corps, token, pms = false } = {}) {
+const compteScenario = (statut, titulaire = { nom: "Marie Martin", email: EMAIL_SCENARIO }) => ({
+  restaurantId: "r-mock",
+  statut,
+  offre: "serenite",
+  version: "mensuel",
+  options: { ddpp: false },
+  estTitulaire: true,
+  titulaire,
+});
+
+// Réponse de GET /compte pour un scénario, à sa n-ième interrogation (à partir de 1).
+export function reponseScenario(scenario, interrogation) {
+  const trop = () => new ApiError("TROP_D_ESSAIS", 429, null, RETRY_AFTER_SCENARIO_MS);
+  switch (scenario) {
+    case "401":
+      throw new ApiError("INVALID_TOKEN", 401);
+    case "429":
+      throw trop();
+    case "429_puis_actif":
+      if (interrogation < 3) throw trop();
+      return compteScenario("actif");
+    case "actif_sans_email":
+      return compteScenario("actif", null);
+    case "attente_puis_actif":
+    case "avec_jeton":
+      return compteScenario(interrogation < 3 ? "en_attente_paiement" : "actif");
+    default:
+      return compteScenario(scenario);
+  }
+}
+
+// En mémoire seulement : un rechargement repart de la première interrogation.
+const interrogationsScenario = new Map();
+
+export async function mockRequete(methode, chemin, { corps, token, pms = false, scenarios = false } = {}) {
   await attendre(PAUSE_MS);
   const route = `${methode} ${chemin}`;
 
   if (route === "GET /api/billing/catalogue") return mockCatalogue(pms);
+
+  if (scenarios && token?.startsWith(PREFIXE_JETON_SCENARIO)) {
+    if (route === "POST /api/billing/checkout") return { url: `${window.location.origin}/abonnement/retour?session_id=cs_test_maquette` };
+    if (route === "GET /api/billing/compte") {
+      const n = (interrogationsScenario.get(token) ?? 0) + 1;
+      interrogationsScenario.set(token, n);
+      return reponseScenario(token.slice(PREFIXE_JETON_SCENARIO.length), n);
+    }
+  }
 
   if (route === "POST /api/billing/inscription") {
     const email = String(corps?.responsable?.email ?? "").toLowerCase();
@@ -181,6 +237,10 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false }
     if (etat.email.startsWith("ko") && etat.essaisCheckout === 1) {
       ecrireEtat(etat);
       throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
+    }
+    if (scenarios && etat.email.startsWith("annule") && etat.essaisCheckout === 1) {
+      ecrireEtat(etat);
+      return { url: `${window.location.origin}/tarifs?paiement=annule` };
     }
     etat.choix = { offre: corps.offre, version: corps.version, options: corps.options ?? { ddpp: false } };
     etat.interrogations = 0;

@@ -20,6 +20,7 @@ const {
   lireCompte,
   lireErreur,
   lireInscription,
+  lireRetryAfter,
   requete,
   urlDePaiement,
 } = await import("./api.js");
@@ -168,6 +169,41 @@ test("corps illisible : pas d'exception de lecture, le statut décide", async (t
 
   simulerFetch(t, () => new Response("", { status: 429 }));
   await assert.rejects(requete("GET", "/api/billing/catalogue"), refuseAvec("TROP_D_ESSAIS", 429));
+});
+
+test("429 : l'attente demandée vient de l'en-tête, sinon du corps (en-tête masqué par le CORS)", async (t) => {
+  const attente = async (reponse) => {
+    simulerFetch(t, () => reponse);
+    const e = await requete("GET", "/api/billing/compte", { token: "jeton" }).catch((erreur) => erreur);
+    globalThis.fetch.mock.restore();
+    assert.equal(e.status, 429);
+    return e.retryAfterMs;
+  };
+  assert.equal(await attente(json(429, { retryAfter: 900 }, { "Retry-After": "30" })), 30000);
+  assert.equal(await attente(json(429, { message: "Trop", retryAfter: 900 })), 900000);
+  assert.equal(await attente(json(429, { data: { retryAfter: "12" } })), 12000);
+  assert.equal(await attente(json(429, { message: "Trop" })), null);
+  assert.equal(await attente(new Response("<html>", { status: 429 })), null);
+});
+
+test("seul un 429 porte une attente", async (t) => {
+  simulerFetch(t, () => json(503, { code: "SERVICE_PAIEMENT_INDISPONIBLE", retryAfter: 60 }, { "Retry-After": "60" }));
+  const e = await requete("GET", "/api/billing/compte").catch((erreur) => erreur);
+  assert.equal(e.status, 503);
+  assert.equal(e.retryAfterMs, null);
+});
+
+test("lireRetryAfter : secondes, date HTTP, valeurs illisibles", () => {
+  const maintenant = Date.parse("2026-11-05T12:00:00Z");
+  assert.equal(lireRetryAfter("120", null, maintenant), 120000);
+  assert.equal(lireRetryAfter(" 1.5 ", null, maintenant), 1500);
+  assert.equal(lireRetryAfter("Thu, 05 Nov 2026 12:00:30 GMT", null, maintenant), 30000);
+  assert.equal(lireRetryAfter("Thu, 05 Nov 2026 11:00:00 GMT", null, maintenant), 0, "date passée : rien à attendre");
+  assert.equal(lireRetryAfter(null, 45, maintenant), 45000);
+  assert.equal(lireRetryAfter("bientôt", 45, maintenant), 45000);
+  for (const illisible of [undefined, null, "", "   ", "bientôt", -5, NaN, Infinity, {}, true]) {
+    assert.equal(lireRetryAfter(illisible, illisible, maintenant), null);
+  }
 });
 
 // --- lireErreur() ---

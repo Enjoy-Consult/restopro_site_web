@@ -10,6 +10,8 @@ const url = (valeur) => String(valeur ?? "").trim().replace(/\/+$/, "");
 export const BILLING_ACTIF = vrai(env.VITE_BILLING_ACTIF);
 export const BILLING_MOCK = vrai(env.VITE_BILLING_MOCK);
 export const BILLING_MOCK_PMS = vrai(env.VITE_BILLING_MOCK_PMS);
+// Scénarios de la maquette : serveur de développement seulement, jamais dans un build.
+export const BILLING_MOCK_DEV = BILLING_MOCK && env.DEV === true;
 
 export const API_URL = url(env.VITE_API_URL);
 export const APP_WEB_URL = url(env.VITE_APP_WEB_URL);

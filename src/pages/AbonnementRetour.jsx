@@ -1,14 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import SEO from "@/components/SEO";
 import Etapes from "@/components/billing/Etapes";
+import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, getCompte } from "@/lib/billing/api";
-import { APP_STORE_URL, PLAY_STORE_URL, URL_MON_COMPTE } from "@/lib/billing/config";
-import { messageRefus, traiterSessionExpiree } from "@/lib/billing/erreurs";
+import { APP_STORE_URL, BILLING_MOCK_DEV, PLAY_STORE_URL, URL_MON_COMPTE } from "@/lib/billing/config";
+import { TEXTE_DELAI, TEXTE_INVERIFIABLE, TEXTE_NON_CONFIRME, decisionDepart, decisionRetour, phraseIdentifiants } from "@/lib/billing/retour";
+import { preparerScenario } from "@/lib/billing/scenarios";
 import { effacerSession, lireSession } from "@/lib/billing/session";
-
-const INTERVALLE_MS = 2000;
-const DUREE_MAX_MS = 60000;
 
 const TITRES = {
   attente: "Nous confirmons votre paiement…",
@@ -16,7 +16,23 @@ const TITRES = {
   provisoire: "Votre prélèvement est en cours de validation.",
   delai: "Confirmation en cours.",
   refus: "Confirmation impossible.",
+  inverifiable: "Votre abonnement.",
+  non_confirme: "Paiement non confirmé.",
 };
+
+// Issues sans confirmation : l'espace client et le téléphone restent à portée de main.
+function Aide() {
+  return (
+    <p className="text-muted text-[15px] leading-relaxed mt-5">
+      {URL_MON_COMPTE && (
+        <>
+          Vous pouvez retrouver votre abonnement depuis <a href={URL_MON_COMPTE} className="link-underline">votre espace</a>.{" "}
+        </>
+      )}
+      Une question ? Appelez-nous au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+    </p>
+  );
+}
 
 function Pastille({ phase }) {
   const base = "w-14 h-14 rounded-full flex items-center justify-center mb-7";
@@ -39,42 +55,49 @@ function Pastille({ phase }) {
 export default function AbonnementRetour() {
   const [etat, setEtat] = useState({ phase: "attente" });
   const [relance, setRelance] = useState(0);
+  // Gardé d'un « Vérifier à nouveau » à l'autre : dernier statut lu et Retry-After en cours.
+  const memoire = useRef({ dernierStatut: null, pasAvant: 0 });
   // Le catalogue sert seulement à écrire le nom de la formule.
   const { data: catalogue } = useQuery({ queryKey: ["billing", "catalogue"], queryFn: getCatalogue, retry: 1, staleTime: 5 * 60 * 1000 });
 
   useEffect(() => {
+    preparerScenario(window.location.search, BILLING_MOCK_DEV);
     const session = lireSession();
-    if (!session) {
-      setEtat({ phase: "delai", sansJeton: true });
-      return undefined;
-    }
-
     let arrete = false;
     let minuteur;
     const debut = Date.now();
 
-    const terminer = (phase, compte) => {
-      effacerSession(); // statut final obtenu : le jeton n'est plus utile
-      setEtat({ phase, compte });
-    };
-
     const interroger = async () => {
+      let lecture;
       try {
-        const compte = await getCompte(session.token);
-        if (arrete) return;
-        if (compte.statut === "actif") return terminer("actif", compte);
-        if (compte.statut === "activation_provisoire") return terminer("provisoire", compte);
+        lecture = { compte: await getCompte(session.token) };
       } catch (erreur) {
-        if (arrete) return;
-        if (traiterSessionExpiree(erreur)) return setEtat({ phase: "delai", sansJeton: true });
-        const refus = messageRefus(erreur);
-        if (refus) return setEtat({ phase: "refus", refus });
+        lecture = { erreur };
       }
-      if (Date.now() - debut >= DUREE_MAX_MS) return setEtat({ phase: "delai" });
-      minuteur = setTimeout(interroger, INTERVALLE_MS);
+      if (arrete) return;
+      if (lecture.compte) memoire.current.dernierStatut = lecture.compte.statut;
+      appliquer(decisionRetour({ ...lecture, dernierStatut: memoire.current.dernierStatut, ecouleMs: Date.now() - debut }));
     };
 
-    interroger();
+    const appliquer = (decision) => {
+      if (decision.reprendreDansMs) memoire.current.pasAvant = Date.now() + decision.reprendreDansMs;
+      if (decision.type === "interroger") {
+        interroger();
+      } else if (decision.type === "attendre") {
+        minuteur = setTimeout(() => appliquer(decision.puis), decision.delaiMs);
+      } else {
+        if (decision.effacerJeton) effacerSession(); // statut final ou jeton refusé : il n'est plus utile
+        setEtat(decision);
+      }
+    };
+
+    appliquer(
+      decisionDepart({
+        jeton: Boolean(session),
+        attenteMs: memoire.current.pasAvant - debut,
+        dernierStatut: memoire.current.dernierStatut,
+      })
+    );
     return () => {
       arrete = true;
       clearTimeout(minuteur);
@@ -84,8 +107,14 @@ export default function AbonnementRetour() {
   const { phase, compte } = etat;
   const nomFormule =
     catalogue?.offres.find((o) => o.cle === compte?.offre)?.nom ?? (compte?.offre ? compte.offre.charAt(0).toUpperCase() + compte.offre.slice(1) : "");
+  const identifiants = phraseIdentifiants(compte?.titulaire?.email);
 
   const lien = "inline-block border border-bottle text-bottle px-6 py-3 text-[15px] font-medium hover:bg-[#eaf0ea] transition-colors";
+
+  const relancer = () => {
+    setEtat({ phase: "attente" });
+    setRelance((n) => n + 1);
+  };
 
   return (
     <>
@@ -111,8 +140,9 @@ export default function AbonnementRetour() {
 
             {phase === "actif" && (
               <p className="text-muted text-lg leading-relaxed">
-                Votre abonnement {nomFormule} est actif. Les identifiants de votre équipe ont été envoyés à{" "}
-                <strong className="text-ink font-medium">{compte?.titulaire?.email}</strong> dans un fichier ZIP.
+                Votre abonnement {nomFormule} est actif. {identifiants.avant}
+                {identifiants.email && <strong className="text-ink font-medium">{identifiants.email}</strong>}
+                {identifiants.apres}
               </p>
             )}
 
@@ -125,14 +155,7 @@ export default function AbonnementRetour() {
             {phase === "refus" && (
               <>
                 <p className="text-muted text-lg leading-relaxed">{etat.refus}</p>
-                <button
-                  type="button"
-                  className="link-underline mt-4"
-                  onClick={() => {
-                    setEtat({ phase: "attente" });
-                    setRelance((n) => n + 1);
-                  }}
-                >
+                <button type="button" className="link-underline mt-4" onClick={relancer}>
                   Vérifier à nouveau
                 </button>
               </>
@@ -140,21 +163,33 @@ export default function AbonnementRetour() {
 
             {phase === "delai" && (
               <>
-                <p className="text-muted text-lg leading-relaxed">
-                  La confirmation prend plus de temps que prévu. Vous recevrez un e-mail dès que votre abonnement sera actif.
-                </p>
-                {!etat.sansJeton && (
-                  <button
-                    type="button"
-                    className="link-underline mt-4"
-                    onClick={() => {
-                      setEtat({ phase: "attente" });
-                      setRelance((n) => n + 1);
-                    }}
-                  >
+                <p className="text-muted text-lg leading-relaxed">{TEXTE_DELAI}</p>
+                <button type="button" className="link-underline mt-4" onClick={relancer}>
+                  Vérifier à nouveau
+                </button>
+                <Aide />
+              </>
+            )}
+
+            {phase === "inverifiable" && (
+              <>
+                <p className="text-muted text-lg leading-relaxed">{TEXTE_INVERIFIABLE}</p>
+                <Aide />
+              </>
+            )}
+
+            {phase === "non_confirme" && (
+              <>
+                <p className="text-muted text-lg leading-relaxed">{TEXTE_NON_CONFIRME}</p>
+                <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-4">
+                  <Link to="/tarifs" className="btn-primary text-center">
+                    Reprendre le paiement
+                  </Link>
+                  <button type="button" className="link-underline text-[15px] text-left" onClick={relancer}>
                     Vérifier à nouveau
                   </button>
-                )}
+                </div>
+                <Aide />
               </>
             )}
           </div>

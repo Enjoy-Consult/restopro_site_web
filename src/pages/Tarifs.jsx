@@ -7,9 +7,12 @@ import Message from "@/components/billing/Message";
 import OffreCard from "@/components/billing/OffreCard";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue } from "@/lib/billing/api";
-import { URL_MON_COMPTE } from "@/lib/billing/config";
+import { BILLING_MOCK_DEV, URL_MON_COMPTE } from "@/lib/billing/config";
 import { messageCatalogue } from "@/lib/billing/erreurs";
 import { selectionDepuisQuery } from "@/lib/billing/pricing";
+import { decisionAnnulation } from "@/lib/billing/retour";
+import { preparerScenario } from "@/lib/billing/scenarios";
+import { lireSession } from "@/lib/billing/session";
 
 const ATOUTS = [
   ["Équipiers illimités", "Gratuits dans toutes les formules, pour signer les actions."],
@@ -72,6 +75,14 @@ export default function Tarifs() {
   // Retour depuis /inscription (« Modifier mon choix ») : on retrouve la configuration choisie.
   const choixPrecedent = catalogue ? selectionDepuisQuery(search, catalogue) : null;
 
+  // Annulation chez Stripe : le jeton dit si le compte existe déjà.
+  const [session] = useState(() => {
+    preparerScenario(search, BILLING_MOCK_DEV);
+    return lireSession();
+  });
+  const annulation = decisionAnnulation({ annule, jeton: Boolean(session), selection: choixPrecedent });
+  const [repriseSansChoix, setRepriseSansChoix] = useState(false);
+
   // Carrousel des téléphones : Sérénité (la formule mise en avant) est centrée à l'ouverture.
   const pisteRef = useRef(null);
   const [actif, setActif] = useState(1);
@@ -126,9 +137,34 @@ export default function Tarifs() {
 
       <section className="pb-14 md:pb-20" aria-label="Formules">
         <div className="max-w-[1200px] mx-auto px-5 md:px-6">
-          {annule && (
+          {annulation && (
             <Message type="info" className="mb-8">
-              Paiement annulé. Aucun montant n’a été débité.
+              <p>Paiement annulé. Aucun montant n’a été débité.</p>
+              {annulation.type !== "simple" && (
+                <p className="mt-2">
+                  Votre compte est déjà créé{session.email && <> pour <strong>{session.email}</strong></>}. Il reste à régler votre abonnement.
+                </p>
+              )}
+              {annulation.type === "reprendre" && (
+                <Link to={annulation.cible} className="link-underline inline-block mt-2">Reprendre le paiement</Link>
+              )}
+              {annulation.type === "choisir" && !repriseSansChoix && (
+                <button
+                  type="button"
+                  className="link-underline mt-2"
+                  onClick={() => {
+                    setRepriseSansChoix(true);
+                    pisteRef.current?.focus();
+                  }}
+                >
+                  Reprendre le paiement
+                </button>
+              )}
+              {annulation.type === "choisir" && repriseSansChoix && (
+                <p className="mt-2">
+                  Votre choix de formule n’a pas pu être conservé après l’annulation. Choisissez de nouveau votre formule ci-dessous : vous passerez ensuite directement au paiement, sans recréer de compte.
+                </p>
+              )}
             </Message>
           )}
 
