@@ -10,22 +10,28 @@ export const VERSION_CONSENTEMENT = 1;
 export const DUREE_CONSENTEMENT_MS = 180 * 24 * 60 * 60 * 1000;
 export const EVENEMENT_GESTION = "restoclair:gerer-cookies";
 
-let memoire = null; // secours si le stockage local est indisponible (le choix vaut alors pour la page en cours)
+// Choix qui n'a pas pu être écrit : il vaut pour la page en cours et passe avant tout ce qui est encore stocké.
+let memoire = null;
+
+function lireStockage() {
+  try {
+    return window.localStorage.getItem(CLE_CONSENTEMENT);
+  } catch {
+    return null; // stockage indisponible
+  }
+}
 
 // Choix valable, ou null (absent, illisible, d'une autre version ou plus vieux que 6 mois).
 export function lireConsentement(maintenant = Date.now()) {
-  let brut = null;
-  try {
-    brut = window.localStorage.getItem(CLE_CONSENTEMENT);
-  } catch {
-    // stockage indisponible
-  }
   let choix = memoire;
-  if (brut) {
-    try {
-      choix = JSON.parse(brut);
-    } catch {
-      return null;
+  if (!choix) {
+    const brut = lireStockage();
+    if (brut) {
+      try {
+        choix = JSON.parse(brut);
+      } catch {
+        return null;
+      }
     }
   }
   if (!choix || choix.version !== VERSION_CONSENTEMENT || typeof choix.publicite !== "boolean") return null;
@@ -95,15 +101,33 @@ export function appliquerConsentement(choix) {
   if (choix.publicite) chargerGtm();
 }
 
+// L'ancien accord est-il encore stocké ? Il reviendrait alors au prochain chargement de la page.
+function accordEncoreStocke() {
+  const brut = lireStockage();
+  if (!brut) return false;
+  try {
+    return JSON.parse(brut)?.publicite === true;
+  } catch {
+    return false;
+  }
+}
+
 // Enregistre un choix. Renvoie { rechargement: true } quand Google Tag Manager, déjà chargé, doit être retiré
 // de la page : le seul moyen fiable est de la recharger.
 export function enregistrerConsentement(publicite, maintenant = new Date()) {
   const choix = { version: VERSION_CONSENTEMENT, publicite, date: maintenant.toISOString() };
-  memoire = choix;
   try {
     window.localStorage.setItem(CLE_CONSENTEMENT, JSON.stringify(choix));
+    memoire = null;
   } catch {
-    // le choix reste en mémoire pour la page en cours
+    // Le choix reste en mémoire pour la page en cours, et l'ancien ne doit pas lui survivre :
+    // après un retrait, il rétablirait l'accord au rechargement. Sans choix stocké, la question revient.
+    memoire = choix;
+    try {
+      window.localStorage.removeItem(CLE_CONSENTEMENT);
+    } catch {
+      // stockage indisponible
+    }
   }
   gtag("consent", "update", signauxConsentement(publicite));
   if (publicite) {
@@ -111,7 +135,8 @@ export function enregistrerConsentement(publicite, maintenant = new Date()) {
     return { rechargement: false };
   }
   effacerTraceursPublicite();
-  return { rechargement: gtmCharge() };
+  // Si l'ancien accord n'a pas pu être retiré, recharger le rétablirait : on reste sur la page, où tout est refusé.
+  return { rechargement: gtmCharge() && !accordEncoreStocke() };
 }
 
 // Rouvre le choix (lien « Gérer mes cookies »).
