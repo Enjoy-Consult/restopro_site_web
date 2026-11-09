@@ -115,3 +115,24 @@ export function blocCgv(index) {
   const cgv = index.find((d) => d.document === "cgv");
   return { version: cgv?.version, sha256: cgv?.sha256 };
 }
+
+// --- 409 CGV_VERSION_OBSOLETE : nouvelle acceptation, sans route dédiée ---
+
+const FORME_VERSION_CGV = /^[0-9A-Za-z][0-9A-Za-z._-]{0,31}$/;
+const FORME_EMPREINTE_CGV = /^[0-9a-f]{64}$/i;
+
+// Version à faire accepter, lue dans details.cgv { version, sha256, url } ; null si absente ou illisible.
+// L'adresse reçue n'est jamais suivie : le lien est construit à partir de la version (cheminCgv).
+export function cgvAReaccepter(erreur) {
+  if (erreur?.code !== "CGV_VERSION_OBSOLETE") return null;
+  const cgv = erreur?.detail?.cgv;
+  const version = typeof cgv?.version === "string" ? cgv.version.trim() : "";
+  const sha256 = typeof cgv?.sha256 === "string" ? cgv.sha256.trim() : "";
+  if (!FORME_VERSION_CGV.test(version) || !FORME_EMPREINTE_CGV.test(sha256)) return null;
+  return { version, sha256 };
+}
+
+// Texte de cette version sur le site (route /cgv/:version).
+export function cheminCgv(version) {
+  return `/cgv/${encodeURIComponent(version)}`;
+}

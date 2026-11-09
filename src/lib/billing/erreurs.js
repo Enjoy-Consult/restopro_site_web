@@ -34,6 +34,10 @@ export const PHRASE_ESSAI_INTERROMPU =
 export const MESSAGE_CGV_OBSOLETE_PAIEMENT =
   `Les conditions générales de vente ont été mises à jour. Connectez-vous à votre espace pour finaliser votre abonnement, ou appelez-nous au ${BUSINESS.phone.display}.`;
 
+// 409 CGV_VERSION_OBSOLETE lisible : la page affiche la nouvelle version et la fait accepter (même texte que le front).
+export const MESSAGE_CGV_A_REACCEPTER =
+  "Les conditions générales de vente ont changé : acceptez la nouvelle version pour continuer.";
+
 // Seul un 401 signifie que la session a expiré ; un 403 est un refus (voir messageRefus).
 export function estSessionExpiree(erreur) {
   return erreur?.status === 401;
@@ -54,6 +58,8 @@ const REFUS = {
   ACCES_LECTURE_SEULE: "Votre compte est en lecture seule : cette action n’est pas possible.",
   GERE_PAR_ABONNEMENT: "Ce réglage dépend de votre abonnement et se gère depuis votre espace.",
   ABONNEMENT_DEJA_ACTIF: "Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace.",
+  // Texte du front, suivi du chemin à prendre depuis le site.
+  FACTURE_IMPAYEE: "Une facture impayée doit être réglée avant de choisir une formule. Réglez-la depuis votre espace.",
 };
 
 // Texte à afficher pour un refus (403) : celui du code reçu, ou le message neutre si le code est inconnu.
@@ -90,7 +96,7 @@ export function messageCatalogue(erreur) {
 }
 
 // Ces refus se règlent depuis l'espace client, quel que soit le statut HTTP (le contrat ne le fixe pas).
-const VERS_ESPACE = ["ABONNEMENT_DEJA_ACTIF", "GERE_PAR_ABONNEMENT"];
+const VERS_ESPACE = ["ABONNEMENT_DEJA_ACTIF", "GERE_PAR_ABONNEMENT", "FACTURE_IMPAYEE"];
 
 // Texte à afficher quand aucun traitement plus précis ne s'applique.
 export function messageErreur(erreur) {

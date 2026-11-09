@@ -425,3 +425,59 @@ test("maquette : dejaactif@, gere@ et cgvpaiement@ échouent au checkout, après
     });
   }
 });
+
+// --- 409 CGV_VERSION_OBSOLETE : nouvelle acceptation, et FACTURE_IMPAYEE ---
+
+test("cgvAReaccepter : lit details.cgv, refuse une forme douteuse, ignore l'adresse reçue", async () => {
+  const { cgvAReaccepter, cheminCgv } = await import("./inscription.js");
+  const sha = "a".repeat(64);
+  const refus = (detail) => new ApiError("CGV_VERSION_OBSOLETE", 409, detail);
+  assert.deepEqual(cgvAReaccepter(refus({ cgv: { version: "0.2", sha256: sha, url: "https://ailleurs.example/x" } })), { version: "0.2", sha256: sha });
+  assert.deepEqual(cgvAReaccepter(refus({ cgv: { version: " 0.2 ", sha256: sha.toUpperCase() } })), { version: "0.2", sha256: sha.toUpperCase() });
+  assert.equal(cgvAReaccepter(refus(null)), null, "sans details : repli sur le rechargement");
+  assert.equal(cgvAReaccepter(refus({ cgv: { version: "0.2", sha256: "abc" } })), null);
+  assert.equal(cgvAReaccepter(refus({ cgv: { version: "../../x", sha256: sha } })), null);
+  assert.equal(cgvAReaccepter(refus({ cgv: { version: 2, sha256: sha } })), null);
+  assert.equal(cgvAReaccepter(refus({ cgv: { version: "<b>", sha256: sha } })), null);
+  assert.equal(cgvAReaccepter(new ApiError("ABONNEMENT_DEJA_ACTIF", 409, { cgv: { version: "0.2", sha256: sha } })), null);
+  assert.equal(cheminCgv("0.2"), "/cgv/0.2");
+});
+
+test("maquette : cgvobsolete@ et cgvpaiement@ refusent la première version, puis acceptent la nouvelle", async (t) => {
+  simulerNavigateur(t);
+  const { cgvAReaccepter } = await import("./inscription.js");
+  const { EMPREINTE_CGV_MAQUETTE } = await import("./mock.js");
+
+  let nouvelle = null;
+  await assert.rejects(mockRequete("POST", "/api/billing/inscription", { corps: corpsMaquette("cgvobsolete@exemple.fr") }), (e) => {
+    nouvelle = cgvAReaccepter(e);
+    return e.code === "CGV_VERSION_OBSOLETE" && e.status === 409;
+  });
+  assert.deepEqual(nouvelle, { version: CGV.version, sha256: EMPREINTE_CGV_MAQUETTE });
+  const { token: jeton1 } = await mockRequete("POST", "/api/billing/inscription", { corps: { ...corpsMaquette("cgvobsolete@exemple.fr"), cgv: nouvelle } });
+  assert.ok(jeton1);
+
+  const { token } = await mockRequete("POST", "/api/billing/inscription", { corps: corpsMaquette("cgvpaiement@exemple.fr") });
+  const choix = { offre: "serenite", version: "mensuel", comptesSupplementaires: {}, options: { ddpp: false }, origine: "site" };
+  let aAccepter = null;
+  await assert.rejects(mockRequete("POST", "/api/billing/checkout", { corps: { ...choix, cgv: CGV }, token }), (e) => {
+    aAccepter = cgvAReaccepter(e);
+    return true;
+  });
+  assert.ok(aAccepter);
+  const { url } = await mockRequete("POST", "/api/billing/checkout", { corps: { ...choix, cgv: aAccepter }, token });
+  assert.match(url, /\/abonnement\/retour\?session_id=/);
+});
+
+test("FACTURE_IMPAYEE au checkout : texte du front, chemin vers l'espace, pas de panne", async (t) => {
+  simulerNavigateur(t);
+  const { token } = await mockRequete("POST", "/api/billing/inscription", { corps: corpsMaquette("facture@exemple.fr") });
+  await assert.rejects(mockRequete("POST", "/api/billing/checkout", { corps: { cgv: CGV }, token }), (e) => {
+    assert.equal(e.code, "FACTURE_IMPAYEE");
+    const message = messageErreur(e);
+    assert.match(message, /^Une facture impayée doit être réglée avant de choisir une formule\./);
+    assert.notEqual(message, MESSAGE_INDISPONIBLE);
+    assert.notEqual(decouperEspace(message).espace, null, "« votre espace » devient un lien");
+    return true;
+  });
+});

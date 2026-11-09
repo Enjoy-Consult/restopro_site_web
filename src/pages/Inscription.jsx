@@ -10,8 +10,8 @@ import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
 import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
-import { MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperEspace, erreursDeValidation, estActivationEnCoursRefus, messageCatalogue, messageErreur, traiterFinDeSession } from "@/lib/billing/erreurs";
-import { blocCgv, cheminVersionne, corpsInscription, lireSaisie, mentionsAbonnement, retenirExplicationChoix, retenirSaisie, suivrePaiement } from "@/lib/billing/inscription";
+import { MESSAGE_CGV_A_REACCEPTER, MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperEspace, erreursDeValidation, estActivationEnCoursRefus, messageCatalogue, messageErreur, traiterFinDeSession } from "@/lib/billing/erreurs";
+import { blocCgv, cgvAReaccepter, cheminCgv, cheminVersionne, corpsInscription, lireSaisie, mentionsAbonnement, retenirExplicationChoix, retenirSaisie, suivrePaiement } from "@/lib/billing/inscription";
 import { ADRESSE_ACTIVATION_EN_COURS } from "@/lib/billing/retour";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
 import { BORNES, validerInscription } from "@/lib/billing/validation";
@@ -96,6 +96,10 @@ export default function Inscription() {
   const [session, setSession] = useState(() => lireSession());
   const [envoi, setEnvoi] = useState(false);
   const [erreurGenerale, setErreurGenerale] = useState(null);
+  // Version des CGV envoyée : celle de cette page, puis celle qu'un 409 CGV_VERSION_OBSOLETE demande d'accepter.
+  const [cgv, setCgv] = useState(CGV);
+  const [cgvChangee, setCgvChangee] = useState(false);
+  const [nouvelleCgvAcceptee, setNouvelleCgvAcceptee] = useState(false);
   const [erreurRecap, setErreurRecap] = useState(null);
   // Session expirée ou abonnement déjà actif : { type, texte } remplace le paiement.
   const [finSession, setFinSession] = useState(null);
@@ -198,13 +202,23 @@ export default function Inscription() {
 
   const paiement = async (jeton) => {
     try {
-      const { url } = await lancerCheckout(jeton, selectionVersCheckout(selection, CGV));
+      const { url } = await lancerCheckout(jeton, selectionVersCheckout(selection, cgv));
       if (suivrePaiement(url)) return; // la page se quitte : le bouton reste désactivé
       setErreurGenerale(MESSAGE_INDISPONIBLE);
     } catch (erreur) {
       // Le paiement attend sa confirmation : on relit le compte, sans nouveau Checkout. Le jeton reste.
       if (estActivationEnCoursRefus(erreur)) {
         navigate(ADRESSE_ACTIVATION_EN_COURS);
+        return;
+      }
+      // Les CGV ont changé : on affiche la nouvelle version et on la fait accepter, puis le même Checkout repart.
+      const nouvelle = cgvAReaccepter(erreur);
+      if (nouvelle) {
+        setCgv(nouvelle);
+        setCgvChangee(true);
+        setNouvelleCgvAcceptee(false);
+        setEnvoi(false);
+        envoiEnCours.current = false;
         return;
       }
       const fin = traiterFinDeSession(erreur);
@@ -217,7 +231,7 @@ export default function Inscription() {
         if (erreur.code === "ROLE_NON_AUTORISE_POUR_OFFRE" || erreur.code === "COMPTES_INSUFFISANTS") setAjoutsOuverts(true);
       }
       // 429 : trop d'essais ; 403 : le refus reçu (ou le message générique pour un code inconnu) ;
-      // GERE_PAR_ABONNEMENT, CGV_VERSION_OBSOLETE : renvoi vers l'espace client
+      // GERE_PAR_ABONNEMENT, FACTURE_IMPAYEE, CGV_VERSION_OBSOLETE sans version lisible : renvoi vers l'espace client
       else setErreurGenerale(messageErreur(erreur));
     }
     setEnvoi(false);
@@ -242,7 +256,7 @@ export default function Inscription() {
     envoiEnCours.current = true;
     setEnvoi(true);
     try {
-      const { token } = await inscrire(corpsInscription(valeurs, CGV));
+      const { token } = await inscrire(corpsInscription(valeurs, cgv));
       const nouvelle = { token, email: valeurs.email.trim() };
       ecrireSession(nouvelle);
       setSession(nouvelle);
@@ -264,8 +278,16 @@ export default function Inscription() {
           ),
         });
         document.getElementById("champ-email")?.focus();
+      } else if (cgvAReaccepter(erreur)) {
+        // Les CGV ont changé depuis le chargement de la page : la case affiche la nouvelle version, à cocher de nouveau.
+        const nouvelle = cgvAReaccepter(erreur);
+        setCgv(nouvelle);
+        setCgvChangee(true);
+        setValeurs((v) => ({ ...v, cgv: false }));
+        setErreurs({ cgv: MESSAGE_CGV_A_REACCEPTER });
+        document.getElementById("champ-cgv")?.focus();
       } else if (erreur.code === "CGV_VERSION_OBSOLETE") {
-        // Les CGV ont changé depuis le chargement de la page : on fait relire et accepter la nouvelle version.
+        // Version illisible dans la réponse : seul un rechargement donne la nouvelle version.
         setValeurs((v) => ({ ...v, cgv: false }));
         setErreurs({
           cgv: (
@@ -297,6 +319,7 @@ export default function Inscription() {
   // Compte déjà créé (échec du paiement, retour depuis Stripe) : on ne le recrée pas.
   const reprendrePaiement = async () => {
     if (envoiEnCours.current) return;
+    if (cgvChangee && !nouvelleCgvAcceptee) return;
     envoiEnCours.current = true;
     setEnvoi(true);
     setErreurGenerale(null);
@@ -310,6 +333,7 @@ export default function Inscription() {
     setErreurGenerale(null);
     // Un autre compte, c'est une nouvelle acceptation des conditions.
     setValeurs((v) => ({ ...v, cgv: false }));
+    setNouvelleCgvAcceptee(false);
   };
 
   return (
@@ -379,19 +403,42 @@ export default function Inscription() {
                     Votre compte est créé pour <strong>{session.email}</strong>. Si votre abonnement n’est pas encore réglé, passez au paiement. Si vous venez de payer, ne recommencez pas : vous recevrez un e-mail dès que votre abonnement sera actif.
                   </Message>
                   {erreurGenerale && <Message type="error" className="mt-4"><TexteErreur texte={erreurGenerale} /></Message>}
+                  {cgvChangee && (
+                    <div className="mt-4">
+                      <Message type="info">{MESSAGE_CGV_A_REACCEPTER}</Message>
+                      <label className="mt-4 flex items-start gap-3 text-sm text-muted leading-relaxed">
+                        <input
+                          id="champ-nouvelle-cgv"
+                          type="checkbox"
+                          checked={nouvelleCgvAcceptee}
+                          disabled={envoi}
+                          onChange={(e) => setNouvelleCgvAcceptee(e.target.checked)}
+                          className="mt-1 w-4 h-4 shrink-0 accent-[#1c4b38]"
+                        />
+                        <span>
+                          J’ai lu et j’accepte les{" "}
+                          <Link to={cheminCgv(cgv.version)} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>{" "}
+                          (version {cgv.version}).
+                        </span>
+                      </label>
+                    </div>
+                  )}
                   <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-4">
-                    <button type="button" className="btn-primary w-full sm:w-auto text-center disabled:opacity-60 disabled:cursor-wait" disabled={envoi} aria-busy={envoi} onClick={reprendrePaiement}>
+                    <button type="button" className="btn-primary w-full sm:w-auto text-center disabled:opacity-60 disabled:cursor-wait" disabled={envoi || (cgvChangee && !nouvelleCgvAcceptee)} aria-busy={envoi} onClick={reprendrePaiement}>
                       {envoi ? "Redirection…" : "Passer au paiement"}
                     </button>
                     <button type="button" onClick={autreCompte} disabled={envoi} className="link-underline text-[15px] text-left">
                       Ce n’est pas le bon compte ?
                     </button>
                   </div>
-                  {/* Le checkout envoie la version de cette page : le visiteur doit voir ce qu'il accepte, sans case à cocher ici. */}
-                  <p className="text-muted text-[13px] leading-relaxed mt-4">
-                    En passant au paiement, vous acceptez les{" "}
-                    <Link to={LIEN_CGV} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>.
-                  </p>
+                  {/* Le checkout envoie la version de cette page : le visiteur doit voir ce qu'il accepte, sans case à cocher ici.
+                      Après un 409 CGV_VERSION_OBSOLETE, la case ci-dessus la remplace. */}
+                  {!cgvChangee && (
+                    <p className="text-muted text-[13px] leading-relaxed mt-4">
+                      En passant au paiement, vous acceptez les{" "}
+                      <Link to={LIEN_CGV} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>.
+                    </p>
+                  )}
                 </div>
               ) : (
                 <form onSubmit={soumettre} noValidate className="border-t border-border pt-8">
@@ -446,8 +493,8 @@ export default function Inscription() {
                       />
                       <span>
                         J’accepte les{" "}
-                        <Link to={LIEN_CGV} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>{" "}
-                        (et leur annexe, l’<Link to={LIEN_ACCORD} target="_blank" rel="noopener noreferrer" className="link-underline">accord de sous-traitance des données</Link>) et les{" "}
+                        <Link to={cgvChangee ? cheminCgv(cgv.version) : LIEN_CGV} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales de vente</Link>{" "}
+                        ({cgvChangee && <>version {cgv.version}, </>}et leur annexe, l’<Link to={LIEN_ACCORD} target="_blank" rel="noopener noreferrer" className="link-underline">accord de sous-traitance des données</Link>) et les{" "}
                         <Link to={LIEN_CGU} target="_blank" rel="noopener noreferrer" className="link-underline">conditions générales d’utilisation</Link>
                       </span>
                     </label>
