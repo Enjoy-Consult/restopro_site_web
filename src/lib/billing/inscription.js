@@ -136,3 +136,36 @@ export function cgvAReaccepter(erreur) {
 export function cheminCgv(version) {
   return `/cgv/${encodeURIComponent(version)}`;
 }
+
+// --- Acceptation des CGV au fil de la page (useReducer d'Inscription.jsx) ---
+
+// cgv : bloc envoyé à l'inscription et au checkout, celui de la page puis celui qu'un 409 lisible demande d'accepter.
+// versionRecue : un 409 a remplacé la version de la page ; les liens nomment alors cette version.
+// aAccepterAuPaiement : le 409 est venu du Checkout, sur un compte déjà créé. Le panneau « compte créé » montre le message
+// et sa case, et « Passer au paiement » attend qu'elle soit cochée. Un 409 à l'inscription se règle dans le formulaire :
+// le compte n'est créé qu'avec la case recochée pour cette version, il n'y a rien à refaire au paiement.
+// caseCochee : la case de ce panneau.
+export function etatCgvInitial(cgv) {
+  return { cgv, versionRecue: false, aAccepterAuPaiement: false, caseCochee: false };
+}
+
+export function suivreCgv(etat, action) {
+  switch (action.type) {
+    case "refus-inscription":
+      return { cgv: action.cgv, versionRecue: true, aAccepterAuPaiement: false, caseCochee: false };
+    case "refus-paiement":
+      return { cgv: action.cgv, versionRecue: true, aAccepterAuPaiement: true, caseCochee: false };
+    case "case":
+      return { ...etat, caseCochee: action.cochee };
+    // Compte créé avec la case du formulaire cochée pour etat.cgv, ou autre compte à créer par le formulaire.
+    case "compte-cree":
+    case "autre-compte":
+      return { ...etat, aAccepterAuPaiement: false, caseCochee: false };
+    default:
+      return etat;
+  }
+}
+
+export function paiementBloqueParCgv(etat) {
+  return etat.aAccepterAuPaiement && !etat.caseCochee;
+}

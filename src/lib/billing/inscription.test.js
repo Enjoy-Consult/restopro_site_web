@@ -469,6 +469,88 @@ test("maquette : cgvobsolete@ et cgvpaiement@ refusent la première version, pui
   assert.match(url, /\/abonnement\/retour\?session_id=/);
 });
 
+// --- Acceptation des CGV au fil de la page : quand le panneau « compte créé » redemande la case ---
+
+const NOUVELLE_CGV = { version: "0.2", sha256: "c".repeat(64) };
+
+test("suivi des CGV : un 409 à l'inscription se règle dans le formulaire, rien à refaire au paiement", async () => {
+  const { etatCgvInitial, paiementBloqueParCgv, suivreCgv } = await import("./inscription.js");
+  let etat = etatCgvInitial(CGV);
+  assert.deepEqual(etat, { cgv: CGV, versionRecue: false, aAccepterAuPaiement: false, caseCochee: false });
+  assert.equal(paiementBloqueParCgv(etat), false);
+
+  etat = suivreCgv(etat, { type: "refus-inscription", cgv: NOUVELLE_CGV });
+  assert.equal(etat.cgv, NOUVELLE_CGV, "le renvoi part avec la nouvelle version");
+  assert.equal(etat.versionRecue, true, "le lien du formulaire nomme cette version");
+  assert.equal(etat.aAccepterAuPaiement, false);
+
+  // Case du formulaire recochée, inscription acceptée : un échec du Checkout (503, 429, 422…) ou un retour
+  // arrière depuis Stripe ne change rien, le paiement reste possible sans nouvelle case.
+  etat = suivreCgv(etat, { type: "compte-cree" });
+  assert.equal(etat.cgv, NOUVELLE_CGV);
+  assert.equal(etat.aAccepterAuPaiement, false);
+  assert.equal(paiementBloqueParCgv(etat), false);
+});
+
+test("suivi des CGV : un 409 au Checkout fait cocher la nouvelle version dans le panneau", async () => {
+  const { etatCgvInitial, paiementBloqueParCgv, suivreCgv } = await import("./inscription.js");
+  let etat = suivreCgv(etatCgvInitial(CGV), { type: "compte-cree" });
+
+  etat = suivreCgv(etat, { type: "refus-paiement", cgv: NOUVELLE_CGV });
+  assert.equal(etat.cgv, NOUVELLE_CGV);
+  assert.equal(etat.aAccepterAuPaiement, true);
+  assert.equal(paiementBloqueParCgv(etat), true, "« Passer au paiement » attend la case");
+
+  etat = suivreCgv(etat, { type: "case", cochee: true });
+  assert.equal(paiementBloqueParCgv(etat), false);
+  etat = suivreCgv(etat, { type: "case", cochee: false });
+  assert.equal(paiementBloqueParCgv(etat), true);
+
+  // Case cochée, puis un nouveau refus avec une autre version : la case se décoche, le bloc change (le focus y revient).
+  etat = suivreCgv(etat, { type: "case", cochee: true });
+  const encoreAutre = { version: "0.3", sha256: "d".repeat(64) };
+  const apres = suivreCgv(etat, { type: "refus-paiement", cgv: encoreAutre });
+  assert.equal(apres.cgv, encoreAutre);
+  assert.notEqual(apres.cgv, etat.cgv);
+  assert.equal(paiementBloqueParCgv(apres), true);
+
+  // Cocher ne remplace pas le bloc : le focus ne revient pas sur la case à chaque clic.
+  assert.equal(suivreCgv(apres, { type: "case", cochee: true }).cgv, apres.cgv);
+});
+
+test("suivi des CGV : un autre compte repasse par la case du formulaire, le panneau ne la redemande pas", async () => {
+  const { etatCgvInitial, paiementBloqueParCgv, suivreCgv } = await import("./inscription.js");
+  let etat = suivreCgv(etatCgvInitial(CGV), { type: "refus-paiement", cgv: NOUVELLE_CGV });
+  etat = suivreCgv(etat, { type: "autre-compte" });
+  assert.equal(etat.cgv, NOUVELLE_CGV, "le formulaire affiche la version reçue");
+  assert.equal(etat.versionRecue, true);
+  assert.equal(etat.aAccepterAuPaiement, false);
+  etat = suivreCgv(etat, { type: "compte-cree" });
+  assert.equal(paiementBloqueParCgv(etat), false);
+});
+
+test("maquette cgvobsoleterole@ : après le 409 de l'inscription, l'échec du Checkout ne redemande pas les CGV", async (t) => {
+  simulerNavigateur(t);
+  const { cgvAReaccepter, etatCgvInitial, paiementBloqueParCgv, suivreCgv } = await import("./inscription.js");
+  const email = "cgvobsoleterole@exemple.fr";
+  let etat = etatCgvInitial(CGV);
+  await assert.rejects(mockRequete("POST", "/api/billing/inscription", { corps: corpsInscription({ ...VALIDE, email }, etat.cgv) }), (e) => {
+    etat = suivreCgv(etat, { type: "refus-inscription", cgv: cgvAReaccepter(e) });
+    return e.code === "CGV_VERSION_OBSOLETE";
+  });
+  const { token } = await mockRequete("POST", "/api/billing/inscription", { corps: corpsInscription({ ...VALIDE, email }, etat.cgv) });
+  etat = suivreCgv(etat, { type: "compte-cree" });
+
+  const selection = { offre: "serenite", version: "mensuel", comptesSupplementaires: {}, options: { ddpp: false } };
+  await assert.rejects(mockRequete("POST", "/api/billing/checkout", { corps: selectionVersCheckout(selection, etat.cgv), token }), (e) => {
+    assert.equal(e.code, "ROLE_NON_AUTORISE_POUR_OFFRE");
+    assert.equal(cgvAReaccepter(e), null, "pas un refus des CGV : l'état n'évolue pas");
+    return true;
+  });
+  assert.equal(etat.aAccepterAuPaiement, false);
+  assert.equal(paiementBloqueParCgv(etat), false, "après correction du récapitulatif, « Passer au paiement » reste possible");
+});
+
 test("FACTURE_IMPAYEE au checkout : texte du front, chemin vers l'espace, pas de panne", async (t) => {
   simulerNavigateur(t);
   const { token } = await mockRequete("POST", "/api/billing/inscription", { corps: corpsMaquette("facture@exemple.fr") });
