@@ -50,6 +50,7 @@ export function suivrePaiement(url) {
   const cible = urlDePaiement(url);
   if (!cible) return false;
   effacerSaisie();
+  effacerCgvGardee();
   window.location.assign(cible);
   return true;
 }
@@ -147,6 +148,25 @@ export function cheminCgv(version) {
 // caseCochee : la case de ce panneau.
 export function etatCgvInitial(cgv) {
   return { cgv, versionRecue: false, aAccepterAuPaiement: false, caseCochee: false };
+}
+
+// Version reçue d'un 409, gardée en mémoire de module comme la saisie : « Modifier mon choix » quitte la page,
+// qui doit revenir avec cette version et non celle du build, déjà refusée. Rien n'est écrit dans le navigateur.
+// La case n'est jamais gardée : le visiteur la recoche à son retour.
+let cgvGardee = null;
+
+export function garderCgv(etat) {
+  cgvGardee = etat.versionRecue ? { cgv: etat.cgv, aAccepterAuPaiement: etat.aAccepterAuPaiement } : null;
+}
+
+export function effacerCgvGardee() {
+  cgvGardee = null;
+}
+
+// État de départ de la page : la version gardée si un 409 l'a apportée, sinon celle du build.
+export function etatCgvDepart(cgvDuBuild) {
+  if (!cgvGardee) return etatCgvInitial(cgvDuBuild);
+  return { cgv: cgvGardee.cgv, versionRecue: true, aAccepterAuPaiement: cgvGardee.aAccepterAuPaiement, caseCochee: false };
 }
 
 export function suivreCgv(etat, action) {

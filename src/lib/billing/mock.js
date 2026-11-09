@@ -14,6 +14,8 @@
 //   dejaactif@… -> le checkout répond 409 ABONNEMENT_DEJA_ACTIF   gere@… -> 403 GERE_PAR_ABONNEMENT
 //   cgvpaiement@… -> le checkout répond 409 CGV_VERSION_OBSOLETE avec details.cgv, puis accepte la nouvelle version
 //   facture@…   -> le checkout répond 409 FACTURE_IMPAYEE
+//   cgvillisible@… -> l'inscription répond 409 CGV_VERSION_OBSOLETE sans details (repli : recharger la page)
+//   paiementillisible@… -> le checkout répond 409 CGV_VERSION_OBSOLETE sans details (repli : espace ou téléphone)
 //   activation@… -> le checkout répond 409 ABONNEMENT_DEJA_ACTIF, motif activation_en_cours : relecture du compte, sans Checkout
 //   SIRET commençant par 000000 -> SIRET_INVALIDE
 //   Inscription ou checkout sans bloc cgv -> 409 CGV_VERSION_OBSOLETE, comme Apirest
@@ -249,6 +251,7 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false, 
     if (email.startsWith("indispo")) throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
     if (email.startsWith("existant")) throw new ApiError("EMAIL_DEJA_UTILISE", 409);
     if (email.startsWith("cgvobsolete")) exigerNouvelleCgv(corps);
+    if (email.startsWith("cgvillisible")) throw new ApiError("CGV_VERSION_OBSOLETE", 409);
     if (email.startsWith("validationautre"))
       throw new ApiError("VALIDATION_ERROR", 400, [{ path: "restaurant.autre", code: "custom", message: "Refusé" }]);
     if (email.startsWith("validation"))
@@ -272,6 +275,7 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false, 
     if (etat.email.startsWith("activation")) throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409, { motif: "activation_en_cours" });
     if (etat.email.startsWith("gere")) throw new ApiError("GERE_PAR_ABONNEMENT", 403);
     if (etat.email.startsWith("cgvpaiement")) exigerNouvelleCgv(corps);
+    if (etat.email.startsWith("paiementillisible")) throw new ApiError("CGV_VERSION_OBSOLETE", 409);
     if (etat.email.startsWith("facture")) throw new ApiError("FACTURE_IMPAYEE", 409, { montantTTCCentimes: 5999 });
     if (etat.email.includes("role")) throw new ApiError("ROLE_NON_AUTORISE_POUR_OFFRE", 422, { categorie: "superviseur" });
     if (etat.email.includes("comptes")) throw new ApiError("COMPTES_INSUFFISANTS", 422, { requis: { cuisinier: 2 } });

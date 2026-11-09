@@ -11,7 +11,7 @@ import { getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
 import { URL_MON_COMPTE } from "@/lib/billing/config";
 import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
 import { MESSAGE_CGV_A_REACCEPTER, MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperEspace, erreursDeValidation, estActivationEnCoursRefus, messageCatalogue, messageErreur, traiterFinDeSession } from "@/lib/billing/erreurs";
-import { blocCgv, cgvAReaccepter, cheminCgv, cheminVersionne, corpsInscription, etatCgvInitial, lireSaisie, mentionsAbonnement, paiementBloqueParCgv, retenirExplicationChoix, retenirSaisie, suivreCgv, suivrePaiement } from "@/lib/billing/inscription";
+import { blocCgv, cgvAReaccepter, cheminCgv, cheminVersionne, corpsInscription, etatCgvDepart, garderCgv, lireSaisie, mentionsAbonnement, paiementBloqueParCgv, retenirExplicationChoix, retenirSaisie, suivreCgv, suivrePaiement } from "@/lib/billing/inscription";
 import { ADRESSE_ACTIVATION_EN_COURS } from "@/lib/billing/retour";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
 import { BORNES, validerInscription } from "@/lib/billing/validation";
@@ -98,7 +98,7 @@ export default function Inscription() {
   const [erreurGenerale, setErreurGenerale] = useState(null);
   // Version des CGV envoyée : celle de cette page, puis celle qu'un 409 CGV_VERSION_OBSOLETE demande d'accepter.
   // La case du panneau « compte créé » n'apparaît qu'après un 409 au Checkout (voir suivreCgv).
-  const [etatCgv, majCgv] = useReducer(suivreCgv, CGV, etatCgvInitial);
+  const [etatCgv, majCgv] = useReducer(suivreCgv, CGV, etatCgvDepart);
   const { cgv } = etatCgv;
   const paiementBloque = paiementBloqueParCgv(etatCgv);
   const lienCgv = etatCgv.versionRecue ? cheminCgv(cgv.version) : LIEN_CGV;
@@ -120,6 +120,17 @@ export default function Inscription() {
   useEffect(() => {
     if (etatCgv.aAccepterAuPaiement && caseCgvRef.current) caseCgvRef.current.focus();
   }, [etatCgv.aAccepterAuPaiement, etatCgv.cgv]);
+
+  // Refus des CGV à l'inscription : le focus va sur la case une fois rendue, décochée et reliée à son message.
+  const [focusCaseCgv, setFocusCaseCgv] = useState(0);
+  useEffect(() => {
+    if (focusCaseCgv) document.getElementById("champ-cgv")?.focus();
+  }, [focusCaseCgv]);
+
+  // La version reçue survit à « Modifier mon choix » (mémoire de module, rien dans le navigateur).
+  useEffect(() => {
+    garderCgv(etatCgv);
+  }, [etatCgv]);
 
   // Retour arrière depuis la page de paiement : le navigateur restaure la page telle quelle, bouton désactivé compris,
   // et sans savoir que la page de retour a pu effacer le jeton depuis.
@@ -292,7 +303,7 @@ export default function Inscription() {
         majCgv({ type: "refus-inscription", cgv: cgvAReaccepter(erreur) });
         setValeurs((v) => ({ ...v, cgv: false }));
         setErreurs({ cgv: MESSAGE_CGV_A_REACCEPTER });
-        document.getElementById("champ-cgv")?.focus();
+        setFocusCaseCgv((n) => n + 1);
       } else if (erreur.code === "CGV_VERSION_OBSOLETE") {
         // Version illisible dans la réponse : seul un rechargement donne la nouvelle version.
         setValeurs((v) => ({ ...v, cgv: false }));
@@ -307,7 +318,7 @@ export default function Inscription() {
             </>
           ),
         });
-        document.getElementById("champ-cgv")?.focus();
+        setFocusCaseCgv((n) => n + 1);
       } else if (erreur.code === "SIRET_INVALIDE") {
         setErreurs({ siret: "Ce numéro SIRET n’est pas reconnu. Vérifiez-le." });
         document.getElementById("champ-siret")?.focus();
@@ -434,7 +445,14 @@ export default function Inscription() {
                     </div>
                   )}
                   <div className="mt-6 flex flex-col sm:flex-row sm:items-center gap-4">
-                    <button type="button" className="btn-primary w-full sm:w-auto text-center disabled:opacity-60 disabled:cursor-wait" disabled={envoi || paiementBloque} aria-busy={envoi} onClick={reprendrePaiement}>
+                    <button
+                      type="button"
+                      className={`btn-primary w-full sm:w-auto text-center disabled:opacity-60 ${envoi ? "disabled:cursor-wait" : "disabled:cursor-not-allowed"}`}
+                      disabled={envoi || paiementBloque}
+                      aria-busy={envoi}
+                      aria-describedby={paiementBloque ? "champ-nouvelle-cgv-message" : undefined}
+                      onClick={reprendrePaiement}
+                    >
                       {envoi ? "Redirection…" : "Passer au paiement"}
                     </button>
                     <button type="button" onClick={autreCompte} disabled={envoi} className="link-underline text-[15px] text-left">

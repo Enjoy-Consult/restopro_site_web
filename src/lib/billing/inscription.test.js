@@ -563,3 +563,38 @@ test("FACTURE_IMPAYEE au checkout : texte du front, chemin vers l'espace, pas de
     return true;
   });
 });
+
+test("version reçue d'un 409 : gardée en mémoire de module pour « Modifier mon choix », jamais la case", async () => {
+  const { etatCgvDepart, etatCgvInitial, garderCgv, effacerCgvGardee, suivreCgv } = await import("./inscription.js");
+  const build = { version: "0.1", sha256: "a".repeat(64) };
+  const recue = { version: "0.1", sha256: "b".repeat(64) };
+  effacerCgvGardee();
+  assert.deepEqual(etatCgvDepart(build), etatCgvInitial(build));
+
+  const apresRefus = suivreCgv(suivreCgv(etatCgvInitial(build), { type: "refus-paiement", cgv: recue }), { type: "case", cochee: true });
+  garderCgv(apresRefus);
+  assert.deepEqual(etatCgvDepart(build), { cgv: recue, versionRecue: true, aAccepterAuPaiement: true, caseCochee: false });
+
+  garderCgv(etatCgvInitial(build));
+  assert.deepEqual(etatCgvDepart(build), etatCgvInitial(build), "sans version reçue, rien n'est gardé");
+
+  garderCgv(suivreCgv(etatCgvInitial(build), { type: "refus-inscription", cgv: recue }));
+  effacerCgvGardee();
+  assert.deepEqual(etatCgvDepart(build), etatCgvInitial(build));
+});
+
+test("maquette : cgvillisible@ et paiementillisible@ atteignent les replis sans details", async (t) => {
+  simulerNavigateur(t);
+  const { cgvAReaccepter } = await import("./inscription.js");
+  await assert.rejects(mockRequete("POST", "/api/billing/inscription", { corps: corpsMaquette("cgvillisible@exemple.fr") }), (e) => {
+    assert.equal(e.code, "CGV_VERSION_OBSOLETE");
+    assert.equal(cgvAReaccepter(e), null);
+    return true;
+  });
+  const { token } = await mockRequete("POST", "/api/billing/inscription", { corps: corpsMaquette("paiementillisible@exemple.fr") });
+  await assert.rejects(mockRequete("POST", "/api/billing/checkout", { corps: { cgv: CGV }, token }), (e) => {
+    assert.equal(cgvAReaccepter(e), null);
+    assert.equal(messageErreur(e), MESSAGE_CGV_OBSOLETE_PAIEMENT);
+    return true;
+  });
+});
