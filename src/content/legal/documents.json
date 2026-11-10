@@ -14,8 +14,11 @@
     "titre": "Conditions générales de vente de l’abonnement",
     "description": "Conditions générales de vente de l’abonnement à l’application RestOclair.",
     "portee": "site",
-    "versionEnVigueur": "0.1",
-    "versions": [{ "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" }]
+    "versionEnVigueur": "0.2",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
   },
   {
     "document": "accord-sous-traitance",
@@ -23,8 +26,11 @@
     "titre": "Accord de sous-traitance des données",
     "description": "Accord de sous-traitance (article 28 du RGPD), annexe aux conditions générales de vente.",
     "portee": "site",
-    "versionEnVigueur": "0.1",
-    "versions": [{ "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" }]
+    "versionEnVigueur": "0.2",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
   },
   {
     "document": "confidentialite-site",
@@ -32,8 +38,11 @@
     "titre": "Politique de confidentialité du site",
     "description": "Comment le site restoclair.fr traite vos données personnelles.",
     "portee": "site",
-    "versionEnVigueur": "0.1",
-    "versions": [{ "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" }]
+    "versionEnVigueur": "0.2",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
   },
   {
     "document": "cookies",
