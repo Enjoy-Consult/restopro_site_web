@@ -174,3 +174,47 @@ test("maquette en production : le build passe, mais avec un avertissement", asyn
   assert.equal(avertissementMaquette({ commande: "build", mode: "production", env: { VITE_BILLING_ACTIF: "true" } }), null);
   assert.equal(avertissementMaquette({ commande: "build", mode: "production", env: {} }), null);
 });
+
+// Build compte (compte.restoclair.fr) : il ne sert qu'à la vente, il est donc contrôlé même sans VITE_BILLING_ACTIF.
+const ENV_COMPTE = { VITE_API_URL: "https://api.exemple.fr/v1", VITE_SITE_URL: "https://site.exemple.fr", VITE_COMPTE_URL: "https://compte.exemple.fr" };
+const controleCompte = (surcharge = {}) => controle({ build: "compte", env: ENV_COMPTE, ...surcharge });
+
+test("compte prêt : documents validés et adresses du compte renseignées, sans VITE_BILLING_ACTIF ni VITE_APP_WEB_URL", () => {
+  assert.deepEqual(controleCompte(), []);
+  assert.deepEqual(controleCompte({ env: { ...ENV_COMPTE, VITE_BILLING_ACTIF: "false" } }), []);
+});
+
+test("compte : contrôlé même sans VITE_BILLING_ACTIF ; documents en projet et adresses vides bloquent", () => {
+  const documents = DOCUMENTS_REQUIS.map((cle) => doc(cle, "projet"));
+  assert.equal(controleCompte({ documents, env: {} }).length, 6);
+  for (const nom of ["VITE_API_URL", "VITE_SITE_URL", "VITE_COMPTE_URL"]) {
+    assert.deepEqual(controleCompte({ env: { ...ENV_COMPTE, [nom]: " / " } }), [`${nom} est vide`], nom);
+  }
+});
+
+test("compte : développement, site de test et maquette ne sont pas bloqués ; la maquette avertit", async () => {
+  const { avertissementMaquette } = await import("./garde-fou-vente.mjs");
+  const documents = DOCUMENTS_REQUIS.map((cle) => doc(cle, "projet"));
+  assert.deepEqual(controleCompte({ documents, env: {}, mode: "test" }), []);
+  assert.deepEqual(controleCompte({ documents, env: {}, commande: "serve", mode: "development" }), []);
+  assert.deepEqual(controleCompte({ documents, env: { VITE_BILLING_MOCK: "true" } }), []);
+  assert.match(avertissementMaquette({ commande: "build", mode: "production", env: { VITE_BILLING_MOCK: "true" }, build: "compte" }), /simule le paiement/);
+  assert.equal(avertissementMaquette({ commande: "build", mode: "production", env: { VITE_BILLING_MOCK: "true" } }), null);
+});
+
+test("compte : message propre au compte ; build inconnu refusé", () => {
+  const message = messageGardeFou(controleCompte({ env: {} }), "compte");
+  assert.match(message, /^Build de production du compte refusé/);
+  assert.match(message, /VITE_SITE_URL est vide/);
+  assert.doesNotMatch(message, /retirez VITE_BILLING_ACTIF/);
+  assert.deepEqual(controle({ build: "autre" }), ["build inconnu : « autre »"]);
+});
+
+test("compte de production : adresses en https seulement (une adresse de test ne passe pas)", () => {
+  assert.deepEqual(controleCompte({ env: { ...ENV_COMPTE, VITE_SITE_URL: "http://localhost:4303" } }), ["VITE_SITE_URL doit commencer par https:// (« http://localhost:4303 »)"]);
+  assert.equal(controleCompte({ env: { VITE_API_URL: "http://api", VITE_SITE_URL: "https://", VITE_COMPTE_URL: "ftp://compte" } }).length, 3);
+  // En mode test, les adresses locales sont normales.
+  assert.deepEqual(controleCompte({ mode: "test", env: { ...ENV_COMPTE, VITE_SITE_URL: "http://localhost:4303" } }), []);
+  // La vitrine garde sa règle : adresse non vide.
+  assert.deepEqual(controle({ env: { ...ENV_VENTE, VITE_API_URL: "http://localhost:3000" } }), []);
+});

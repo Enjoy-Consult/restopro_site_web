@@ -16,6 +16,34 @@ En mode maquette (`VITE_BILLING_MOCK=true`), l'API est simulée. L'adresse e-mai
 
 **Hors du site de production** (`src/lib/environnement.js`). Seul un build `vite build`, en mode `production`, charge Google et écrit vers `php-api/`. Sous `npm run dev` et dans un build `vite build --mode test` (site de test), le bandeau des cookies ne s'affiche pas, Google Tag Manager n'est jamais chargé, et le formulaire de contact comme la demande d'essai n'envoient rien : un message le dit à l'écran. Le blog et les avis restent lus depuis la production. Même en production, Google n'est jamais chargé sur `/application/…`, `/inscription`, `/abonnement/retour`, `/abonnement/reprendre`, `/compte/mot-de-passe` et `/mon-abonnement…`, ni sur aucune page tant qu'un jeton d'inscription est dans l'onglet (décision de Louis du 10/11 : l'achat n'est pas mesuré par Google). Si on arrive sur l'une de ces pages depuis une page où il l'était, la page se recharge sans lui, et l'onglet ne le recharge plus avant le prochain chargement du site.
 
+## Deux builds
+
+Un seul commit donne deux builds (décision de Louis du 10/11, « Connexion du site et origine compte.restoclair.fr ») :
+
+| Build | Configuration | Entrée | Sortie | Origine |
+|---|---|---|---|---|
+| Vitrine | `vite.config.js` | `index.html`, `src/main.jsx` | `dist/` | `restoclair.fr` : vitrine, blog, documents juridiques, tarifs, inscription, retour de paiement, reprise |
+| Compte | `vite.compte.config.js` | `compte/index.html`, `compte/main.jsx`, `src/compte/` | `dist-compte/` | `compte.restoclair.fr` : `/connexion`, `/mon-abonnement…`, `/mot-de-passe`, `/mot-de-passe-oublie` |
+
+```bash
+npm run dev:compte          # serveur de développement du compte (port 5174, cache node_modules/.vite-compte)
+npm run build:compte        # build compte, puis contrôle de dist-compte/
+npm run build:test          # les deux builds en mode test (site de test), contrôlés
+npm run build:production    # les deux builds en mode production, contrôlés
+```
+
+Le build compte n'a **aucun script ni style intégré** (CSP `script-src 'self'` et `style-src 'self'`, sans empreinte), `<meta name="referrer" content="no-referrer">` et `noindex`. Il ne contient ni bandeau des cookies, ni Google, ni appel à `php-api/` (Airtable, FormSubmit), ni texte juridique : seulement la liste des documents (`documents.json`) et l'index des versions et empreintes (`virtual:documents-legaux`). Pas de dossier public : seul ce qu'importe le code est publié, sous `/assets/`. Les composants qui insèrent une balise `<style>` (fenêtres Radix, par exemple) y sont bloqués par la CSP : la recette du compte se fait avec la CSP en place.
+
+**Contrôles après build** (`scripts/controle-builds.mjs`, lancés par `build` — donc aussi par le workflow de déploiement —, `build:compte`, `build:test` et `build:production`) :
+- compte : aucun script, gestionnaire `on…=`, adresse `javascript:` ni style intégré, aucune redirection `<meta http-equiv="refresh">`, une seule meta referrer à `no-referrer`, `noindex`, tout chargé depuis `/assets/`, aucun fichier hors de `index.html` et `/assets/`, aucune trace de Google, d'Airtable, de FormSubmit, d'Unsplash, de `php-api`, du bandeau ou d'un des textes juridiques (titre et premier paragraphe de chaque version de `documents.json`) ;
+- vitrine : le script intégré du consentement a l'empreinte qu'autorise la CSP de `restoclair.fr` (`EMPREINTES_SCRIPTS_SITE`, à tenir égale au `user.conf` du NAS), et `legal/index.json` est présent. Si le script du consentement change, le build échoue tant que `user.conf` et cette liste ne sont pas mis à jour.
+
+**Garde-fou.** Le compte ne sert qu'à la vente : un build compte de production est contrôlé même sans `VITE_BILLING_ACTIF`. Il échoue si `cgv`, `accord-sous-traitance` ou `cgu-app` sont en `projet`, ou si `VITE_API_URL`, `VITE_SITE_URL` ou `VITE_COMPTE_URL` sont vides ou ne commencent pas par `https://`. Le mode test et la maquette ne sont pas bloqués (la maquette avertit). Aujourd'hui, `npm run build:production` s'arrête donc au compte, et c'est voulu : les documents sont encore en projet.
+
+**Variables** : `VITE_SITE_URL` (`https://restoclair.fr`) et `VITE_COMPTE_URL` (`https://compte.restoclair.fr`), pour les liens d'une origine à l'autre, toujours par l'adresse complète. Site de test : `http://localhost:4303` et `http://localhost:4304`. Le workflow `deploy-production.yml` ne compile encore que la vitrine : le compte se publie à part, dans `web/compte.restoclair.fr`, quand ses pages seront prêtes.
+
+**État** : les adresses du compte affichent une page provisoire ; la connexion, l'espace abonnement et les pages de mot de passe y arrivent lot par lot. `/compte/mot-de-passe` reste pour l'instant dans la vitrine.
+
 ## Déploiement
 
 1. Un push sur `main` lance `.github/workflows/deploy-production.yml`, qui compile le site et publie le résultat dans la branche `production`. `php-api/config.php` n'est jamais publié.

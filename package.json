@@ -5,12 +5,17 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/controle-builds.mjs vitrine dist",
+    "dev:compte": "vite --config vite.compte.config.js",
+    "build:compte": "vite build --config vite.compte.config.js && node scripts/controle-builds.mjs compte dist-compte",
+    "build:production": "npm run build && npm run build:compte",
+    "build:test": "vite build --mode test && node scripts/controle-builds.mjs vitrine dist && vite build --config vite.compte.config.js --mode test && node scripts/controle-builds.mjs compte dist-compte",
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
     "preview": "vite preview",
-    "test": "node --test src/lib/*.test.js src/lib/billing/*.test.js scripts/*.test.mjs",
+    "preview:compte": "vite preview --config vite.compte.config.js",
+    "test": "node --test src/lib/*.test.js src/lib/billing/*.test.js src/compte/*.test.js scripts/*.test.mjs",
     "legal:index": "node scripts/legal.mjs"
   },
   "dependencies": {
