@@ -76,31 +76,36 @@ export function prendreExplicationChoix() {
 
 // --- Mentions et documents ---
 
-// Texte tiré des CGV 0.1 (articles 1, 6, 7 et 10.1), en attente de validation par l'avocat comme les CGV elles-mêmes.
+// Texte tiré des CGV 0.2 (articles 1, 2, 6, 7, 10.1 et 10.5), en attente de validation par l'avocat comme les CGV elles-mêmes.
 // La période court depuis le début de l'abonnement : ne jamais écrire « fin du mois ».
 // L'engagement n'apparaît que pour une version engagée, proposée seulement quand le PMS est disponible.
 const PROFESSIONNELS = "L’abonnement est réservé aux professionnels : en souscrivant, vous déclarez agir pour les besoins de votre activité professionnelle.";
-const DEPUIS_ESPACE = "depuis votre espace « Mon compte », sur le web";
+// Espace abonnement du site (CGV 0.2, article 2) : adresse encore à confirmer, d'où l'absence de chemin ici.
+const DEPUIS_ESPACE = "depuis votre espace abonnement, sur le site restoclair.fr";
+const GARANTIE = "Garantie « satisfait ou remboursé » : pour le premier abonnement d’un établissement, vous pouvez demander le remboursement de la première période dans les 14 jours qui suivent la confirmation du paiement.";
 
 export function mentionsAbonnement(version) {
   if (version.cle === "mensuel_engage" || version.engagementMois > 0) {
     return [
       PROFESSIONNELS,
       "Vous vous engagez pour 12 mois et vous payez chaque mois. À la fin des 12 mois, l’engagement est reconduit automatiquement pour 12 mois, sauf résiliation demandée avant l’échéance.",
-      `Vous pouvez demander la résiliation à tout moment ${DEPUIS_ESPACE}. Elle prend effet à la fin de l’engagement : l’abonnement et son paiement mensuel se poursuivent jusque-là. La période en cours n’est pas remboursée.`,
+      `Vous pouvez demander la résiliation à tout moment ${DEPUIS_ESPACE}. Elle prend effet à la fin de l’engagement : l’abonnement et son paiement mensuel se poursuivent jusque-là. La période en cours n’est pas remboursée, sauf garantie « satisfait ou remboursé ».`,
+      GARANTIE,
     ];
   }
   if (version.periode === "an") {
     return [
       PROFESSIONNELS,
       "L’abonnement se renouvelle automatiquement chaque année, jusqu’à sa résiliation.",
-      `Vous le résiliez ${DEPUIS_ESPACE}. La résiliation prend effet à la fin de l’année payée, comptée à partir de la date de début de l’abonnement. L’année en cours n’est pas remboursée.`,
+      `Vous le résiliez ${DEPUIS_ESPACE}. La résiliation prend effet à la fin de l’année payée, comptée à partir de la date de début de l’abonnement. L’année en cours n’est pas remboursée, sauf garantie « satisfait ou remboursé ».`,
+      GARANTIE,
     ];
   }
   return [
     PROFESSIONNELS,
     "L’abonnement se renouvelle automatiquement chaque mois, jusqu’à sa résiliation.",
-    `Vous le résiliez ${DEPUIS_ESPACE}. La résiliation prend effet à la fin de la période mensuelle en cours, comptée à partir de la date de début de l’abonnement. La période en cours n’est pas remboursée.`,
+    `Vous le résiliez ${DEPUIS_ESPACE}. La résiliation prend effet à la fin de la période mensuelle en cours, comptée à partir de la date de début de l’abonnement. La période en cours n’est pas remboursée, sauf garantie « satisfait ou remboursé ».`,
+    GARANTIE,
   ];
 }
 

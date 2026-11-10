@@ -271,14 +271,16 @@ test("renvoi vers /tarifs : l'explication dit ce qui manque, et ne se lit qu'une
 
 const versionDe = (offre, cle, pms = false) => mockCatalogue(pms).offres.find((o) => o.cle === offre).versions.find((v) => v.cle === cle);
 
-test("mentions : réservé aux professionnels, reconduction, date d'effet et absence de remboursement", () => {
+test("mentions : réservé aux professionnels, reconduction, date d'effet, absence de remboursement et garantie de 14 jours", () => {
   for (const version of [versionDe("essentiel", "mensuel"), versionDe("serenite", "annuel"), versionDe("expert", "mensuel_engage", true)]) {
     const texte = mentionsAbonnement(version).join(" ");
     assert.match(texte, /réservé aux professionnels/, version.cle);
     assert.match(texte, /automatiquement/, version.cle);
-    assert.match(texte, /votre espace « Mon compte », sur le web/, version.cle);
+    assert.match(texte, /votre espace abonnement, sur le site restoclair\.fr/, version.cle);
+    assert.doesNotMatch(texte, /Mon compte/, version.cle);
     assert.match(texte, /prend effet à la fin/, version.cle);
-    assert.match(texte, /n’est pas remboursée/, version.cle);
+    assert.match(texte, /n’est pas remboursée, sauf garantie « satisfait ou remboursé »/, version.cle);
+    assert.match(texte, /premier abonnement d’un établissement, vous pouvez demander le remboursement de la première période dans les 14 jours/, version.cle);
   }
 });
 
