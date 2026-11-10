@@ -62,6 +62,13 @@ test("en-têtes : Content-Type et X-Client-Type sur chaque appel, rien d'autre s
   assert.deepEqual(options.headers, { "Content-Type": "application/json", "X-Client-Type": "web" });
 });
 
+test("cookies : chaque appel à l'API part en credentials « omit », avec ou sans jeton", async (t) => {
+  const faux = simulerFetch(t, () => json(200, { ok: true }));
+  await requete("GET", "/api/billing/catalogue");
+  await requete("POST", "/api/billing/checkout", { token: "jeton-abc", corps: {} });
+  for (const appel of faux.mock.calls) assert.equal(appel.arguments[1].credentials, "omit");
+});
+
 test("Bearer : le jeton part dans Authorization, jamais dans l'URL ni dans le corps", async (t) => {
   const faux = simulerFetch(t, () => json(200, { url: "https://paiement.exemple.test/s/1" }));
   await requete("POST", "/api/billing/checkout", { token: "jeton-abc", corps: { offre: "expert" } });

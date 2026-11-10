@@ -58,6 +58,9 @@ export async function requete(methode, chemin, { corps, token } = {}) {
     reponse = await fetch(`${API_URL}${chemin}`, {
       method: methode,
       headers,
+      // Jamais de cookie vers l'API : le site ne s'authentifie que par le jeton Bearer, et ne reçoit ni n'envoie
+      // les cookies de session de l'application web, même si l'API partageait un jour l'origine du site.
+      credentials: "omit",
       body: corps === undefined ? undefined : JSON.stringify(corps),
       signal: controleur.signal,
     });
