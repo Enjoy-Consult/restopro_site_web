@@ -134,11 +134,12 @@ export const TEXTE_SESSION_EXPIREE = "Votre session a expiré. Reconnectez-vous 
 export const TEXTE_DECONNECTE = "Vous êtes déconnecté.";
 export const TEXTE_SUPPORT = "Pour toute autre demande, contactez le support.";
 // Avant le premier paiement (sans_abonnement, en_attente_paiement) : texte de l'app (siteAbonnement.ts,
-// SANS_ABONNEMENT_TEXT), suivi du lien LIBELLE_SOUSCRIRE vers {VITE_SITE_URL}/tarifs, comme l'app. La souscription se
-// fait en ligne : plus de renvoi au support. Le paiement depuis l'espace lui-même est l'affaire d'une autre branche.
+// SANS_ABONNEMENT_TEXT), suivi de DEBUT_CONTACT_SOUSCRIRE. Qui se connecte ici a déjà un établissement : l'inscription
+// de /tarifs refuserait son adresse (EMAIL_DEJA_UTILISE). D'ici le paiement depuis l'espace (autre branche), un
+// établissement qui existe déjà souscrit auprès du support (CGV 1.0, article 1, point P001 de la liste de Louis).
 export const TEXTE_SANS_ABONNEMENT = "Votre restaurant n’a pas encore d’abonnement.";
-export const LIBELLE_SOUSCRIRE = "Souscrire sur restoclair.fr";
-export const CHEMIN_SOUSCRIRE = "/tarifs";
+export const DEBUT_CONTACT_SOUSCRIRE = "Pour souscrire un abonnement, contactez-nous : ";
+export const TEXTE_CONTACT_SOUSCRIRE = `${DEBUT_CONTACT_SOUSCRIRE}${BUSINESS.email} ou ${BUSINESS.phone.display}.`;
 // Formule et comptes : pas dans l'espace (périmètre du 15/11), par contact. Texte de l'app (siteAbonnement.ts,
 // CONTACT_FORMULE_TEXT) avec le contact du site ; la page fait des deux coordonnées des liens mailto et tel.
 export const DEBUT_CONTACT_FORMULE = "Pour changer de formule ou ajouter des comptes, contactez-nous : ";
@@ -457,7 +458,7 @@ export function resumeCompte(compte, maintenant = Date.now()) {
       // comprise). En impayé ou en accès provisoire, le site ne sait pas si un premier prélèvement a été refusé : dans
       // ce cas, aucun abonnement n'est conclu et il n'y aura ni export ni consultation (CGV 11.3). Rien n'est promis.
       exportALaFin: !exportDisponible && statut === "actif",
-      // Lien LIBELLE_SOUSCRIRE vers les tarifs du site (avant le premier paiement), comme l'app.
+      // TEXTE_CONTACT_SOUSCRIRE avant le premier paiement : la souscription d'un établissement existant passe par le support.
       souscrire: avantPremierPaiement,
       // TEXTE_CONTACT_FORMULE : formule et comptes, après le premier paiement (siteAbonnementView de l'app).
       contactFormule: Boolean(statut) && !avantPremierPaiement,

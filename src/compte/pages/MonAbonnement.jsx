@@ -2,16 +2,14 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import Message from "@/components/billing/Message";
 import { CHEMINS_COMPTE } from "@/compte/chemins";
-import { adresseSite } from "@/compte/liens";
 import { BUSINESS } from "@/lib/business-info";
 import { annulerResiliation, getCompteEspace, ouvrirPortail, resilier, seDeconnecter, telechargerExport } from "@/lib/billing/api";
-import { BILLING_MOCK, SITE_URL } from "@/lib/billing/config";
+import { BILLING_MOCK } from "@/lib/billing/config";
 import { MESSAGE_TROP_D_ESSAIS } from "@/lib/billing/erreurs";
 import {
-  CHEMIN_SOUSCRIRE,
   DEBUT_CONTACT_FORMULE,
+  DEBUT_CONTACT_SOUSCRIRE,
   LIBELLE_GARDER_ABONNEMENT,
-  LIBELLE_SOUSCRIRE,
   TEXTE_DECONNECTE,
   TEXTE_EXPORT_A_LA_FIN,
   TEXTE_MISE_A_JOUR_ETAT,
@@ -41,8 +39,6 @@ const BOUTON_SECONDAIRE =
 // infoApresRelecture : il parle de l'état relu, et n'est affiché et lu qu'une fois le compte relu.
 const ACTION_VIDE = { enCours: null, erreur: null, erreurMotDePasse: null, erreurConfirmation: null, info: null, infoResiliation: false, infoApresRelecture: false };
 const ID_CHAMP_MDP = "champ-confirmation-mdp";
-// « Souscrire sur restoclair.fr » : les tarifs du site, par l'adresse complète (aucun lien sans VITE_SITE_URL).
-const URL_SOUSCRIRE = adresseSite(SITE_URL, CHEMIN_SOUSCRIRE);
 
 function Support() {
   return (
@@ -437,9 +433,15 @@ export default function MonAbonnement() {
                 {action.erreur && <Message type="error" className="mt-8">{action.erreur}</Message>}
 
                 <div className="mt-10 flex flex-col gap-8">
-                  {resume.actions.souscrire && URL_SOUSCRIRE && (
+                  {resume.actions.souscrire && (
                     <div>
-                      <a href={URL_SOUSCRIRE} className="btn-primary text-center">{LIBELLE_SOUSCRIRE}</a>
+                      <h2 className="text-ink text-[22px] mb-2">Souscrire un abonnement</h2>
+                      <p className="text-muted text-[15px] leading-relaxed">
+                        {DEBUT_CONTACT_SOUSCRIRE}
+                        <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>
+                        {" ou "}
+                        <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+                      </p>
                     </div>
                   )}
 

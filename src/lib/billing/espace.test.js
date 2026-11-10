@@ -1,12 +1,11 @@
 // Tests de l'espace abonnement (compte.restoclair.fr) : `npm test`.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { adresseSite } from "../../compte/liens.js";
 import { passagesInterdits } from "../../../scripts/textes-magasins.mjs";
 import { ApiError } from "./errors.js";
 import { MESSAGE_INDISPONIBLE, MESSAGE_REFUS_GENERIQUE, MESSAGE_TROP_D_ESSAIS } from "./erreurs.js";
 import {
-  CHEMIN_SOUSCRIRE, DEBUT_CONTACT_FORMULE, LIBELLE_GARDER_ABONNEMENT, LIBELLE_SOUSCRIRE, LIBELLES_STATUT,
+  DEBUT_CONTACT_FORMULE, DEBUT_CONTACT_SOUSCRIRE, LIBELLE_GARDER_ABONNEMENT, LIBELLES_STATUT, TEXTE_CONTACT_SOUSCRIRE,
   TEXTE_CONTACT_FORMULE, TEXTE_DEMANDE_NON_APPLIQUEE, TEXTE_EXPORT_A_LA_FIN, TEXTE_MOT_DE_PASSE_INCORRECT,
   TEXTE_NON_TITULAIRE, TEXTE_PORTEE_INSUFFISANTE, TEXTE_REPONSE_PERDUE, TEXTE_RESILIATION_ACCES, TEXTE_RESILIATION_ANNULABLE,
   TEXTE_RESILIATION_ANNULEE, TEXTE_SANS_ABONNEMENT,
@@ -294,7 +293,7 @@ test("impayé : bouton « Résilier » gardé, mais aucune promesse d'accès com
   assert.match(resumeCompte({ statut: "actif", periodeFin: "2026-12-01T00:00:00Z" }, MAINTENANT).resiliation.confirmation, /l’accès reste complet/);
 });
 
-test("accès offert : ligne de l'app, fin annoncée par la phrase permise, « Souscrire sur restoclair.fr » vers /tarifs", () => {
+test("accès offert : ligne de l'app, fin annoncée par la phrase permise ; avant le premier paiement, souscription par le support", () => {
   const offert = (accesOffert, statut = "sans_abonnement") => resumeCompte({ statut, accesOffert }, MAINTENANT);
   const beta = offert({ offre: "serenite", jusquau: "2027-03-01T00:00:00Z", motif: "beta" });
   assert.equal(ligne(beta, "Accès offert"), "Sérénité, jusqu’au 1er mars 2027");
@@ -322,9 +321,9 @@ test("accès offert : ligne de l'app, fin annoncée par la phrase permise, « So
   assert.equal(illisible.bandeaux.some((b) => b.cle === "fin_acces_offert"), false);
   // Textes et lien.
   assert.equal(TEXTE_SANS_ABONNEMENT, "Votre restaurant n’a pas encore d’abonnement.");
-  assert.equal(LIBELLE_SOUSCRIRE, "Souscrire sur restoclair.fr");
-  assert.equal(adresseSite("http://localhost:4303", CHEMIN_SOUSCRIRE), "http://localhost:4303/tarifs");
-  assert.equal(adresseSite("https://restoclair.fr/", CHEMIN_SOUSCRIRE), "https://restoclair.fr/tarifs");
+  // Qui se connecte ici a déjà un établissement : pas de lien vers l'inscription de /tarifs (EMAIL_DEJA_UTILISE).
+  assert.equal(TEXTE_CONTACT_SOUSCRIRE, "Pour souscrire un abonnement, contactez-nous : contact@restoclair.fr ou 07 77 75 26 05.");
+  assert.ok(TEXTE_CONTACT_SOUSCRIRE.startsWith(DEBUT_CONTACT_SOUSCRIRE));
   for (const statut of ["sans_abonnement", "en_attente_paiement"]) assert.equal(resumeCompte({ statut }, MAINTENANT).actions.souscrire, true, statut);
   for (const statut of ["actif", "impaye", "activation_provisoire", "resilie"]) assert.equal(resumeCompte({ statut }, MAINTENANT).actions.souscrire, false, statut);
 });
