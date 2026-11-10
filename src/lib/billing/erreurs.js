@@ -106,6 +106,16 @@ export function estTropDEssais(erreur) {
   return erreur?.status === 429;
 }
 
+// 429 du limiteur : le délai demandé (Retry-After), arrondi à la minute au-dessus dès qu'il dépasse 60 secondes.
+export function messageTropDEssais(erreur) {
+  const ms = Number(erreur?.retryAfterMs);
+  if (!Number.isFinite(ms) || ms <= 0) return MESSAGE_TROP_D_ESSAIS;
+  const secondes = Math.ceil(ms / 1000);
+  if (secondes < 60) return `Trop d’essais. Réessayez dans ${secondes} seconde${secondes > 1 ? "s" : ""}.`;
+  const minutes = Math.ceil(secondes / 60);
+  return `Trop d’essais. Réessayez dans ${minutes} minute${minutes > 1 ? "s" : ""}.`;
+}
+
 // Texte à afficher quand le catalogue manque : trop d'essais ou catalogue inutilisable.
 // Renvoie null pour une panne : chaque page garde son message.
 export function messageCatalogue(erreur) {

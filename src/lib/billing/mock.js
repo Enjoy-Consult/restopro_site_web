@@ -342,6 +342,14 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false, 
     return { annulee: true };
   }
 
+  if (route === "POST /api/billing/mot-de-passe/oublie") {
+    const email = String(corps?.email ?? "").toLowerCase();
+    if (email.startsWith("trop")) throw new ApiError("TROP_D_ESSAIS", 429, null, RETRY_AFTER_SCENARIO_MS);
+    if (email.startsWith("indispo")) throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
+    if (email.startsWith("validation")) throw new ApiError("VALIDATION_ERROR", 400, [{ path: "email", code: "invalid_string", message: "E-mail invalide" }]);
+    return { message: "Si un compte correspond à cette adresse, un lien valable 60 minutes vient d'être envoyé." };
+  }
+
   if (route === "POST /api/billing/mot-de-passe/verifier") {
     refusCommun(finDuCode(corps?.jeton, PREFIXE_JETON_MDP));
     return { emailMasque: "m***@exemple.fr", expireLe: new Date(Date.now() + 3600 * 1000).toISOString() };

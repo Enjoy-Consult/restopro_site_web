@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-d
 import ErrorBoundary from "@/components/billing/ErrorBoundary";
 import LayoutCompte from "@/compte/LayoutCompte";
 import { CHEMINS_COMPTE } from "@/compte/chemins";
+import MotDePasse from "@/compte/pages/MotDePasse";
+import MotDePasseOublie from "@/compte/pages/MotDePasseOublie";
 import PageEnPreparation from "@/compte/pages/PageEnPreparation";
 import PageIntrouvableCompte from "@/compte/pages/PageIntrouvableCompte";
 
@@ -18,8 +20,8 @@ export default function AppCompte() {
             <Route path="/" element={<Navigate to={CHEMINS_COMPTE.espace} replace />} />
             <Route path={CHEMINS_COMPTE.connexion} element={<PageEnPreparation titre="Connexion à mon abonnement" />} />
             <Route path={`${CHEMINS_COMPTE.espace}/*`} element={<PageEnPreparation titre="Mon abonnement" />} />
-            <Route path={CHEMINS_COMPTE.motDePasse} element={<PageEnPreparation titre="Choisir mon mot de passe" />} />
-            <Route path={CHEMINS_COMPTE.motDePasseOublie} element={<PageEnPreparation titre="Mot de passe oublié" />} />
+            <Route path={CHEMINS_COMPTE.motDePasse} element={<MotDePasse />} />
+            <Route path={CHEMINS_COMPTE.motDePasseOublie} element={<MotDePasseOublie />} />
             <Route path="*" element={<PageIntrouvableCompte />} />
           </Routes>
         </ErrorBoundary>

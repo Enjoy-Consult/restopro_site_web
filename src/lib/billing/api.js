@@ -252,3 +252,6 @@ export const verifierLienMotDePasse = (jeton) =>
   requete("POST", "/api/billing/mot-de-passe/verifier", { corps: { jeton } }).then(lireVerificationMotDePasse);
 export const definirMotDePasse = (jeton, motDePasse) =>
   requete("POST", "/api/billing/mot-de-passe/definir", { corps: { jeton, motDePasse } }).then(lireDefinitionMotDePasse);
+// « Mot de passe oublié » (spécification de la connexion, demande 9) : même réponse quel que soit le compte.
+export const demanderLienMotDePasse = (email) =>
+  requete("POST", "/api/billing/mot-de-passe/oublie", { corps: { email } }).then(() => undefined);
