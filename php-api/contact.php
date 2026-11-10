@@ -5,7 +5,9 @@ ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 
 require_once __DIR__ . '/securite.php';
-require_once __DIR__ . '/config.php';
+// Configuration hors du dossier publié si disponible (partage NAS restoclair-prive), sinon repli local.
+$restoclairConfig = '/volume1/restoclair-prive/config.php';
+require_once (@is_readable($restoclairConfig) ? $restoclairConfig : __DIR__ . '/config.php');
 setCorsHeaders();
 
 // Cet envoi écrit dans Airtable : seul le site peut l'appeler, quelle que soit la liste de config.php.
