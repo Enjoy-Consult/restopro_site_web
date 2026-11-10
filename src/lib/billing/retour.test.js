@@ -198,9 +198,9 @@ test("phrase du succès : les identifiants du titulaire par e-mail, ceux de l'é
   }
   assert.ok(!JSON.stringify([avec, phraseIdentifiants(null)]).includes("ZIP"));
   assert.match(TEXTE_RIEN_RECU, /courriers indésirables/);
-  // « Mot de passe oublié » après le paiement attend une décision : on renvoie vers un nouveau lien, qui devient un lien dans la page.
-  assert.doesNotMatch(TEXTE_RIEN_RECU, /Mot de passe oublié/);
+  // D'abord un nouveau lien (qui devient un lien dans la page), puis « Mot de passe oublié » dans l'application.
   assert.equal(TEXTE_RIEN_RECU.split("demandez un nouveau lien").length, 2);
+  assert.ok(TEXTE_RIEN_RECU.indexOf("demandez un nouveau lien") < TEXTE_RIEN_RECU.indexOf("« Mot de passe oublié »"));
 });
 
 test("403 MUST_FINALIZE : les identifiants sont partis, issue réussie sans statut, jeton effacé", () => {

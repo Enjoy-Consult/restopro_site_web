@@ -37,7 +37,7 @@ function Telephone() {
 }
 
 // Déjà abonné : la connexion se fait dans l'application. Pour une inscription déjà payée, la demande d'un lien
-// envoie un lien de définition du mot de passe (contrat d'Apirest).
+// envoie un lien de définition du mot de passe (contrat d'Apirest) ; « Mot de passe oublié » est aussi ouvert.
 function DejaAbonne() {
   return (
     <p className="text-muted text-[15px] leading-relaxed mt-8">
@@ -48,7 +48,7 @@ function DejaAbonne() {
         "Connectez-vous à l’application"
       )}
       . Vous n’avez pas reçu vos identifiants ? Demandez un lien ci-dessus : si votre inscription est déjà payée, il vous permettra de définir
-      votre mot de passe. Vous pouvez aussi nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+      votre mot de passe. Vous pouvez aussi utiliser « Mot de passe oublié » sur l’écran de connexion de l’application, ou nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
     </p>
   );
 }
