@@ -23,9 +23,10 @@ export const TEXTE_DELAI_REPRISE =
 // Texte du serveur pour le 409 activation_en_cours.
 export const TEXTE_ACTIVATION_EN_COURS =
   "Votre paiement est en cours de validation : votre abonnement sera actif dans quelques instants.";
-// Impayé : l'abonnement existe chez Stripe, on règle la facture ouverte, on n'ouvre pas de nouveau paiement.
+// Impayé : on règle depuis l'espace, on n'ouvre pas de nouveau paiement. Texte neutre : après l'échec d'un premier
+// prélèvement SEPA, aucun abonnement n'est conclu (CGV 11.3) ; plus tard, c'est un impayé ordinaire (CGV 11.1).
 export const TEXTE_IMPAYE =
-  "Un paiement de votre abonnement n’a pas abouti. Réglez la facture en attente depuis votre espace : votre compte est conservé.";
+  "Votre paiement n’a pas abouti. Réglez-le depuis votre espace : votre compte et vos données sont conservés.";
 export const TEXTE_NON_CONFIRME =
   "Votre paiement n’est pas confirmé à ce stade. S’il n’a pas abouti, vous pouvez le reprendre en choisissant de nouveau votre formule : votre compte est conservé.";
 

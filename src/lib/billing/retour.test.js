@@ -393,7 +393,8 @@ test("délai après Stripe : le texte reste conditionnel et propose de reprendre
   assert.match(TEXTE_DELAI_REPRISE, /Si vous avez payé, vous recevrez un e-mail/);
   assert.match(TEXTE_DELAI_REPRISE, /vous pouvez le reprendre/);
   assert.ok(!/e-?mail|recevrez/i.test(TEXTE_IMPAYE), "un impayé ne promet pas d'e-mail");
-  assert.match(TEXTE_IMPAYE, /facture/);
+  assert.equal(TEXTE_IMPAYE, "Votre paiement n’a pas abouti. Réglez-le depuis votre espace : votre compte et vos données sont conservés.");
+  assert.ok(!/abonnement/i.test(TEXTE_IMPAYE), "neutre : après un premier prélèvement refusé, aucun abonnement n'est conclu");
 });
 
 test("409 activation_en_cours : relecture du compte sans nouveau Checkout, jeton conservé", async () => {
