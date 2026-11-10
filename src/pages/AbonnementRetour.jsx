@@ -6,7 +6,7 @@ import Etapes from "@/components/billing/Etapes";
 import LienReprise from "@/components/billing/LienReprise";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, getCompte } from "@/lib/billing/api";
-import { APP_STORE_URL, APP_WEB_URL, BILLING_MOCK_DEV, PLAY_STORE_URL, URL_MON_COMPTE } from "@/lib/billing/config";
+import { APP_STORE_URL, APP_WEB_URL, BILLING_MOCK_DEV, CHEMIN_ESPACE, PLAY_STORE_URL } from "@/lib/billing/config";
 import {
   TEXTE_ACTIVATION_EN_COURS,
   TEXTE_DELAI,
@@ -39,10 +39,13 @@ const TITRES = {
 };
 
 // Issues réussies : les identifiants arrivent par e-mail ; s'ils n'arrivent pas, la marche à suivre.
-function RienRecu() {
+function RienRecu({ email }) {
+  const [avant, apres] = TEXTE_RIEN_RECU.split("demandez un nouveau lien");
   return (
     <p className="text-muted text-[15px] leading-relaxed mt-5">
-      {TEXTE_RIEN_RECU} Vous pouvez aussi nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+      {avant}
+      <LienReprise email={email}>demandez un nouveau lien</LienReprise>
+      {apres} Vous pouvez aussi nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
     </p>
   );
 }
@@ -52,11 +55,7 @@ function Aide({ email }) {
   return (
     <p className="text-muted text-[15px] leading-relaxed mt-5">
       Paiement non abouti, et plus de bouton pour le reprendre ? <LienReprise email={email}>Recevez un lien pour reprendre votre inscription</LienReprise>.{" "}
-      {URL_MON_COMPTE && (
-        <>
-          Vous pouvez retrouver votre abonnement depuis <a href={URL_MON_COMPTE} className="link-underline">votre espace</a>.{" "}
-        </>
-      )}
+      Vous pouvez retrouver votre abonnement depuis <Link to={CHEMIN_ESPACE} className="link-underline">votre espace abonnement</Link>.{" "}
       Une question ? Appelez-nous au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
     </p>
   );
@@ -181,7 +180,7 @@ export default function AbonnementRetour() {
                   {identifiants.email && <strong className="text-ink font-medium">{identifiants.email}</strong>}
                   {identifiants.apres}
                 </p>
-                <RienRecu />
+                <RienRecu email={identifiants.email || emailSession} />
               </>
             )}
 
@@ -193,7 +192,7 @@ export default function AbonnementRetour() {
                   {identifiants.email && <strong className="text-ink font-medium">{identifiants.email}</strong>}
                   {identifiants.apres}
                 </p>
-                <RienRecu />
+                <RienRecu email={identifiants.email || emailSession} />
               </>
             )}
 
@@ -204,7 +203,7 @@ export default function AbonnementRetour() {
                   {identifiants.email && <strong className="text-ink font-medium">{identifiants.email}</strong>}
                   {identifiants.apres} {TEXTE_EN_PLACE_SEPA}
                 </p>
-                <RienRecu />
+                <RienRecu email={identifiants.email || emailSession} />
               </>
             )}
 

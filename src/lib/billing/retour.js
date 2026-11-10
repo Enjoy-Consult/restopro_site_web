@@ -26,7 +26,7 @@ export const TEXTE_ACTIVATION_EN_COURS =
 // Impayé : on règle depuis l'espace, on n'ouvre pas de nouveau paiement. Texte neutre : après l'échec d'un premier
 // prélèvement SEPA, aucun abonnement n'est conclu (CGV 11.3) ; plus tard, c'est un impayé ordinaire (CGV 11.1).
 export const TEXTE_IMPAYE =
-  "Votre paiement n’a pas abouti. Réglez-le depuis votre espace : votre compte et vos données sont conservés.";
+  "Votre paiement n’a pas abouti. Réglez-le depuis votre espace abonnement : votre compte et vos données sont conservés.";
 export const TEXTE_NON_CONFIRME =
   "Votre paiement n’est pas confirmé à ce stade. S’il n’a pas abouti, vous pouvez le reprendre en choisissant de nouveau votre formule : votre compte est conservé.";
 
@@ -41,9 +41,11 @@ export function phraseIdentifiants(email) {
     : { avant: `Vos identifiants de connexion arrivent par e-mail, ${LIEN_IDENTIFIANTS}`, email: null, apres: "" };
 }
 
-// Rien reçu : courriers indésirables, puis « Mot de passe oublié » dans l'application, puis le téléphone (ajouté par la page).
+// Rien reçu : courriers indésirables, puis un nouveau lien demandé sur la page de reprise (pour une inscription payée,
+// Apirest y envoie un lien de définition du mot de passe), puis le téléphone. Les mots « demandez un nouveau lien »
+// deviennent un lien dans la page. « Mot de passe oublié » après le paiement attend une décision de Louis.
 export const TEXTE_RIEN_RECU =
-  "Rien reçu d’ici quelques minutes ? Regardez dans vos courriers indésirables. Si le lien a expiré, utilisez « Mot de passe oublié » sur l’écran de connexion de l’application, avec cette adresse.";
+  "Rien reçu d’ici quelques minutes ? Regardez dans vos courriers indésirables. Si le lien a expiré, demandez un nouveau lien avec cette adresse : vous pourrez y définir votre mot de passe.";
 
 // MUST_FINALIZE : Apirest pose « mot de passe à changer » quand il envoie les identifiants, c'est-à-dire à l'activation
 // (paiement confirmé ou mandat SEPA signé). Tant que sa garde vise aussi le jeton du site, GET /compte répond alors 403

@@ -202,7 +202,8 @@ test("config importable sous node : sans variable, tout est désactivé et aucun
   assert.equal(config.BILLING_ACTIF, false);
   assert.equal(config.BILLING_MOCK, false);
   assert.equal(config.API_URL, "");
-  assert.equal(config.URL_MON_COMPTE, "");
+  assert.equal(config.APP_WEB_URL, "");
+  assert.equal(config.CHEMIN_ESPACE, "/mon-abonnement");
 
   const faux = t.mock.method(globalThis, "fetch", async () => new Response("{}"));
   const { requete } = await import("./api.js");
@@ -283,7 +284,7 @@ test("fin de session : abonnement déjà actif, jeton supprimé et message seul,
     ecrireSession({ token: "jeton-paye", email: "marie@exemple.fr" });
     assert.deepEqual(traiterFinDeSession(new ApiError("ABONNEMENT_DEJA_ACTIF", status)), {
       type: "info",
-      texte: "Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace.",
+      texte: "Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace abonnement.",
     });
     assert.equal(stockage.size, 0);
     assert.equal(lireSession(), null);
@@ -301,6 +302,17 @@ test("fin de session : 403 MUST_FINALIZE au paiement, abonnement en place, jeton
   assert.equal(stockage.size, 0);
   assert.equal(lireSession(), null);
   assert.match(MESSAGE_ABONNEMENT_EN_PLACE, /identifiants de connexion vous ont été envoyés par e-mail/);
+});
+
+test("403 OPERATION_NON_DISPONIBLE : établissement résilié ou fermé, message dédié ; autre motif, message neutre", async () => {
+  const { messageErreur, messageRefus, MESSAGE_ETABLISSEMENT_RESILIE, MESSAGE_REFUS_GENERIQUE } = await import("./erreurs.js");
+  const { ApiError } = await import("./errors.js");
+  const resilie = new ApiError("OPERATION_NON_DISPONIBLE", 403, { motif: "etablissement_resilie" });
+  assert.equal(messageRefus(resilie), MESSAGE_ETABLISSEMENT_RESILIE);
+  assert.equal(messageErreur(resilie), MESSAGE_ETABLISSEMENT_RESILIE);
+  assert.equal(messageRefus(new ApiError("OPERATION_NON_DISPONIBLE", 403, { motif: "autre" })), MESSAGE_REFUS_GENERIQUE);
+  assert.match(MESSAGE_ETABLISSEMENT_RESILIE, /export/);
+  assert.match(MESSAGE_ETABLISSEMENT_RESILIE, /30 jours/);
 });
 
 test("fin de session : 401 en erreur ; les autres refus gardent le jeton", async () => {

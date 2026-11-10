@@ -8,7 +8,7 @@ import Message from "@/components/billing/Message";
 import OffreCard from "@/components/billing/OffreCard";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue } from "@/lib/billing/api";
-import { BILLING_MOCK_DEV, URL_MON_COMPTE } from "@/lib/billing/config";
+import { BILLING_MOCK_DEV, CHEMIN_ESPACE } from "@/lib/billing/config";
 import { messageCatalogue } from "@/lib/billing/erreurs";
 import { prendreExplicationChoix } from "@/lib/billing/inscription";
 import { selectionDepuisQuery } from "@/lib/billing/pricing";
@@ -115,7 +115,7 @@ export default function Tarifs() {
 
           {annonceReprise && (
             <Message type="info" className="mb-8">
-              Votre inscription est reprise{annonceReprise.email && <> pour <strong>{annonceReprise.email}</strong></>}. Choisissez votre formule
+              Votre inscription est reprise{annonceReprise.restaurant && <> pour <strong>{annonceReprise.restaurant}</strong></>}. Choisissez votre formule
               ci-dessous : vous passerez ensuite directement au paiement, sans recréer de compte.
             </Message>
           )}
@@ -211,13 +211,11 @@ export default function Tarifs() {
           <p className="text-center text-[15px] mt-12">
             Inscription commencée sans payer ? <LienReprise>Recevez un lien pour la reprendre</LienReprise>.
           </p>
-          {URL_MON_COMPTE && (
-            <p className="text-center text-[15px] mt-3">
-              <a href={URL_MON_COMPTE} className="link-underline">
-                Déjà client ? Gérez votre abonnement depuis votre espace
-              </a>
-            </p>
-          )}
+          <p className="text-center text-[15px] mt-3">
+            <Link to={CHEMIN_ESPACE} className="link-underline">
+              Déjà client ? Gérez votre abonnement depuis votre espace abonnement
+            </Link>
+          </p>
         </div>
       </section>
 

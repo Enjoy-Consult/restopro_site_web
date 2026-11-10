@@ -57,16 +57,24 @@ const REFUS = {
   NON_TITULAIRE: "Seul le titulaire de l’abonnement peut effectuer cette action.",
   ACTION_NON_AUTORISEE: "Cette action n’est pas autorisée pour votre compte.",
   ACCES_LECTURE_SEULE: "Votre compte est en lecture seule : cette action n’est pas possible.",
-  GERE_PAR_ABONNEMENT: "Ce réglage dépend de votre abonnement et se gère depuis votre espace.",
-  ABONNEMENT_DEJA_ACTIF: "Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace.",
+  GERE_PAR_ABONNEMENT: "Ce réglage dépend de votre abonnement et se gère depuis votre espace abonnement.",
+  ABONNEMENT_DEJA_ACTIF: "Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace abonnement.",
   // Texte du front, suivi du chemin à prendre depuis le site.
-  FACTURE_IMPAYEE: "Une facture impayée doit être réglée avant de choisir une formule. Réglez-la depuis votre espace.",
+  FACTURE_IMPAYEE: "Une facture impayée doit être réglée avant de choisir une formule. Réglez-la depuis votre espace abonnement.",
 };
+
+// 403 OPERATION_NON_DISPONIBLE, motif etablissement_resilie : la session du titulaire d'un établissement résilié ou
+// fermé ne donne plus que l'état de l'abonnement, l'export, l'annulation de la résiliation et la réouverture (30 jours).
+export const MESSAGE_ETABLISSEMENT_RESILIE =
+  "L’abonnement de cet établissement est résilié, ou l’établissement est fermé : cette opération n’est plus possible. Vous pouvez encore consulter l’état de l’abonnement, télécharger l’export de vos données, annuler la résiliation ou, dans les 30 jours, rouvrir l’établissement.";
 
 // Texte à afficher pour un refus (403) : celui du code reçu, ou le message neutre si le code est inconnu.
 // Renvoie null si l'erreur n'est pas un 403.
 export function messageRefus(erreur) {
   if (erreur?.status !== 403) return null;
+  if (erreur.code === "OPERATION_NON_DISPONIBLE") {
+    return erreur.detail?.motif === "etablissement_resilie" ? MESSAGE_ETABLISSEMENT_RESILIE : MESSAGE_REFUS_GENERIQUE;
+  }
   return REFUS[erreur.code] ?? MESSAGE_REFUS_GENERIQUE;
 }
 
@@ -105,7 +113,7 @@ export function messageCatalogue(erreur) {
   return erreur?.code === "CATALOGUE_INVALIDE" ? MESSAGE_CATALOGUE_INVALIDE : null;
 }
 
-// Ces refus se règlent depuis l'espace client, quel que soit le statut HTTP (le contrat ne le fixe pas).
+// Ces refus se règlent depuis l'espace abonnement du site, quel que soit le statut HTTP (le contrat ne le fixe pas).
 const VERS_ESPACE = ["ABONNEMENT_DEJA_ACTIF", "GERE_PAR_ABONNEMENT", "FACTURE_IMPAYEE"];
 
 // Texte à afficher quand aucun traitement plus précis ne s'applique.
@@ -123,11 +131,11 @@ export function messageErreur(erreur) {
 }
 
 // Texte découpé autour des mots qui deviennent un lien dans la page : « reprendre votre inscription » (page de reprise)
-// ou « votre espace » (espace client). Un seul lien par texte, le premier trouvé dans cet ordre.
+// ou « votre espace abonnement » (/mon-abonnement). Un seul lien par texte, le premier trouvé dans cet ordre.
 // Sans ces mots : tout est dans `avant`, et `lien` vaut null.
 const LIENS = [
   ["reprendre votre inscription", "reprise"],
-  ["votre espace", "espace"],
+  ["votre espace abonnement", "espace"],
 ];
 
 export function decouperLien(texte) {

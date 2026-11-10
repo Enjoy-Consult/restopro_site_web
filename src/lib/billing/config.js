@@ -18,4 +18,6 @@ export const APP_WEB_URL = url(env.VITE_APP_WEB_URL);
 export const APP_STORE_URL = url(env.VITE_APP_STORE_URL);
 export const PLAY_STORE_URL = url(env.VITE_PLAY_STORE_URL);
 
-export const URL_MON_COMPTE = APP_WEB_URL ? `${APP_WEB_URL}/mon-compte` : "";
+// Espace abonnement du site (CGV 0.2, article 2) : la gestion payante n'est plus dans l'application web, qui reçoit
+// 403 GESTION_SITE_SEULEMENT (contrat des routes d'Apirest, point 8). APP_WEB_URL ne sert plus qu'à se connecter à l'app.
+export const CHEMIN_ESPACE = "/mon-abonnement";

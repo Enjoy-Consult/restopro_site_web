@@ -21,13 +21,19 @@
 //   Inscription ou checkout sans bloc cgv -> 409 CGV_VERSION_OBSOLETE, comme Apirest
 // Toute autre adresse : abonnement « actif » après quelques interrogations.
 //
-// Reprise d'une inscription (/abonnement/reprendre) :
+// Reprise d'une inscription (/abonnement/reprendre), routes du contrat d'Apirest :
 //   demande d'un lien : réponse identique pour toute adresse, sauf trop@… (429), indispo@… (503), validation@… (400)
-//   /abonnement/reprendre#jeton=maquette-reprise-valide      -> nouveau jeton pour marie@exemple.fr, puis paiement normal
+//   /abonnement/reprendre#jeton=maquette-reprise-valide      -> reprise : nouveau jeton (Chez Marie), puis paiement normal ;
+//                                                               annulation : inscription effacée
 //   …#jeton=maquette-reprise-expire (ou -utilise)            -> 410 LIEN_INDISPONIBLE
 //   …#jeton=maquette-reprise-actif                           -> 409 ABONNEMENT_DEJA_ACTIF
 //   …#jeton=maquette-reprise-activation                      -> 409 ABONNEMENT_DEJA_ACTIF, motif activation_en_cours
+//   …#jeton=maquette-reprise-payee                           -> annulation refusée : 409 INSCRIPTION_PAYEE
 //   …#jeton=maquette-reprise-indispo (ou -trop)              -> 503 (ou 429) : le bouton reste, pour réessayer
+//   Un code consommé (reprise ou annulation réussie) répond ensuite 410, comme chez Apirest.
+// Définition du mot de passe (/compte/mot-de-passe) :
+//   #jeton=maquette-mdp-valide                               -> m***@exemple.fr ; mot de passe « Refuse123 » : 400 VALIDATION_ERROR
+//   …#jeton=maquette-mdp-expire (ou -indispo, -trop)          -> 410 (ou 503, 429)
 //
 // En développement seulement (npm run dev), sans passer par le formulaire :
 //   annule@…  -> le 1er checkout revient sur /tarifs?paiement=annule, le compte reste créé
@@ -231,8 +237,26 @@ function exigerCgv(corps) {
 // Le premier envoi est refusé avec details.cgv, comme Apirest ; le renvoi avec cette empreinte passe.
 export const EMPREINTE_CGV_MAQUETTE = "b".repeat(64);
 
-// Code de reprise des scénarios (voir l'en-tête) : la fin du code choisit la réponse.
+// Codes des liens des scénarios (voir l'en-tête) : la fin du code choisit la réponse.
 export const PREFIXE_JETON_REPRISE = "maquette-reprise-";
+export const PREFIXE_JETON_MDP = "maquette-mdp-";
+export const MOT_DE_PASSE_REFUSE = "Refuse123";
+
+// Codes déjà consommés, en mémoire : un rechargement de la page les remet en service, comme un nouveau lien.
+const codesConsommes = new Set();
+
+function finDuCode(jeton, prefixe) {
+  const code = String(jeton ?? "");
+  if (codesConsommes.has(code)) return "consomme";
+  return code.startsWith(prefixe) ? code.slice(prefixe.length) : "valide";
+}
+
+// Réponses communes aux liens : 410, 503, 429.
+function refusCommun(fin) {
+  if (fin === "expire" || fin === "utilise" || fin === "consomme") throw new ApiError("LIEN_INDISPONIBLE", 410);
+  if (fin === "indispo") throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
+  if (fin === "trop") throw new ApiError("TROP_D_ESSAIS", 429, null, RETRY_AFTER_SCENARIO_MS);
+}
 
 function nouvelleSession(email, titulaire) {
   const jeton = `mock-${Math.random().toString(36).slice(2)}`;
@@ -285,22 +309,50 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false, 
     return { token: nouvelleSession(email, `${prenom} ${nom}`), restaurantId: "r-mock", billingAccountId: "ba-mock" };
   }
 
-  if (route === "POST /api/billing/reprise/demande") {
+  if (route === "POST /api/billing/reprise") {
     const email = String(corps?.email ?? "").toLowerCase();
     if (email.startsWith("trop")) throw new ApiError("TROP_D_ESSAIS", 429, null, RETRY_AFTER_SCENARIO_MS);
     if (email.startsWith("indispo")) throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
     if (email.startsWith("validation")) throw new ApiError("VALIDATION_ERROR", 400, [{ path: "email", code: "invalid_string", message: "E-mail invalide" }]);
-    return { ok: true };
+    return { message: "Si une inscription en attente correspond à cette adresse, un lien valable 60 minutes vient d'être envoyé." };
   }
 
-  if (route === "POST /api/billing/reprise") {
-    const fin = String(corps?.jeton ?? "").startsWith(PREFIXE_JETON_REPRISE) ? String(corps.jeton).slice(PREFIXE_JETON_REPRISE.length) : "valide";
-    if (fin === "expire" || fin === "utilise") throw new ApiError("LIEN_INDISPONIBLE", 410);
+  if (route === "POST /api/billing/reprise/consommer") {
+    const fin = finDuCode(corps?.jeton, PREFIXE_JETON_REPRISE);
+    refusCommun(fin);
     if (fin === "activation") throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409, { motif: "activation_en_cours" });
-    if (fin === "actif") throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409);
-    if (fin === "indispo") throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
-    if (fin === "trop") throw new ApiError("TROP_D_ESSAIS", 429, null, RETRY_AFTER_SCENARIO_MS);
-    return { token: nouvelleSession(EMAIL_SCENARIO, "Marie Martin"), email: EMAIL_SCENARIO };
+    if (fin === "actif" || fin === "payee") throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409);
+    codesConsommes.add(String(corps.jeton));
+    const maintenant = Date.now();
+    return {
+      token: nouvelleSession(EMAIL_SCENARIO, "Marie Martin"),
+      restaurantId: "r-mock",
+      userId: "u-mock",
+      expireLe: new Date(maintenant + 2 * 3600 * 1000).toISOString(),
+      restaurant: { nom: "Chez Marie" },
+      creeLe: new Date(maintenant - 86400 * 1000).toISOString(),
+    };
+  }
+
+  if (route === "POST /api/billing/reprise/annuler") {
+    const fin = finDuCode(corps?.jeton, PREFIXE_JETON_REPRISE);
+    refusCommun(fin);
+    if (fin === "payee" || fin === "actif" || fin === "activation") throw new ApiError("INSCRIPTION_PAYEE", 409);
+    codesConsommes.add(String(corps.jeton));
+    return { annulee: true };
+  }
+
+  if (route === "POST /api/billing/mot-de-passe/verifier") {
+    refusCommun(finDuCode(corps?.jeton, PREFIXE_JETON_MDP));
+    return { emailMasque: "m***@exemple.fr", expireLe: new Date(Date.now() + 3600 * 1000).toISOString() };
+  }
+
+  if (route === "POST /api/billing/mot-de-passe/definir") {
+    refusCommun(finDuCode(corps?.jeton, PREFIXE_JETON_MDP));
+    if (corps?.motDePasse === MOT_DE_PASSE_REFUSE)
+      throw new ApiError("VALIDATION_ERROR", 400, [{ path: "motDePasse", code: "too_weak", message: "Mot de passe refusé" }]);
+    codesConsommes.add(String(corps.jeton));
+    return { defini: true, email: EMAIL_SCENARIO };
   }
 
   if (route === "POST /api/billing/checkout") {

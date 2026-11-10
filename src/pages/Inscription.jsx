@@ -9,7 +9,7 @@ import Message from "@/components/billing/Message";
 import Recapitulatif from "@/components/billing/Recapitulatif";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
-import { APP_WEB_URL, URL_MON_COMPTE } from "@/lib/billing/config";
+import { APP_WEB_URL, CHEMIN_ESPACE } from "@/lib/billing/config";
 import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
 import { MESSAGE_CGV_A_REACCEPTER, MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperLien, erreursDeValidation, estActivationEnCoursRefus, messageCatalogue, messageErreur, traiterFinDeSession } from "@/lib/billing/erreurs";
 import { blocCgv, cgvAReaccepter, cheminCgv, cheminVersionne, corpsInscription, etatCgvDepart, garderCgv, lireSaisie, mentionsAbonnement, paiementBloqueParCgv, retenirExplicationChoix, retenirSaisie, suivreCgv, suivrePaiement } from "@/lib/billing/inscription";
@@ -62,15 +62,15 @@ function Champ({ label, name, valeur, erreur, onChange, aide, facultatif, type =
   );
 }
 
-// Message général : « reprendre votre inscription » mène à la page de reprise, avec l'adresse connue ; « votre espace »
-// devient un lien si l'adresse de l'espace est configurée ; une panne donne le téléphone.
+// Message général : « reprendre votre inscription » mène à la page de reprise, avec l'adresse connue ;
+// « votre espace abonnement » mène à /mon-abonnement ; une panne donne le téléphone.
 function TexteErreur({ texte, email }) {
   const { avant, lien, apres } = decouperLien(texte);
   return (
     <>
       {avant}
       {lien?.type === "reprise" && <LienReprise email={email}>{lien.texte}</LienReprise>}
-      {lien?.type === "espace" && (URL_MON_COMPTE ? <a href={URL_MON_COMPTE} className="link-underline">{lien.texte}</a> : lien.texte)}
+      {lien?.type === "espace" && <Link to={CHEMIN_ESPACE} className="link-underline">{lien.texte}</Link>}
       {apres}
       {texte === MESSAGE_INDISPONIBLE && (
         <>
@@ -367,7 +367,7 @@ export default function Inscription() {
           <h1 className="text-ink mb-5">Créez votre compte.</h1>
           <p className="text-muted text-[17px] md:text-lg leading-relaxed mb-7 max-w-[560px]">
             Quelques informations sur vous et sur votre établissement, puis vous passez au paiement sécurisé.
-            Vous n’avez pas de mot de passe à choisir : vos identifiants de connexion vous sont envoyés par e-mail après le paiement.
+            Vous n’avez pas de mot de passe à choisir : vos identifiants de connexion vous sont envoyés par e-mail dès la signature du mandat SEPA ou le paiement par carte.
           </p>
           <div className="mb-12 md:mb-14"><Etapes courant={2} /></div>
 
@@ -413,16 +413,20 @@ export default function Inscription() {
                   {finSession.type === "error" ? (
                     <LienReprise email={finSession.email} className="btn-primary mt-6 w-full sm:w-auto text-center">Recevoir un lien de reprise</LienReprise>
                   ) : (
-                    URL_MON_COMPTE && <a href={URL_MON_COMPTE} className="btn-primary mt-6 w-full sm:w-auto text-center">Accéder à mon espace</a>
+                    <Link to={CHEMIN_ESPACE} className="btn-primary mt-6 w-full sm:w-auto text-center">Accéder à mon espace abonnement</Link>
                   )}
                 </div>
               ) : session ? (
                 <div className="border-t border-border pt-8">
                   <Message type="info">
+                    {/* Texte du contrat d'Apirest (identifiants: "par_email"). Après une reprise, l'adresse n'est pas renvoyée : le nom de l'établissement la remplace. */}
                     {session.email ? (
-                      <>Votre compte est créé pour <strong>{session.email}</strong> : vos identifiants de connexion à l’application seront envoyés à cette adresse après le paiement.</>
+                      <>Votre compte est créé. Vos identifiants de connexion vous seront envoyés à <strong>{session.email}</strong> dès la signature du mandat SEPA ou le paiement par carte.</>
                     ) : (
-                      "Votre compte est créé : vos identifiants de connexion à l’application seront envoyés à son adresse e-mail après le paiement."
+                      <>
+                        Votre compte est créé{session.restaurant && <> pour <strong>{session.restaurant}</strong></>}. Vos identifiants de connexion vous seront envoyés à
+                        l’adresse e-mail du compte dès la signature du mandat SEPA ou le paiement par carte.
+                      </>
                     )} Si votre abonnement n’est pas encore réglé, passez au paiement. Si vous venez de payer, ne recommencez pas : vous recevrez un e-mail dès que votre abonnement sera actif.
                   </Message>
                   {erreurGenerale && <Message type="error" className="mt-4"><TexteErreur texte={erreurGenerale} email={session.email} /></Message>}

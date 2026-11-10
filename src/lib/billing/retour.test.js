@@ -198,7 +198,9 @@ test("phrase du succès : les identifiants du titulaire par e-mail, ceux de l'é
   }
   assert.ok(!JSON.stringify([avec, phraseIdentifiants(null)]).includes("ZIP"));
   assert.match(TEXTE_RIEN_RECU, /courriers indésirables/);
-  assert.match(TEXTE_RIEN_RECU, /« Mot de passe oublié »/);
+  // « Mot de passe oublié » après le paiement attend une décision : on renvoie vers un nouveau lien, qui devient un lien dans la page.
+  assert.doesNotMatch(TEXTE_RIEN_RECU, /Mot de passe oublié/);
+  assert.equal(TEXTE_RIEN_RECU.split("demandez un nouveau lien").length, 2);
 });
 
 test("403 MUST_FINALIZE : les identifiants sont partis, issue réussie sans statut, jeton effacé", () => {
@@ -411,8 +413,9 @@ test("délai après Stripe : le texte reste conditionnel et propose de reprendre
   assert.match(TEXTE_DELAI_REPRISE, /Si vous avez payé, vous recevrez un e-mail/);
   assert.match(TEXTE_DELAI_REPRISE, /vous pouvez le reprendre/);
   assert.ok(!/e-?mail|recevrez/i.test(TEXTE_IMPAYE), "un impayé ne promet pas d'e-mail");
-  assert.equal(TEXTE_IMPAYE, "Votre paiement n’a pas abouti. Réglez-le depuis votre espace : votre compte et vos données sont conservés.");
-  assert.ok(!/abonnement/i.test(TEXTE_IMPAYE), "neutre : après un premier prélèvement refusé, aucun abonnement n'est conclu");
+  assert.equal(TEXTE_IMPAYE, "Votre paiement n’a pas abouti. Réglez-le depuis votre espace abonnement : votre compte et vos données sont conservés.");
+  // « espace abonnement » est le nom de l'espace du site, pas l'affirmation qu'un abonnement existe.
+  assert.ok(!/abonnement/i.test(TEXTE_IMPAYE.replace("espace abonnement", "")), "neutre : après un premier prélèvement refusé, aucun abonnement n'est conclu");
 });
 
 test("409 activation_en_cours : relecture du compte sans nouveau Checkout, jeton conservé", async () => {

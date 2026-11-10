@@ -185,12 +185,26 @@ export function lireInscription(brut) {
   return { ...corps, token };
 }
 
-// Échange d'un lien de reprise : un nouveau jeton de paiement (2 h) et l'adresse du compte, à rappeler à l'écran.
+// Reprise consommée : un nouveau jeton de paiement restreint (2 h) et le nom de l'établissement, à rappeler à l'écran.
+// Réponse d'Apirest : { token, restaurantId, userId, expireLe, restaurant: { nom }, creeLe }.
 export function lireReprise(brut) {
   const corps = sansEnveloppe(brut);
   const token = texte(corps?.token);
   if (!token) throw new ApiError("REPRISE_SANS_JETON");
-  return { token, email: texte(corps?.email) };
+  return { token, restaurant: texte(corps?.restaurant?.nom), email: texte(corps?.email) };
+}
+
+// Lien de définition du mot de passe vérifié, sans être consommé : { emailMasque, expireLe }.
+export function lireVerificationMotDePasse(brut) {
+  const corps = sansEnveloppe(brut);
+  return { emailMasque: texte(corps?.emailMasque), expireLe: texte(corps?.expireLe) || null };
+}
+
+// Mot de passe défini : { defini: true, email }. Une réponse sans defini: true n'est pas une réussite.
+export function lireDefinitionMotDePasse(brut) {
+  const corps = sansEnveloppe(brut);
+  if (corps?.defini !== true) throw new ApiError("DEFINITION_NON_CONFIRMEE");
+  return { email: texte(corps?.email) };
 }
 
 export function lireCheckout(brut) {
@@ -227,7 +241,13 @@ export const inscrire = (corps) => requete("POST", "/api/billing/inscription", {
 export const lancerCheckout = (token, corps) => requete("POST", "/api/billing/checkout", { corps, token }).then(lireCheckout);
 export const getCompte = (token) => requete("GET", "/api/billing/compte", { token }).then(lireCompte);
 
-// Reprise d'une inscription non payée (reprise.js). Noms des routes provisoires : à aligner sur le contrat d'Apirest.
+// Liens reçus par e-mail (reprise.js, motdepasse.js), contrat des routes d'Apirest du 10/11. Aucun jeton Bearer :
+// le code du lien voyage dans le corps, jamais dans l'URL.
 // La demande répond toujours de la même façon, que l'adresse soit connue ou non : son corps n'est pas lu.
-export const demanderLienReprise = (email) => requete("POST", "/api/billing/reprise/demande", { corps: { email } }).then(() => undefined);
-export const echangerLienReprise = (jeton) => requete("POST", "/api/billing/reprise", { corps: { jeton } }).then(lireReprise);
+export const demanderLienReprise = (email) => requete("POST", "/api/billing/reprise", { corps: { email } }).then(() => undefined);
+export const consommerLienReprise = (jeton) => requete("POST", "/api/billing/reprise/consommer", { corps: { jeton } }).then(lireReprise);
+export const annulerInscription = (jeton) => requete("POST", "/api/billing/reprise/annuler", { corps: { jeton } }).then(() => undefined);
+export const verifierLienMotDePasse = (jeton) =>
+  requete("POST", "/api/billing/mot-de-passe/verifier", { corps: { jeton } }).then(lireVerificationMotDePasse);
+export const definirMotDePasse = (jeton, motDePasse) =>
+  requete("POST", "/api/billing/mot-de-passe/definir", { corps: { jeton, motDePasse } }).then(lireDefinitionMotDePasse);

@@ -157,8 +157,8 @@ test("messageErreur : VALIDATION_ERROR n'est pas une panne", () => {
 
 test("ABONNEMENT_DEJA_ACTIF et GERE_PAR_ABONNEMENT : renvoi vers l'espace, quel que soit le statut", () => {
   for (const status of [403, 409, 422]) {
-    assert.equal(messageErreur(new ApiError("ABONNEMENT_DEJA_ACTIF", status)), "Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace.");
-    assert.equal(messageErreur(new ApiError("GERE_PAR_ABONNEMENT", status)), "Ce réglage dépend de votre abonnement et se gère depuis votre espace.");
+    assert.equal(messageErreur(new ApiError("ABONNEMENT_DEJA_ACTIF", status)), "Un abonnement est déjà actif pour ce compte. Gérez-le depuis votre espace abonnement.");
+    assert.equal(messageErreur(new ApiError("GERE_PAR_ABONNEMENT", status)), "Ce réglage dépend de votre abonnement et se gère depuis votre espace abonnement.");
   }
 });
 
@@ -166,7 +166,7 @@ test("decouperLien : « votre espace » mène à l'espace, le texte reste entier
   for (const code of ["ABONNEMENT_DEJA_ACTIF", "GERE_PAR_ABONNEMENT", "FACTURE_IMPAYEE"]) {
     const texte = messageErreur(new ApiError(code, 409));
     const { avant, lien, apres } = decouperLien(texte);
-    assert.deepEqual(lien, { type: "espace", texte: "votre espace" }, code);
+    assert.deepEqual(lien, { type: "espace", texte: "votre espace abonnement" }, code);
     assert.equal(`${avant}${lien.texte}${apres}`, texte, code);
   }
   assert.deepEqual(decouperLien(MESSAGE_INDISPONIBLE), { avant: MESSAGE_INDISPONIBLE, lien: null, apres: "" });

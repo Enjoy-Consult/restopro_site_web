@@ -14,11 +14,12 @@ export const SITE_DE_PRODUCTION = env.MODE === "production";
 
 // Pages où Google n'est jamais chargé, même sur le site de production, et où le bandeau ne s'affiche pas :
 // - les documents de l'application (/application/…), lus par les magasins et par l'application ;
-// - la reprise d'une inscription : le lien reçu par e-mail porte un code à usage unique ;
+// - la reprise d'une inscription et la définition du mot de passe : le lien reçu par e-mail porte un code à usage unique ;
 // - l'espace abonnement, sa connexion comprise (/mon-abonnement…).
 const SANS_TRACEURS = [
   (chemin) => chemin.startsWith("/application/"),
   (chemin) => chemin === "/abonnement/reprendre" || chemin.startsWith("/abonnement/reprendre/"),
+  (chemin) => chemin === "/compte/mot-de-passe" || chemin.startsWith("/compte/mot-de-passe/"),
   (chemin) => chemin === "/mon-abonnement" || chemin.startsWith("/mon-abonnement/"),
 ];
 

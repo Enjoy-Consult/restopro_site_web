@@ -18,6 +18,7 @@ test("environnement : Google seulement sur le site de production, jamais sur les
     "/application/cgu",
     "/application/confidentialite/0.2",
     "/abonnement/reprendre",
+    "/compte/mot-de-passe",
     "/mon-abonnement",
     "/mon-abonnement/connexion",
   ]) {
@@ -25,7 +26,7 @@ test("environnement : Google seulement sur le site de production, jamais sur les
     assert.equal(traceursPermis(chemin, true), false, chemin);
   }
   // Pas de faux positifs sur un préfixe voisin.
-  for (const chemin of ["/abonnement/reprendre-plus-tard", "/mon-abonnements", "/applications"]) {
+  for (const chemin of ["/abonnement/reprendre-plus-tard", "/mon-abonnements", "/applications", "/compte", "/compte/mot-de-passe-oublie"]) {
     assert.equal(pageSansTraceurs(chemin), false, chemin);
   }
   assert.equal(pageSansTraceurs(undefined), false);
