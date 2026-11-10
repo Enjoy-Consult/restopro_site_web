@@ -4,13 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import SEO from "@/components/SEO";
 import AjoutComptes from "@/components/billing/AjoutComptes";
 import Etapes from "@/components/billing/Etapes";
+import LienReprise from "@/components/billing/LienReprise";
 import Message from "@/components/billing/Message";
 import Recapitulatif from "@/components/billing/Recapitulatif";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
-import { URL_MON_COMPTE } from "@/lib/billing/config";
+import { APP_WEB_URL, URL_MON_COMPTE } from "@/lib/billing/config";
 import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
-import { MESSAGE_CGV_A_REACCEPTER, MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperEspace, erreursDeValidation, estActivationEnCoursRefus, messageCatalogue, messageErreur, traiterFinDeSession } from "@/lib/billing/erreurs";
+import { MESSAGE_CGV_A_REACCEPTER, MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperLien, erreursDeValidation, estActivationEnCoursRefus, messageCatalogue, messageErreur, traiterFinDeSession } from "@/lib/billing/erreurs";
 import { blocCgv, cgvAReaccepter, cheminCgv, cheminVersionne, corpsInscription, etatCgvDepart, garderCgv, lireSaisie, mentionsAbonnement, paiementBloqueParCgv, retenirExplicationChoix, retenirSaisie, suivreCgv, suivrePaiement } from "@/lib/billing/inscription";
 import { ADRESSE_ACTIVATION_EN_COURS } from "@/lib/billing/retour";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
@@ -61,13 +62,15 @@ function Champ({ label, name, valeur, erreur, onChange, aide, facultatif, type =
   );
 }
 
-// Message général : « votre espace » devient un lien si l'adresse est configurée, et une panne donne le téléphone.
-function TexteErreur({ texte }) {
-  const { avant, espace, apres } = decouperEspace(texte);
+// Message général : « reprendre votre inscription » mène à la page de reprise, avec l'adresse connue ; « votre espace »
+// devient un lien si l'adresse de l'espace est configurée ; une panne donne le téléphone.
+function TexteErreur({ texte, email }) {
+  const { avant, lien, apres } = decouperLien(texte);
   return (
     <>
       {avant}
-      {espace && (URL_MON_COMPTE ? <a href={URL_MON_COMPTE} className="link-underline">{espace}</a> : espace)}
+      {lien?.type === "reprise" && <LienReprise email={email}>{lien.texte}</LienReprise>}
+      {lien?.type === "espace" && (URL_MON_COMPTE ? <a href={URL_MON_COMPTE} className="link-underline">{lien.texte}</a> : lien.texte)}
       {apres}
       {texte === MESSAGE_INDISPONIBLE && (
         <>
@@ -240,8 +243,9 @@ export default function Inscription() {
       const fin = traiterFinDeSession(erreur);
       const explication = fin ? null : expliquerChoix(erreur);
       if (fin) {
+        // L'adresse du compte suit vers la page de reprise : celle de la session, ou celle que le formulaire vient d'envoyer.
+        setFinSession({ ...fin, email: session?.email || valeurs.email.trim() });
         setSession(null);
-        setFinSession(fin);
       } else if (explication) {
         setErreurRecap({ texte: explication });
         if (erreur.code === "ROLE_NON_AUTORISE_POUR_OFFRE" || erreur.code === "COMPTES_INSUFFISANTS") setAjoutsOuverts(true);
@@ -281,16 +285,13 @@ export default function Inscription() {
       await paiement(token);
     } catch (erreur) {
       if (erreur.code === "EMAIL_DEJA_UTILISE") {
+        // Pas de mot de passe avant le paiement : une inscription interrompue se reprend par un lien reçu par e-mail.
         setErreurs({
           email: (
             <>
-              Un compte existe déjà avec cet e-mail.{" "}
-              {URL_MON_COMPTE ? (
-                <a href={URL_MON_COMPTE} className="link-underline">Connectez-vous à votre espace</a>
-              ) : (
-                "Connectez-vous à votre espace"
-              )}{" "}
-              pour choisir une formule. {PHRASE_ESSAI_INTERROMPU}
+              Un compte existe déjà avec cet e-mail. <TexteErreur texte={PHRASE_ESSAI_INTERROMPU} email={valeurs.email} /> Si votre abonnement est
+              déjà actif,{" "}
+              {APP_WEB_URL ? <a href={APP_WEB_URL} className="link-underline">connectez-vous à l’application</a> : "connectez-vous à l’application"}.
             </>
           ),
         });
@@ -408,9 +409,11 @@ export default function Inscription() {
             <div className="md:col-span-7 md:row-start-1">
               {finSession ? (
                 <div className="border-t border-border pt-8">
-                  <Message type={finSession.type}>{finSession.texte}</Message>
-                  {URL_MON_COMPTE && (
-                    <a href={URL_MON_COMPTE} className="btn-primary mt-6 w-full sm:w-auto text-center">Accéder à mon espace</a>
+                  <Message type={finSession.type}><TexteErreur texte={finSession.texte} email={finSession.email} /></Message>
+                  {finSession.type === "error" ? (
+                    <LienReprise email={finSession.email} className="btn-primary mt-6 w-full sm:w-auto text-center">Recevoir un lien de reprise</LienReprise>
+                  ) : (
+                    URL_MON_COMPTE && <a href={URL_MON_COMPTE} className="btn-primary mt-6 w-full sm:w-auto text-center">Accéder à mon espace</a>
                   )}
                 </div>
               ) : session ? (
@@ -418,7 +421,7 @@ export default function Inscription() {
                   <Message type="info">
                     Votre compte est créé pour <strong>{session.email}</strong> : vos identifiants de connexion à l’application seront envoyés à cette adresse après le paiement. Si votre abonnement n’est pas encore réglé, passez au paiement. Si vous venez de payer, ne recommencez pas : vous recevrez un e-mail dès que votre abonnement sera actif.
                   </Message>
-                  {erreurGenerale && <Message type="error" className="mt-4"><TexteErreur texte={erreurGenerale} /></Message>}
+                  {erreurGenerale && <Message type="error" className="mt-4"><TexteErreur texte={erreurGenerale} email={session.email} /></Message>}
                   {etatCgv.aAccepterAuPaiement && (
                     <div className="mt-4">
                       <Message type="info" id="champ-nouvelle-cgv-message">{MESSAGE_CGV_A_REACCEPTER}</Message>
@@ -468,11 +471,9 @@ export default function Inscription() {
                 </div>
               ) : (
                 <form onSubmit={soumettre} noValidate className="border-t border-border pt-8">
-                  {URL_MON_COMPTE && (
-                    <p className="text-muted text-[15px] mb-8">
-                      Vous avez déjà un compte ? <a href={URL_MON_COMPTE} className="link-underline">Reprenez depuis votre espace</a>
-                    </p>
-                  )}
+                  <p className="text-muted text-[15px] mb-8">
+                    Inscription commencée sans payer ? <LienReprise email={valeurs.email}>Recevez un lien pour la reprendre</LienReprise>.
+                  </p>
                   <fieldset className="mb-12">
                     <legend className="text-ink font-serif text-[24px] mb-6">Le responsable du compte</legend>
                     <div className="grid sm:grid-cols-2 gap-x-6 gap-y-5">
@@ -528,7 +529,7 @@ export default function Inscription() {
                     {erreurs.cgv && <p id="champ-cgv-erreur" className="text-[#8a2424] text-[14px] mt-1.5">{erreurs.cgv}</p>}
                   </div>
 
-                  {erreurGenerale && <Message type="error" className="mt-6"><TexteErreur texte={erreurGenerale} /></Message>}
+                  {erreurGenerale && <Message type="error" className="mt-6"><TexteErreur texte={erreurGenerale} email={valeurs.email} /></Message>}
 
                   <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
                     <button type="submit" className="btn-primary w-full sm:w-auto text-center disabled:opacity-60 disabled:cursor-wait" disabled={envoi} aria-busy={envoi}>

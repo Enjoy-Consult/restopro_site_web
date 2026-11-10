@@ -223,7 +223,7 @@ function faussePageSession() {
   return stockage;
 }
 
-test("jeton expiré (401) : message vers l'espace client et jeton supprimé de sessionStorage", async () => {
+test("jeton expiré (401) : message vers le lien de reprise et jeton supprimé de sessionStorage", async () => {
   const stockage = faussePageSession();
   const { ecrireSession, lireSession } = await import("./session.js");
   const { traiterSessionExpiree, MESSAGE_SESSION_EXPIREE } = await import("./erreurs.js");
@@ -233,7 +233,7 @@ test("jeton expiré (401) : message vers l'espace client et jeton supprimé de s
   assert.equal(stockage.size, 1);
 
   const message = traiterSessionExpiree(new ApiError("ACTION_NON_AUTORISEE", 401));
-  assert.equal(message, "Votre session a expiré. Connectez-vous à votre espace pour finaliser votre abonnement.");
+  assert.equal(message, "Votre session a expiré. Votre compte est conservé : recevez un lien pour reprendre votre inscription.");
   assert.equal(message, MESSAGE_SESSION_EXPIREE);
   assert.equal(stockage.size, 0);
   assert.equal(lireSession(), null);

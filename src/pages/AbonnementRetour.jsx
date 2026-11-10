@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import SEO from "@/components/SEO";
 import Etapes from "@/components/billing/Etapes";
+import LienReprise from "@/components/billing/LienReprise";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, getCompte } from "@/lib/billing/api";
 import { APP_STORE_URL, BILLING_MOCK_DEV, PLAY_STORE_URL, URL_MON_COMPTE } from "@/lib/billing/config";
@@ -34,10 +35,11 @@ const TITRES = {
   non_confirme: "Paiement non confirmé.",
 };
 
-// Issues sans confirmation : l'espace client et le téléphone restent à portée de main.
-function Aide() {
+// Issues sans confirmation : le lien de reprise (paiement non abouti), l'espace client et le téléphone restent à portée de main.
+function Aide({ email }) {
   return (
     <p className="text-muted text-[15px] leading-relaxed mt-5">
+      Paiement non abouti, et plus de bouton pour le reprendre ? <LienReprise email={email}>Recevez un lien pour reprendre votre inscription</LienReprise>.{" "}
       {URL_MON_COMPTE && (
         <>
           Vous pouvez retrouver votre abonnement depuis <a href={URL_MON_COMPTE} className="link-underline">votre espace</a>.{" "}
@@ -69,6 +71,8 @@ function Pastille({ phase }) {
 export default function AbonnementRetour() {
   const [etat, setEtat] = useState({ phase: "attente" });
   const [relance, setRelance] = useState(0);
+  // Adresse de la session (inscription ou reprise), lue à l'arrivée avant que le jeton ne soit effacé.
+  const [emailSession, setEmailSession] = useState("");
   // Gardé d'un « Vérifier à nouveau » à l'autre : dernier statut lu et Retry-After en cours.
   const memoire = useRef({ dernierStatut: null, pasAvant: 0 });
   // Le catalogue sert seulement à écrire le nom de la formule.
@@ -77,6 +81,7 @@ export default function AbonnementRetour() {
   useEffect(() => {
     preparerScenario(window.location.search, BILLING_MOCK_DEV);
     const session = lireSession();
+    if (session?.email) setEmailSession(session.email);
     const retourStripe = estRetourStripe(window.location.search);
     let arrete = false;
     let minuteur;
@@ -174,7 +179,7 @@ export default function AbonnementRetour() {
                 <button type="button" className="link-underline mt-4" onClick={relancer}>
                   Vérifier à nouveau
                 </button>
-                <Aide />
+                <Aide email={emailSession} />
               </>
             )}
 
@@ -184,7 +189,7 @@ export default function AbonnementRetour() {
                 <button type="button" className="link-underline mt-4" onClick={relancer}>
                   Vérifier à nouveau
                 </button>
-                <Aide />
+                <Aide email={emailSession} />
               </>
             )}
 
@@ -199,7 +204,7 @@ export default function AbonnementRetour() {
                     Vérifier à nouveau
                   </button>
                 </div>
-                <Aide />
+                <Aide email={emailSession} />
               </>
             )}
 
@@ -209,14 +214,14 @@ export default function AbonnementRetour() {
                 <button type="button" className="link-underline mt-4" onClick={relancer}>
                   Vérifier à nouveau
                 </button>
-                <Aide />
+                <Aide email={emailSession} />
               </>
             )}
 
             {phase === "inverifiable" && (
               <>
                 <p className="text-muted text-lg leading-relaxed">{TEXTE_INVERIFIABLE}</p>
-                <Aide />
+                <Aide email={emailSession} />
               </>
             )}
 
@@ -231,7 +236,7 @@ export default function AbonnementRetour() {
                     Vérifier à nouveau
                   </button>
                 </div>
-                <Aide />
+                <Aide email={emailSession} />
               </>
             )}
           </div>

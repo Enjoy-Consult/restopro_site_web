@@ -3,6 +3,7 @@ import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import SEO from "@/components/SEO";
 import Etapes from "@/components/billing/Etapes";
+import LienReprise from "@/components/billing/LienReprise";
 import Message from "@/components/billing/Message";
 import OffreCard from "@/components/billing/OffreCard";
 import { BUSINESS } from "@/lib/business-info";
@@ -11,6 +12,7 @@ import { BILLING_MOCK_DEV, URL_MON_COMPTE } from "@/lib/billing/config";
 import { messageCatalogue } from "@/lib/billing/erreurs";
 import { prendreExplicationChoix } from "@/lib/billing/inscription";
 import { selectionDepuisQuery } from "@/lib/billing/pricing";
+import { prendreAnnonceReprise } from "@/lib/billing/reprise";
 import { decisionAnnulation } from "@/lib/billing/retour";
 import { preparerScenario } from "@/lib/billing/scenarios";
 import { lireSession } from "@/lib/billing/session";
@@ -52,6 +54,8 @@ export default function Tarifs() {
   const [repriseSansChoix, setRepriseSansChoix] = useState(false);
   // Renvoi depuis /inscription sans choix valable : l'explication vient de la mémoire, une seule fois.
   const [explicationChoix] = useState(prendreExplicationChoix);
+  // Arrivée depuis un lien de reprise échangé : le compte existe, il reste à choisir la formule puis à payer.
+  const [annonceReprise] = useState(prendreAnnonceReprise);
 
   // Carrousel des téléphones : Sérénité (la formule mise en avant) est centrée à l'ouverture.
   const pisteRef = useRef(null);
@@ -109,9 +113,21 @@ export default function Tarifs() {
         <div className="max-w-[1200px] mx-auto px-5 md:px-6">
           {explicationChoix && <Message type="info" className="mb-8">{explicationChoix}</Message>}
 
+          {annonceReprise && (
+            <Message type="info" className="mb-8">
+              Votre inscription est reprise{annonceReprise.email && <> pour <strong>{annonceReprise.email}</strong></>}. Choisissez votre formule
+              ci-dessous : vous passerez ensuite directement au paiement, sans recréer de compte.
+            </Message>
+          )}
+
           {annulation && (
             <Message type="info" className="mb-8">
               <p>Paiement annulé. Aucun montant n’a été débité.</p>
+              {annulation.type === "simple" && (
+                <p className="mt-2">
+                  Si votre compte était déjà créé, il est conservé : <LienReprise>recevez un lien pour reprendre votre inscription</LienReprise>.
+                </p>
+              )}
               {annulation.type !== "simple" && (
                 <p className="mt-2">
                   Votre compte est déjà créé{session.email && <> pour <strong>{session.email}</strong></>}. Il reste à régler votre abonnement.
@@ -192,8 +208,11 @@ export default function Tarifs() {
             </>
           )}
 
+          <p className="text-center text-[15px] mt-12">
+            Inscription commencée sans payer ? <LienReprise>Recevez un lien pour la reprendre</LienReprise>.
+          </p>
           {URL_MON_COMPTE && (
-            <p className="text-center text-[15px] mt-12">
+            <p className="text-center text-[15px] mt-3">
               <a href={URL_MON_COMPTE} className="link-underline">
                 Déjà client ? Gérez votre abonnement depuis votre espace
               </a>

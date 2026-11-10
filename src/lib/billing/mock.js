@@ -21,6 +21,14 @@
 //   Inscription ou checkout sans bloc cgv -> 409 CGV_VERSION_OBSOLETE, comme Apirest
 // Toute autre adresse : abonnement « actif » après quelques interrogations.
 //
+// Reprise d'une inscription (/abonnement/reprendre) :
+//   demande d'un lien : réponse identique pour toute adresse, sauf trop@… (429), indispo@… (503), validation@… (400)
+//   /abonnement/reprendre#jeton=maquette-reprise-valide      -> nouveau jeton pour marie@exemple.fr, puis paiement normal
+//   …#jeton=maquette-reprise-expire (ou -utilise)            -> 410 LIEN_INDISPONIBLE
+//   …#jeton=maquette-reprise-actif                           -> 409 ABONNEMENT_DEJA_ACTIF
+//   …#jeton=maquette-reprise-activation                      -> 409 ABONNEMENT_DEJA_ACTIF, motif activation_en_cours
+//   …#jeton=maquette-reprise-indispo (ou -trop)              -> 503 (ou 429) : le bouton reste, pour réessayer
+//
 // En développement seulement (npm run dev), sans passer par le formulaire :
 //   annule@…  -> le 1er checkout revient sur /tarifs?paiement=annule, le compte reste créé
 //   /abonnement/retour?maquette=X, avec X parmi :
@@ -219,6 +227,15 @@ function exigerCgv(corps) {
 // Le premier envoi est refusé avec details.cgv, comme Apirest ; le renvoi avec cette empreinte passe.
 export const EMPREINTE_CGV_MAQUETTE = "b".repeat(64);
 
+// Code de reprise des scénarios (voir l'en-tête) : la fin du code choisit la réponse.
+export const PREFIXE_JETON_REPRISE = "maquette-reprise-";
+
+function nouvelleSession(email, titulaire) {
+  const jeton = `mock-${Math.random().toString(36).slice(2)}`;
+  ecrireEtat({ token: jeton, email, titulaire, essaisCheckout: 0, interrogations: 0, choix: null });
+  return jeton;
+}
+
 function exigerNouvelleCgv(corps) {
   if (corps?.cgv?.sha256 === EMPREINTE_CGV_MAQUETTE) return;
   const version = corps?.cgv?.version ?? "0.1";
@@ -260,10 +277,26 @@ export async function mockRequete(methode, chemin, { corps, token, pms = false, 
         { path: "responsable.email", code: "invalid_string", message: "E-mail invalide" },
       ]);
     if (String(corps?.restaurant?.siret ?? "").startsWith("000000")) throw new ApiError("SIRET_INVALIDE", 422);
-    const jeton = `mock-${Math.random().toString(36).slice(2)}`;
     const { prenom, nom } = corps.responsable;
-    ecrireEtat({ token: jeton, email, titulaire: `${prenom} ${nom}`, essaisCheckout: 0, interrogations: 0, choix: null });
-    return { token: jeton, restaurantId: "r-mock", billingAccountId: "ba-mock" };
+    return { token: nouvelleSession(email, `${prenom} ${nom}`), restaurantId: "r-mock", billingAccountId: "ba-mock" };
+  }
+
+  if (route === "POST /api/billing/reprise/demande") {
+    const email = String(corps?.email ?? "").toLowerCase();
+    if (email.startsWith("trop")) throw new ApiError("TROP_D_ESSAIS", 429, null, RETRY_AFTER_SCENARIO_MS);
+    if (email.startsWith("indispo")) throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
+    if (email.startsWith("validation")) throw new ApiError("VALIDATION_ERROR", 400, [{ path: "email", code: "invalid_string", message: "E-mail invalide" }]);
+    return { ok: true };
+  }
+
+  if (route === "POST /api/billing/reprise") {
+    const fin = String(corps?.jeton ?? "").startsWith(PREFIXE_JETON_REPRISE) ? String(corps.jeton).slice(PREFIXE_JETON_REPRISE.length) : "valide";
+    if (fin === "expire" || fin === "utilise") throw new ApiError("LIEN_INDISPONIBLE", 410);
+    if (fin === "activation") throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409, { motif: "activation_en_cours" });
+    if (fin === "actif") throw new ApiError("ABONNEMENT_DEJA_ACTIF", 409);
+    if (fin === "indispo") throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
+    if (fin === "trop") throw new ApiError("TROP_D_ESSAIS", 429, null, RETRY_AFTER_SCENARIO_MS);
+    return { token: nouvelleSession(EMAIL_SCENARIO, "Marie Martin"), email: EMAIL_SCENARIO };
   }
 
   if (route === "POST /api/billing/checkout") {

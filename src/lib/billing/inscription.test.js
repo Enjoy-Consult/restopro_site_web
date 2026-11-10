@@ -13,7 +13,8 @@ import {
   MESSAGE_REFUS_GENERIQUE,
   MESSAGE_VALIDATION,
   PHRASE_ESSAI_INTERROMPU,
-  decouperEspace,
+  MESSAGE_SESSION_EXPIREE,
+  decouperLien,
   erreursDeValidation,
   messageErreur,
 } from "./erreurs.js";
@@ -161,31 +162,43 @@ test("ABONNEMENT_DEJA_ACTIF et GERE_PAR_ABONNEMENT : renvoi vers l'espace, quel 
   }
 });
 
-test("decouperEspace : le lien porte sur « votre espace », le texte reste entier", () => {
-  for (const code of ["ABONNEMENT_DEJA_ACTIF", "GERE_PAR_ABONNEMENT", "CGV_VERSION_OBSOLETE"]) {
+test("decouperLien : « votre espace » mène à l'espace, le texte reste entier", () => {
+  for (const code of ["ABONNEMENT_DEJA_ACTIF", "GERE_PAR_ABONNEMENT", "FACTURE_IMPAYEE"]) {
     const texte = messageErreur(new ApiError(code, 409));
-    const { avant, espace, apres } = decouperEspace(texte);
-    assert.equal(espace, "votre espace", code);
-    assert.equal(`${avant}${espace}${apres}`, texte, code);
+    const { avant, lien, apres } = decouperLien(texte);
+    assert.deepEqual(lien, { type: "espace", texte: "votre espace" }, code);
+    assert.equal(`${avant}${lien.texte}${apres}`, texte, code);
   }
-  assert.deepEqual(decouperEspace(MESSAGE_INDISPONIBLE), { avant: MESSAGE_INDISPONIBLE, espace: null, apres: "" });
-  assert.equal(decouperEspace(MESSAGE_INSCRIPTION_SANS_JETON).espace, "votre espace");
-  assert.equal(decouperEspace(MESSAGE_REFUS_GENERIQUE).espace, null);
+  assert.deepEqual(decouperLien(MESSAGE_INDISPONIBLE), { avant: MESSAGE_INDISPONIBLE, lien: null, apres: "" });
+  assert.equal(decouperLien(MESSAGE_REFUS_GENERIQUE).lien, null);
 });
 
-test("CGV_VERSION_OBSOLETE au paiement : ni panne, ni rechargement sans issue, espace et téléphone", () => {
+// Sans mot de passe avant le paiement, une inscription interrompue ne se reprend plus « depuis l'espace » :
+// chaque repli mène à la page de reprise (lien reçu par e-mail, CGV 0.2, article 5).
+test("replis sans jeton : lien de reprise, jamais « connectez-vous à votre espace »", () => {
+  for (const texte of [MESSAGE_INSCRIPTION_SANS_JETON, MESSAGE_SESSION_EXPIREE, PHRASE_ESSAI_INTERROMPU]) {
+    const { avant, lien, apres } = decouperLien(texte);
+    assert.deepEqual(lien, { type: "reprise", texte: "reprendre votre inscription" }, texte);
+    assert.equal(`${avant}${lien.texte}${apres}`, texte);
+    assert.doesNotMatch(texte, /connectez-vous|votre espace/i, texte);
+  }
+  assert.match(MESSAGE_SESSION_EXPIREE, /compte est conservé/);
+  assert.ok(MESSAGE_INSCRIPTION_SANS_JETON.includes(BUSINESS.phone.display));
+});
+
+test("CGV_VERSION_OBSOLETE au paiement : ni panne, ni rechargement sans issue, téléphone", () => {
   const message = messageErreur(new ApiError("CGV_VERSION_OBSOLETE", 409));
   assert.equal(message, MESSAGE_CGV_OBSOLETE_PAIEMENT);
   assert.notEqual(message, MESSAGE_INDISPONIBLE);
   assert.ok(!/recharge/i.test(message));
-  assert.ok(message.includes("votre espace"));
   assert.ok(message.includes(BUSINESS.phone.display));
+  assert.match(message, /compte est conservé/);
 });
 
 test("EMAIL_DEJA_UTILISE : la phrase de l'essai interrompu reste fidèle aux CGV (article 5)", () => {
   assert.match(PHRASE_ESSAI_INTERROMPU, /interrompue/);
   assert.match(PHRASE_ESSAI_INTERROMPU, /compte est conservé/);
-  assert.match(PHRASE_ESSAI_INTERROMPU, /votre espace/);
+  assert.match(PHRASE_ESSAI_INTERROMPU, /reprendre votre inscription/);
 });
 
 // --- d) Saisie gardée ---
@@ -557,7 +570,7 @@ test("FACTURE_IMPAYEE au checkout : texte du front, chemin vers l'espace, pas de
     const message = messageErreur(e);
     assert.match(message, /^Une facture impayée doit être réglée avant de choisir une formule\./);
     assert.notEqual(message, MESSAGE_INDISPONIBLE);
-    assert.notEqual(decouperEspace(message).espace, null, "« votre espace » devient un lien");
+    assert.equal(decouperLien(message).lien?.type, "espace", "« votre espace » devient un lien");
     return true;
   });
 });

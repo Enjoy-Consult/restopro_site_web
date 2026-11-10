@@ -185,6 +185,14 @@ export function lireInscription(brut) {
   return { ...corps, token };
 }
 
+// Échange d'un lien de reprise : un nouveau jeton de paiement (2 h) et l'adresse du compte, à rappeler à l'écran.
+export function lireReprise(brut) {
+  const corps = sansEnveloppe(brut);
+  const token = texte(corps?.token);
+  if (!token) throw new ApiError("REPRISE_SANS_JETON");
+  return { token, email: texte(corps?.email) };
+}
+
 export function lireCheckout(brut) {
   const url = texte(sansEnveloppe(brut)?.url);
   if (!url) throw new ApiError("CHECKOUT_SANS_URL");
@@ -218,3 +226,8 @@ export const getCatalogue = () => requete("GET", "/api/billing/catalogue").then(
 export const inscrire = (corps) => requete("POST", "/api/billing/inscription", { corps }).then(lireInscription);
 export const lancerCheckout = (token, corps) => requete("POST", "/api/billing/checkout", { corps, token }).then(lireCheckout);
 export const getCompte = (token) => requete("GET", "/api/billing/compte", { token }).then(lireCompte);
+
+// Reprise d'une inscription non payée (reprise.js). Noms des routes provisoires : à aligner sur le contrat d'Apirest.
+// La demande répond toujours de la même façon, que l'adresse soit connue ou non : son corps n'est pas lu.
+export const demanderLienReprise = (email) => requete("POST", "/api/billing/reprise/demande", { corps: { email } }).then(() => undefined);
+export const echangerLienReprise = (jeton) => requete("POST", "/api/billing/reprise", { corps: { jeton } }).then(lireReprise);

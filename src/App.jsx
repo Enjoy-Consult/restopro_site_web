@@ -12,6 +12,7 @@ import EssaiGratuit from './pages/EssaiGratuit';
 import Tarifs from './pages/Tarifs';
 import Inscription from './pages/Inscription';
 import AbonnementRetour from './pages/AbonnementRetour';
+import AbonnementReprendre from './pages/AbonnementReprendre';
 import DocumentLegal from './pages/DocumentLegal';
 import ErrorBoundary from '@/components/billing/ErrorBoundary';
 import { DOCUMENTS_LEGAUX } from '@/content/legal';
@@ -109,6 +110,7 @@ const AuthenticatedApp = () => {
           <Route path="/tarifs" element={<LayoutWrapper currentPageName="tarifs"><ErrorBoundary key="tarifs"><Tarifs /></ErrorBoundary></LayoutWrapper>} />
           <Route path="/inscription" element={<LayoutWrapper currentPageName="inscription"><ErrorBoundary key="inscription"><Inscription /></ErrorBoundary></LayoutWrapper>} />
           <Route path="/abonnement/retour" element={<LayoutWrapper currentPageName="abonnement-retour"><ErrorBoundary key="abonnement-retour"><AbonnementRetour /></ErrorBoundary></LayoutWrapper>} />
+          <Route path="/abonnement/reprendre" element={<LayoutWrapper currentPageName="abonnement-reprendre"><ErrorBoundary key="abonnement-reprendre"><AbonnementReprendre /></ErrorBoundary></LayoutWrapper>} />
         </>
       )}
       <Route path="*" element={<PageNotFound />} />

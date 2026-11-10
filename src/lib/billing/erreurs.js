@@ -11,28 +11,29 @@ export const MESSAGE_TROP_D_ESSAIS = "Trop d’essais. Réessayez plus tard.";
 export const MESSAGE_CATALOGUE_INVALIDE = "Les formules ne peuvent pas s’afficher pour le moment. Réessayez dans quelques minutes.";
 
 // Inscription acceptée sans jeton : le compte existe sans doute, on ne propose pas d'en recréer un.
+// Sans mot de passe avant le paiement, la suite passe par un lien de reprise reçu par e-mail (CGV 0.2, article 5).
 export const MESSAGE_INSCRIPTION_SANS_JETON =
-  `Votre compte a peut-être été créé, mais le paiement n’a pas pu démarrer. Connectez-vous à votre espace pour choisir une formule, ou appelez-nous au ${BUSINESS.phone.display}.`;
+  `Votre compte a peut-être été créé, mais le paiement n’a pas pu démarrer. Recevez un lien pour reprendre votre inscription, ou appelez-nous au ${BUSINESS.phone.display}.`;
 
 // Refus (403) au code inconnu : message neutre, l'indisponibilité est réservée au réseau et aux 5xx.
 export const MESSAGE_REFUS_GENERIQUE = "Cette action n’est pas possible pour le moment. Contactez-nous si le problème persiste.";
 
 // Jeton restreint expiré (2 h) : le compte existe déjà, on ne propose jamais de le recréer
-// (l'API répondrait EMAIL_DEJA_UTILISE) ; on renvoie vers l'espace client.
+// (l'API répondrait EMAIL_DEJA_UTILISE) ; on propose un lien de reprise, reçu par e-mail.
 export const MESSAGE_SESSION_EXPIREE =
-  "Votre session a expiré. Connectez-vous à votre espace pour finaliser votre abonnement.";
+  "Votre session a expiré. Votre compte est conservé : recevez un lien pour reprendre votre inscription.";
 
 // 400 VALIDATION_ERROR sans champ à désigner.
 export const MESSAGE_VALIDATION = "Certaines informations n’ont pas été acceptées. Vérifiez-les et réessayez.";
 
-// E-mail déjà connu après un essai interrompu : le compte reste créé et se finalise depuis l'espace (CGV, article 5).
+// E-mail déjà connu après un essai interrompu : le compte reste créé et se finalise par un lien de reprise (CGV 0.2, article 5).
 export const PHRASE_ESSAI_INTERROMPU =
-  "Si votre inscription s’est interrompue avant le paiement, votre compte est conservé : finalisez votre abonnement depuis votre espace.";
+  "Si votre inscription s’est interrompue avant le paiement, votre compte est conservé : recevez un lien pour reprendre votre inscription.";
 
-// CGV changées alors que le compte existe déjà : le checkout envoie la version de cette page, refusée,
-// et la page n'a plus de case à cocher. On renvoie vers l'espace ou le téléphone.
+// CGV changées alors que le compte existe déjà, sans nouvelle version lisible : le checkout envoie la version de cette
+// page, refusée, et ni un rechargement ni un lien de reprise n'en donnent une autre. Seul le téléphone reste.
 export const MESSAGE_CGV_OBSOLETE_PAIEMENT =
-  `Les conditions générales de vente ont été mises à jour. Connectez-vous à votre espace pour finaliser votre abonnement, ou appelez-nous au ${BUSINESS.phone.display}.`;
+  `Les conditions générales de vente ont été mises à jour. Appelez-nous au ${BUSINESS.phone.display} pour finaliser votre abonnement : votre compte est conservé.`;
 
 // 409 CGV_VERSION_OBSOLETE lisible : la page affiche la nouvelle version et la fait accepter (même texte que le front).
 export const MESSAGE_CGV_A_REACCEPTER =
@@ -112,13 +113,20 @@ export function messageErreur(erreur) {
   return MESSAGE_INDISPONIBLE;
 }
 
-// Texte découpé autour de « votre espace », pour que la page y mette le lien. Sans ces mots : tout est dans `avant`.
-const MOTS_ESPACE = "votre espace";
+// Texte découpé autour des mots qui deviennent un lien dans la page : « reprendre votre inscription » (page de reprise)
+// ou « votre espace » (espace client). Un seul lien par texte, le premier trouvé dans cet ordre.
+// Sans ces mots : tout est dans `avant`, et `lien` vaut null.
+const LIENS = [
+  ["reprendre votre inscription", "reprise"],
+  ["votre espace", "espace"],
+];
 
-export function decouperEspace(texte) {
-  const debut = texte.indexOf(MOTS_ESPACE);
-  if (debut < 0) return { avant: texte, espace: null, apres: "" };
-  return { avant: texte.slice(0, debut), espace: MOTS_ESPACE, apres: texte.slice(debut + MOTS_ESPACE.length) };
+export function decouperLien(texte) {
+  for (const [mots, type] of LIENS) {
+    const debut = texte.indexOf(mots);
+    if (debut >= 0) return { avant: texte.slice(0, debut), lien: { type, texte: mots }, apres: texte.slice(debut + mots.length) };
+  }
+  return { avant: texte, lien: null, apres: "" };
 }
 
 // details[].path de l'API -> champ du formulaire, dans l'ordre de la page (le premier reçoit le focus).
