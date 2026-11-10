@@ -102,14 +102,6 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
           <span className="text-ink font-medium">Inclus : </span>
           {inclus.join(", ")}
         </p>
-        {/* CGV 3.1 : l'accès depuis un ordinateur dépend de la formule. Ni le contrat ni les CGV ne disent
-            « sur téléphone et tablette uniquement », et l'abonnement se gère sur le web : ne pas l'écrire. */}
-        {offre.fonctions.accesOrdinateur === false && (
-          <p className="text-muted text-[13px] leading-snug mt-1.5">
-            <span className="text-ink font-medium">Non inclus : </span>
-            accès sur ordinateur
-          </p>
-        )}
       </header>
 
       {/* 2. Version */}
@@ -176,10 +168,9 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
                   dès {formatHTParPeriode(prixMiniSupplement, version.periode)}, à ajouter à l’étape suivante
                 </Ligne>
               )}
-              {offre.fonctions.accesOrdinateur === true && <Ligne label="Accès sur ordinateur">Inclus</Ligne>}
-              {offre.fonctions.accesOrdinateur === false && (
-                <Ligne label="Accès sur ordinateur">Non inclus. Votre abonnement se gère tout de même sur le web, depuis votre espace client.</Ligne>
-              )}
+              {/* CGV 0.2, article 3.1 : toutes les formules comprennent l'accès depuis un ordinateur.
+                  La carte ne lit donc plus fonctions.accesOrdinateur et n'affiche jamais « Non inclus ». */}
+              <Ligne label="Accès sur ordinateur">Inclus</Ligne>
               <Ligne label="Assistance DDPP niveau 1">
                 {offre.fonctions.ddpp === "incluse" && "Incluse"}
                 {offre.fonctions.ddpp === "option" && (optionDdpp ? `En option, ${formatHTParPeriode(optionDdpp.prixCentimes, version.periode)}` : "Non proposée avec cette version")}

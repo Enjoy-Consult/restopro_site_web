@@ -150,7 +150,8 @@ function lireOffre(brut, pmsDisponible, modules) {
   const { categoriesAutorisees, fonctions } = brut;
   if (!Object.values(comptesInclus).some((n) => n > 0) || !Array.isArray(categoriesAutorisees) || !Array.isArray(brut.modules)) return null;
   if (!DDPP.includes(fonctions?.ddpp)) return null;
-  // Accès sur ordinateur absent ou illisible : null, la carte ne dit ni « inclus » ni « non inclus ».
+  // Accès sur ordinateur : lu tel quel (null s'il est absent ou illisible). Depuis les CGV 0.2 (article 3.1),
+  // il est inclus dans toutes les formules : la carte l'affiche « Inclus » sans lire ce champ.
   const accesOrdinateur = typeof fonctions.accesOrdinateur === "boolean" ? fonctions.accesOrdinateur : null;
   return {
     cle,

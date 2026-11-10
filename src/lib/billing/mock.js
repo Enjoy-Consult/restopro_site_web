@@ -127,7 +127,7 @@ export function mockCatalogue(pmsDisponible = false) {
         comptesInclus: { responsable: 1, superviseur: 0, cuisinier: 2, services_techniques: 0 },
         categoriesAutorisees: ["responsable", "cuisinier", "services_techniques"],
         modules: communs,
-        fonctions: { accesOrdinateur: false, ddpp: "non", superviseur: false },
+        fonctions: { accesOrdinateur: true, ddpp: "non", superviseur: false },
         versions: [version("mensuel", "mois", "non", 1999, { responsable: 990, cuisinier: 490, services_techniques: 490 })],
       },
       {
@@ -136,7 +136,7 @@ export function mockCatalogue(pmsDisponible = false) {
         comptesInclus: { responsable: 1, superviseur: 1, cuisinier: 3, services_techniques: 1 },
         categoriesAutorisees: ["responsable", "superviseur", "cuisinier", "services_techniques"],
         modules: communs,
-        fonctions: { accesOrdinateur: false, ddpp: "incluse", superviseur: true },
+        fonctions: { accesOrdinateur: true, ddpp: "incluse", superviseur: true },
         versions: sereniteVersions,
       },
       {
