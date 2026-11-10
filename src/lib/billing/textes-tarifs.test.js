@@ -16,11 +16,11 @@ const toutLeTexte = (catalogue) =>
 
 test("sans version engagée : le texte de la mission, sans mention de l'engagement de 12 mois", () => {
   assert.deepEqual(titresAtouts(SANS_PMS), ["Équipiers illimités", "Sans engagement", "Paiement sécurisé"]);
-  assert.equal(atoutsTarifs(SANS_PMS)[1][1], "Les formules mensuelles se résilient depuis votre espace client.");
+  assert.equal(atoutsTarifs(SANS_PMS)[1][1], "Les formules mensuelles se résilient depuis votre espace abonnement ou depuis l’application web.");
   assert.equal(reponse(SANS_PMS, "Y a-t-il"), "Les formules mensuelles sont sans engagement. La formule annuelle est payée d’avance pour douze mois.");
   assert.equal(
     reponse(SANS_PMS, "Comment résilier"),
-    "Depuis votre espace client. Après la résiliation, vos données restent consultables pendant deux mois en lecture seule, avec un export complet, puis elles sont supprimées."
+    "Depuis votre espace abonnement, sur le site, ou depuis l’application web. Après la résiliation, vos données restent consultables pendant deux mois en lecture seule, avec un export complet, puis elles sont supprimées."
   );
   assert.ok(!/12 mois|PMS/.test(toutLeTexte(SANS_PMS)));
 });

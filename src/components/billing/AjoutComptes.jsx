@@ -72,7 +72,7 @@ export default function AjoutComptes({ catalogue, calcul, selection, onChange, o
               </label>
             )}
           </div>
-          <p className="text-faint text-[13px] leading-snug mt-4">Vous pourrez aussi en ajouter plus tard depuis votre espace client.</p>
+          <p className="text-faint text-[13px] leading-snug mt-4">Vous pourrez aussi en ajouter plus tard depuis votre espace abonnement.</p>
         </fieldset>
       )}
     </div>

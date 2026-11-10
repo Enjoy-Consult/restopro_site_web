@@ -19,12 +19,12 @@ function engagements(catalogue) {
 function atoutEngagement(catalogue) {
   if (!catalogue) return null;
   const { sansEngagement, engagee, mois } = engagements(catalogue);
-  const resiliation = "La résiliation se demande depuis votre espace client.";
+  const resiliation = "La résiliation se demande depuis votre espace abonnement ou depuis l’application web.";
   if (engagee && sansEngagement) {
     return ["Avec ou sans engagement", `Selon la formule et la version : mensuel sans engagement ou engagement de ${mois} mois. ${resiliation}`];
   }
   if (engagee) return [`Engagement de ${mois} mois`, `Les versions mensuelles vous engagent pour ${mois} mois. ${resiliation}`];
-  if (sansEngagement) return ["Sans engagement", "Les formules mensuelles se résilient depuis votre espace client."];
+  if (sansEngagement) return ["Sans engagement", "Les formules mensuelles se résilient depuis votre espace abonnement ou depuis l’application web."];
   return null;
 }
 
@@ -56,7 +56,7 @@ function reponseEngagement(catalogue) {
 
 function reponseResiliation(catalogue) {
   const effet = catalogue && engagements(catalogue).engagee ? " Avec un engagement, la résiliation prend effet à la fin de celui-ci." : "";
-  return `Depuis votre espace client.${effet} Après la résiliation, vos données restent consultables pendant deux mois en lecture seule, avec un export complet, puis elles sont supprimées.`;
+  return `Depuis votre espace abonnement, sur le site, ou depuis l’application web.${effet} Après la résiliation, vos données restent consultables pendant deux mois en lecture seule, avec un export complet, puis elles sont supprimées.`;
 }
 
 export function questionsTarifs(catalogue) {
@@ -68,7 +68,7 @@ export function questionsTarifs(catalogue) {
     {
       question: "Puis-je ajouter des comptes supplémentaires ?",
       reponse:
-        "Oui : vous les choisissez lors de l’inscription, puis vous pouvez en ajouter à tout moment depuis votre espace client. Leur prix figure dans le détail de chaque formule.",
+        "Oui : vous les choisissez lors de l’inscription, puis vous pouvez en ajouter à tout moment depuis votre espace abonnement, sur le site. Leur prix figure dans le détail de chaque formule.",
     },
     {
       question: "Que sont les équipiers ?",
