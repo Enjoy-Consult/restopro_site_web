@@ -69,8 +69,12 @@ export async function requete(methode, chemin, { corps, token, delaiMs = DELAI_M
       body: corps === undefined ? undefined : JSON.stringify(corps),
       signal: controleur.signal,
     });
-    // Le délai couvre aussi la lecture du corps : un corps qui n'arrive jamais ne fige pas le bouton.
-    data = fichier && reponse.ok ? await reponse.blob() : await reponse.json().catch(() => null);
+    // Le délai couvre aussi la lecture du corps : un corps qui n'arrive jamais ne fige pas le bouton. Pour un fichier
+    // (export ZIP), il s'arrête aux en-têtes : un gros export sur une connexion lente n'est pas coupé en route.
+    if (fichier && reponse.ok) {
+      clearTimeout(minuteur);
+      data = await reponse.blob();
+    } else data = await reponse.json().catch(() => null);
     if (controleur.signal.aborted) throw new ApiError("RESEAU");
   } catch {
     throw new ApiError("RESEAU");

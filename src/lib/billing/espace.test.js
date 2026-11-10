@@ -4,8 +4,8 @@ import assert from "node:assert/strict";
 import { ApiError } from "./errors.js";
 import {
   TEXTE_NON_TITULAIRE, TEXTE_PORTEE_INSUFFISANTE, TEXTE_SANS_ABONNEMENT, TEXTE_TRANSFERT_RECU,
-  cheminDeRetourAdmis, estMotDePasseRefuse, estSessionFinie, issueConnexion, issueConnexionReussie, lireConnexion,
-  messageRefusEspace, resumeCompte, sessionValable, urlPortail,
+  DUREE_SESSION_MS, cheminDeRetourAdmis, echeanceLocale, estMotDePasseRefuse, estSessionFinie, issueConnexion,
+  issueConnexionReussie, lireConnexion, messageRefusEspace, nomFichierExport, resumeCompte, sessionValable, urlPortail,
 } from "./espace.js";
 
 const MAINTENANT = Date.parse("2026-11-12T10:00:00Z");
@@ -50,9 +50,10 @@ test("session : 401 finit la session ; PORTEE_INSUFFISANTE jamais ; mot de passe
   assert.equal(estMotDePasseRefuse(new ApiError("MOT_DE_PASSE_REQUIS", 403)), true);
   assert.equal(estMotDePasseRefuse(new ApiError("MOT_DE_PASSE_INCORRECT", 403)), false);
   assert.equal(estMotDePasseRefuse(new ApiError("IDENTIFIANTS_INVALIDES", 401)), false);
-  assert.equal(sessionValable({ token: "t", expireLe: jours(1) }, MAINTENANT), true);
-  assert.equal(sessionValable({ token: "t", expireLe: jours(-1) }, MAINTENANT), false);
-  assert.equal(sessionValable({ expireLe: jours(1) }, MAINTENANT), false);
+  assert.equal(sessionValable({ token: "t", echeance: MAINTENANT + 1000 }, MAINTENANT), true);
+  assert.equal(sessionValable({ token: "t", echeance: MAINTENANT - 1 }, MAINTENANT), false);
+  assert.equal(sessionValable({ token: "t", expireLe: jours(1) }, MAINTENANT), false, "ancienne forme sans échéance locale");
+  assert.equal(sessionValable({ echeance: MAINTENANT + 1000 }, MAINTENANT), false);
 });
 
 test("retour après connexion : seulement un chemin de l'espace", () => {
@@ -82,8 +83,33 @@ test("accueil : actions selon le statut, résiliation programmée, sans abonneme
   assert.match(resumeCompte({ statut: "impaye", graceJusquau: jours(3) }, MAINTENANT).bandeaux[0].texte, /lecture seule/);
 });
 
-test("portail : https seulement, ou la même origine en maquette", () => {
+test("échéance locale : durée restante bornée à 2 h, 2 h si expireLe est illisible ou passé (horloge en avance)", () => {
+  assert.equal(echeanceLocale(new Date(MAINTENANT + 3600000).toISOString(), MAINTENANT), MAINTENANT + 3600000);
+  assert.equal(echeanceLocale(new Date(MAINTENANT + 5 * 3600000).toISOString(), MAINTENANT), MAINTENANT + DUREE_SESSION_MS);
+  assert.equal(echeanceLocale(new Date(MAINTENANT - 300000).toISOString(), MAINTENANT), MAINTENANT + DUREE_SESSION_MS);
+  for (const illisible of [null, undefined, "", "demain", 1234]) assert.equal(echeanceLocale(illisible, MAINTENANT), MAINTENANT + DUREE_SESSION_MS);
+});
+
+test("refus de l'espace : un 4xx n'est pas une panne", () => {
+  assert.match(messageRefusEspace(new ApiError("NON_TITULAIRE", 403)), /n’est pas possible/);
+  assert.match(messageRefusEspace(new ApiError("RESILIATION_DEJA_PROGRAMMEE", 409)), /n’est pas possible/);
+  assert.match(messageRefusEspace(new ApiError("RESEAU")), /momentanément indisponible/);
+  assert.match(messageRefusEspace(new ApiError("X", 503)), /momentanément indisponible/);
+});
+
+test("export : nom de fichier propre à l'établissement, en lettres simples", () => {
+  assert.equal(nomFichierExport("Chez Marie"), "export-restoclair-chez-marie.zip");
+  assert.equal(nomFichierExport("Le Bistrot d’Élise & Cie"), "export-restoclair-le-bistrot-d-elise-cie.zip");
+  assert.equal(nomFichierExport("../../etc"), "export-restoclair-etc.zip");
+  assert.equal(nomFichierExport(""), "export-restoclair.zip");
+  assert.equal(nomFichierExport(null), "export-restoclair.zip");
+});
+
+test("portail : https://billing.stripe.com seulement, ou la même origine en maquette", () => {
   assert.equal(urlPortail("https://billing.stripe.com/p/session/x"), "https://billing.stripe.com/p/session/x");
+  assert.equal(urlPortail("https://evil.example/p/session/x"), null);
+  assert.equal(urlPortail("https://billing.stripe.com.evil.example/x"), null);
+  assert.equal(urlPortail("https://user:pw@billing.stripe.com/x"), null);
   assert.equal(urlPortail("http://billing.stripe.com/x"), null);
   assert.equal(urlPortail("javascript:alert(1)"), null);
   assert.equal(urlPortail("/relatif"), null);

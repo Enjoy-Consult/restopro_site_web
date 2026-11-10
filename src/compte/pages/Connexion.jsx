@@ -4,7 +4,7 @@ import Message from "@/components/billing/Message";
 import { CHEMINS_COMPTE } from "@/compte/chemins";
 import { BUSINESS } from "@/lib/business-info";
 import { seConnecter, seDeconnecter } from "@/lib/billing/api";
-import { ecrireSessionEspace, issueConnexion, issueConnexionReussie, lireSessionEspace, prendreRetour } from "@/lib/billing/espace";
+import { echeanceLocale, ecrireSessionEspace, issueConnexion, issueConnexionReussie, lireSessionEspace, prendreRetour } from "@/lib/billing/espace";
 
 const CLASSE_CHAMP =
   "w-full border border-border bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
@@ -23,9 +23,12 @@ export default function Connexion() {
   const [issue, setIssue] = useState(null);
   const envoiEnCours = useRef(false);
   const avis = typeof state?.message === "string" ? state.message : null;
+  const titreRef = useRef(null);
 
   useEffect(() => {
     document.title = "Connexion à mon abonnement · RestOclair";
+    // Arrivée avec un avis (session expirée, déconnexion) : le focus sur le titre le fait lire juste après.
+    if (avis) titreRef.current?.focus();
   }, []);
 
   if (deja) return <Navigate to={CHEMINS_COMPTE.espace} replace />;
@@ -48,7 +51,7 @@ export default function Connexion() {
         const restaurants = suite.restaurants;
         ecrireSessionEspace({
           token: connexion.token,
-          expireLe: connexion.expireLe,
+          echeance: echeanceLocale(connexion.expireLe),
           restaurants,
           restaurantId: restaurants.length === 1 ? restaurants[0].restaurantId : null,
         });
@@ -73,7 +76,7 @@ export default function Connexion() {
     <section className="pt-12 pb-24 md:pt-20 md:pb-32">
       <div className="max-w-[560px] mx-auto px-5 md:px-6">
         <p className="text-bottle text-[12px] font-medium uppercase tracking-[0.14em] mb-5">Mon abonnement</p>
-        <h1 className="text-ink mb-5 text-[clamp(2rem,5vw,3rem)]">Connexion.</h1>
+        <h1 ref={titreRef} tabIndex={-1} className="text-ink mb-5 text-[clamp(2rem,5vw,3rem)] focus:outline-none">Connexion.</h1>
         <p className="text-muted text-lg leading-relaxed mb-8">
           Connectez-vous avec l’adresse e-mail et le mot de passe de votre compte RestOclair, ceux de l’application.
         </p>

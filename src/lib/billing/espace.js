@@ -12,7 +12,7 @@
 // restaurantId : paramètre de l'adresse pour GET /compte et /export-sortie, corps pour les POST et DELETE (confirmé).
 // Résiliation et annulation : 403 MOT_DE_PASSE_REQUIS ou MOT_DE_PASSE_INVALIDE (noms à confirmer par Apirest).
 import { ApiError } from "./errors.js";
-import { estTropDEssais, MESSAGE_INDISPONIBLE, messageTropDEssais } from "./erreurs.js";
+import { estTropDEssais, MESSAGE_INDISPONIBLE, MESSAGE_REFUS_GENERIQUE, messageTropDEssais } from "./erreurs.js";
 import { formatDate, formatHTParPeriode } from "./format.js";
 
 // --- Session de l'espace : sessionStorage de compte.restoclair.fr seulement (jamais localStorage ni cookie). ---
@@ -30,11 +30,19 @@ const stockage = () => {
   }
 };
 
-// Session encore valable à l'instant `maintenant` (2 h fixes côté Apirest ; l'API reste juge par ses 401).
+// Durée de la session d'Apirest : 2 h fixes, sans renouvellement.
+export const DUREE_SESSION_MS = 2 * 3600 * 1000;
+
+// Échéance locale, calculée à la connexion avec l'horloge du poste : la durée restante annoncée par expireLe, bornée
+// à 2 h, ou 2 h si expireLe est illisible ou déjà passé (horloge du poste en avance). L'API reste juge par ses 401.
+export function echeanceLocale(expireLe, maintenant = Date.now()) {
+  const restant = Date.parse(typeof expireLe === "string" ? expireLe : "") - maintenant;
+  return maintenant + (Number.isFinite(restant) && restant > 0 ? Math.min(restant, DUREE_SESSION_MS) : DUREE_SESSION_MS);
+}
+
+// Session encore valable à l'instant `maintenant`, d'après son échéance locale.
 export function sessionValable(session, maintenant = Date.now()) {
-  if (!session?.token) return false;
-  const fin = Date.parse(session.expireLe ?? "");
-  return Number.isNaN(fin) || fin > maintenant;
+  return Boolean(session?.token) && Number.isFinite(session.echeance) && session.echeance > maintenant;
 }
 
 export function lireSessionEspace(maintenant = Date.now()) {
@@ -163,12 +171,14 @@ export function issueConnexion(erreur) {
   return { texte: MESSAGE_INDISPONIBLE, telephone: true };
 }
 
-// Refus d'une action de l'espace (hors session finie et mot de passe refusé) : texte à afficher.
+// Refus d'une action de l'espace (hors session finie et mot de passe refusé) : texte à afficher. L'indisponibilité est
+// réservée au réseau et aux 5xx ; un autre refus 4xx reçoit le message générique.
 export function messageRefusEspace(erreur) {
   if (estTropDEssais(erreur)) return messageTropDEssais(erreur);
   if (erreur?.code === "PORTEE_INSUFFISANTE") return TEXTE_PORTEE_INSUFFISANTE;
   if (erreur?.code === "OPERATION_NON_DISPONIBLE")
     return "Cette action n’est plus disponible pour cet établissement. Pour toute autre demande, contactez le support.";
+  if (erreur?.status >= 400 && erreur?.status < 500) return MESSAGE_REFUS_GENERIQUE;
   return MESSAGE_INDISPONIBLE;
 }
 
@@ -220,22 +230,24 @@ export function resumeCompte(compte, maintenant = Date.now()) {
   if (statut === "impaye") {
     const limite = date(compte?.graceJusquau);
     bandeaux.push({
+      cle: "impaye",
       type: "error",
       texte: `Un paiement n’a pas abouti.${limite ? ` Sans régularisation, l’application passera en lecture seule le ${limite}.` : ""} Mettez à jour votre moyen de paiement ou réglez la facture depuis « Factures et moyen de paiement ».`,
     });
   }
   if (statut === "activation_provisoire")
-    bandeaux.push({ type: "info", texte: "Votre premier prélèvement est en cours. L’accès à l’application est ouvert en attendant sa confirmation." });
+    bandeaux.push({ cle: "provisoire", type: "info", texte: "Votre premier prélèvement est en cours. L’accès à l’application est ouvert en attendant sa confirmation." });
   if (resiliationProgrammee)
-    bandeaux.push({ type: "info", texte: `Votre abonnement prendra fin le ${date(compte.resiliation.effetLe)}. D’ici là, l’accès reste complet et vous pouvez annuler la résiliation.` });
+    bandeaux.push({ cle: "resiliation", type: "info", texte: `Votre abonnement prendra fin le ${date(compte.resiliation.effetLe)}. D’ici là, l’accès reste complet et vous pouvez annuler la résiliation.` });
   if (statut === "resilie") {
     const suppression = date(compte?.suppressionPrevueLe);
     bandeaux.push({
+      cle: "termine",
       type: "info",
       texte: `Votre abonnement est terminé.${suppression ? ` Les données de l’établissement seront supprimées le ${suppression} :` : ""} téléchargez l’export complet avant cette date.`,
     });
   }
-  if (statut === "sans_abonnement" || statut === "en_attente_paiement") bandeaux.push({ type: "info", texte: TEXTE_SANS_ABONNEMENT });
+  if (statut === "sans_abonnement" || statut === "en_attente_paiement") bandeaux.push({ cle: "sans", type: "info", texte: TEXTE_SANS_ABONNEMENT });
 
   const enCours = ["actif", "impaye", "activation_provisoire"].includes(statut);
   return {
@@ -257,15 +269,28 @@ export function texteResiliationEnregistree(effetLe) {
     : "Résiliation enregistrée. D’ici sa date d’effet, l’accès reste complet et vous pouvez l’annuler ici.";
 }
 
-// Page du portail Stripe : https seulement (en maquette, la même origine en http).
+// Page du portail Stripe : https://billing.stripe.com seulement, sans identifiants dans l'adresse (en maquette, la même
+// origine en http). Défense en profondeur : l'adresse vient de l'API, mais on ne suit jamais une autre destination.
 export function urlPortail(brute, origineMaquette = null) {
   if (typeof brute !== "string") return null;
   try {
     const cible = new URL(brute);
-    return cible.protocol === "https:" || (origineMaquette && cible.origin === origineMaquette) ? cible.href : null;
+    if (cible.username || cible.password) return null;
+    if (origineMaquette && cible.origin === origineMaquette) return cible.href;
+    return cible.protocol === "https:" && cible.hostname === "billing.stripe.com" ? cible.href : null;
   } catch {
     return null;
   }
 }
 
-export const NOM_FICHIER_EXPORT = "export-restoclair.zip";
+// Nom du fichier de l'export : export-restoclair-<établissement>.zip, en lettres simples (deux établissements, deux noms).
+export function nomFichierExport(nomEtablissement) {
+  const morceau = String(nomEtablissement ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40);
+  return morceau ? `export-restoclair-${morceau}.zip` : "export-restoclair.zip";
+}

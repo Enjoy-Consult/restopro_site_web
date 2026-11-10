@@ -6,7 +6,6 @@ import { BUSINESS } from "@/lib/business-info";
 import { annulerResiliation, getCompteEspace, ouvrirPortail, resilier, seDeconnecter, telechargerExport } from "@/lib/billing/api";
 import { BILLING_MOCK } from "@/lib/billing/config";
 import {
-  NOM_FICHIER_EXPORT,
   TEXTE_DECONNECTE,
   TEXTE_SESSION_EXPIREE,
   TEXTE_SUPPORT,
@@ -16,6 +15,7 @@ import {
   estSessionFinie,
   lireSessionEspace,
   messageRefusEspace,
+  nomFichierExport,
   resumeCompte,
   retenirRetour,
   texteResiliationEnregistree,
@@ -26,6 +26,7 @@ const CLASSE_CHAMP =
   "w-full border border-border bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
 const BOUTON_SECONDAIRE =
   "border border-ink px-5 py-3 text-[15px] text-ink hover:bg-ink hover:text-paper transition-colors disabled:opacity-60 disabled:cursor-wait text-center";
+const ACTION_VIDE = { enCours: null, erreur: null, erreurMotDePasse: null, info: null };
 
 function Support() {
   return (
@@ -44,6 +45,10 @@ function ConfirmationParMotDePasse({ titre, explication, libelle, enCours, erreu
   useEffect(() => {
     champ.current?.focus();
   }, []);
+  useEffect(() => {
+    // Après un refus, le champ (désactivé pendant l'envoi) reprend le focus.
+    if (!enCours && erreur) champ.current?.focus();
+  }, [enCours, erreur]);
   const envoyer = (e) => {
     e.preventDefault();
     if (enCours || !motDePasse) return;
@@ -68,7 +73,7 @@ function ConfirmationParMotDePasse({ titre, explication, libelle, enCours, erreu
         aria-describedby={erreur ? "champ-confirmation-mdp-erreur" : undefined}
         className={CLASSE_CHAMP}
       />
-      {erreur && <p id="champ-confirmation-mdp-erreur" className="text-[#8a2424] text-[14px] mt-1.5">{erreur}</p>}
+      {erreur && <p id="champ-confirmation-mdp-erreur" role="alert" className="text-[#8a2424] text-[14px] mt-1.5">{erreur}</p>}
       <div className="mt-5 flex flex-col sm:flex-row gap-3">
         <button type="submit" disabled={enCours || !motDePasse} aria-busy={enCours} className="btn-primary text-center disabled:opacity-60 disabled:cursor-wait">
           {enCours ? "Envoi…" : libelle}
@@ -95,44 +100,80 @@ function ChoixRestaurant({ restaurants, onChoisir }) {
 }
 
 // Espace abonnement (session « site » de 2 h). Portée de la session minimale d'Apirest : état, portail Stripe, résiliation
-// et son annulation, export complet, déconnexion. Le reste (comptes, formule, transfert, paiement) se fait ailleurs ou
-// arrive plus tard : une ligne renvoie vers le support.
+// et son annulation, export complet, déconnexion. Le reste (comptes, formule, transfert, paiement) passe par le support.
+//
+// Chaque requête est liée à l'établissement et à la session qui l'ont lancée (contexte) : son résultat est ignoré si
+// l'utilisateur a changé d'établissement ou s'est déconnecté entre-temps. Pendant une action, on ne peut ni changer
+// d'établissement ni se déconnecter.
 export default function MonAbonnement() {
   const navigate = useNavigate();
   const location = useLocation();
   const [session, setSession] = useState(() => lireSessionEspace());
-  const [etat, setEtat] = useState({ chargement: true, compte: null, erreur: null });
+  // compte : celui de l'établissement etat.restaurantId seulement.
+  const [etat, setEtat] = useState({ chargement: true, restaurantId: null, compte: null, erreur: null });
   const [relance, setRelance] = useState(0);
   const [confirmation, setConfirmation] = useState(null); // null, "resilier", "annuler"
-  const [action, setAction] = useState({ enCours: null, erreur: null, erreurMotDePasse: null, info: null });
+  const [action, setAction] = useState(ACTION_VIDE);
+  const [annonce, setAnnonce] = useState("");
   const titreRef = useRef(null);
+  const contexteCourant = useRef(null);
+  contexteCourant.current = session ? `${session.token}|${session.restaurantId ?? ""}` : null;
 
   const finDeSession = useCallback(
     (message) => {
+      contexteCourant.current = null;
       effacerSessionEspace();
       navigate(CHEMINS_COMPTE.connexion, { replace: true, state: { message } });
     },
     [navigate],
   );
 
+  const focusTitre = () => requestAnimationFrame(() => titreRef.current?.focus());
+
   useEffect(() => {
     document.title = "Mon abonnement · RestOclair";
+    focusTitre();
   }, []);
+
+  // Fin de la session à son échéance, même si la page reste ouverte sans rien faire.
+  useEffect(() => {
+    if (!session?.echeance) return undefined;
+    const minuteur = setTimeout(() => finDeSession(TEXTE_SESSION_EXPIREE), Math.max(0, session.echeance - Date.now()));
+    return () => clearTimeout(minuteur);
+  }, [session?.echeance, finDeSession]);
+
+  // Retour arrière depuis Stripe (page restaurée par le navigateur) : rien n'est plus « en cours », et on relit.
+  useEffect(() => {
+    const auRetour = (e) => {
+      if (!e.persisted) return;
+      setAction(ACTION_VIDE);
+      setConfirmation(null);
+      const relue = lireSessionEspace();
+      if (!relue) finDeSession(TEXTE_SESSION_EXPIREE);
+      else {
+        setSession(relue);
+        setRelance((n) => n + 1);
+      }
+    };
+    window.addEventListener("pageshow", auRetour);
+    return () => window.removeEventListener("pageshow", auRetour);
+  }, [finDeSession]);
 
   const restaurant = session?.restaurants?.find((r) => r.restaurantId === session.restaurantId) ?? null;
 
   useEffect(() => {
     if (!session?.restaurantId) return undefined;
     let arrete = false;
-    setEtat((e) => ({ ...e, chargement: true, erreur: null }));
-    getCompteEspace(session.token, session.restaurantId)
+    const restaurantId = session.restaurantId;
+    setEtat((e) => (e.restaurantId === restaurantId ? { ...e, chargement: true, erreur: null } : { chargement: true, restaurantId, compte: null, erreur: null }));
+    getCompteEspace(session.token, restaurantId)
       .then((compte) => {
-        if (!arrete) setEtat({ chargement: false, compte, erreur: null });
+        if (!arrete) setEtat({ chargement: false, restaurantId, compte, erreur: null });
       })
       .catch((erreur) => {
         if (arrete) return;
         if (estSessionFinie(erreur)) finDeSession(TEXTE_SESSION_EXPIREE);
-        else setEtat({ chargement: false, compte: null, erreur: messageRefusEspace(erreur) });
+        else setEtat({ chargement: false, restaurantId, compte: null, erreur: messageRefusEspace(erreur) });
       });
     return () => {
       arrete = true;
@@ -144,113 +185,154 @@ export default function MonAbonnement() {
     return <Navigate to={CHEMINS_COMPTE.connexion} replace />;
   }
 
+  const occupe = Boolean(action.enCours);
+
   const choisir = (restaurantId) => {
+    if (occupe) return;
     const suivante = { ...session, restaurantId };
     ecrireSessionEspace(suivante);
     setSession(suivante);
+    setEtat({ chargement: Boolean(restaurantId), restaurantId, compte: null, erreur: null });
     setConfirmation(null);
-    setAction({ enCours: null, erreur: null, erreurMotDePasse: null, info: null });
+    setAction(ACTION_VIDE);
+    setAnnonce("");
+    focusTitre();
   };
 
   const deconnecter = async () => {
-    setAction((a) => ({ ...a, enCours: "deconnexion" }));
-    await seDeconnecter(session.token).catch(() => {});
+    if (occupe) return;
+    setAction({ ...ACTION_VIDE, enCours: "deconnexion" });
+    const token = session.token;
+    contexteCourant.current = null;
+    await seDeconnecter(token).catch(() => {});
     finDeSession(TEXTE_DECONNECTE);
   };
 
-  // Erreur commune des actions : session finie, ou message affiché sous l'action.
-  const echec = (erreur, extra = {}) => {
-    if (estSessionFinie(erreur)) {
-      finDeSession(TEXTE_SESSION_EXPIREE);
-      return;
-    }
-    setAction({ enCours: null, erreur: messageRefusEspace(erreur), erreurMotDePasse: null, info: null, ...extra });
-  };
-
-  const portail = async () => {
-    setAction({ enCours: "portail", erreur: null, erreurMotDePasse: null, info: null });
+  // Lance une action liée au contexte actuel ; le résultat n'est appliqué que si le contexte n'a pas changé.
+  const lancer = async (nom, travail, reussite, refus) => {
+    const contexte = contexteCourant.current;
+    setAction({ ...ACTION_VIDE, enCours: nom });
+    setAnnonce("");
     try {
-      const url = urlPortail(await ouvrirPortail(session.token, session.restaurantId), BILLING_MOCK ? window.location.origin : null);
-      if (!url) throw new Error("adresse du portail illisible");
-      window.location.assign(url);
+      const resultat = await travail(session.token, session.restaurantId);
+      if (contexteCourant.current !== contexte) return;
+      reussite(resultat);
     } catch (erreur) {
-      echec(erreur);
-    }
-  };
-
-  const confirmerResiliation = async (motDePasse) => {
-    const annulation = confirmation === "annuler";
-    setAction({ enCours: confirmation, erreur: null, erreurMotDePasse: null, info: null });
-    try {
-      if (annulation) {
-        await annulerResiliation(session.token, session.restaurantId, motDePasse);
-        setAction({ enCours: null, erreur: null, erreurMotDePasse: null, info: "La résiliation est annulée : votre abonnement continue." });
-      } else {
-        // Le bandeau de la résiliation programmée le dit déjà quand le compte la renvoie ; sinon, ce message.
-        const { effetLe } = await resilier(session.token, session.restaurantId, motDePasse);
-        setAction({ enCours: null, erreur: null, erreurMotDePasse: null, info: effetLe ? null : texteResiliationEnregistree(effetLe) });
+      if (contexteCourant.current !== contexte) return;
+      if (estSessionFinie(erreur)) {
+        finDeSession(TEXTE_SESSION_EXPIREE);
+        return;
       }
-      setConfirmation(null);
-      setRelance((n) => n + 1);
-      requestAnimationFrame(() => titreRef.current?.focus());
-    } catch (erreur) {
-      if (estMotDePasseRefuse(erreur)) {
-        setAction({ enCours: null, erreur: null, erreurMotDePasse: "Mot de passe incorrect.", info: null });
-        requestAnimationFrame(() => document.getElementById("champ-confirmation-mdp")?.focus());
-      } else echec(erreur);
+      if (refus?.(erreur)) return;
+      setAction({ ...ACTION_VIDE, erreur: messageRefusEspace(erreur) });
     }
   };
 
-  const exporter = async () => {
-    setAction({ enCours: "export", erreur: null, erreurMotDePasse: null, info: null });
-    try {
-      const fichier = await telechargerExport(session.token, session.restaurantId);
+  const portail = () =>
+    lancer("portail", ouvrirPortail, (adresse) => {
+      const url = urlPortail(adresse, BILLING_MOCK ? window.location.origin : null);
+      if (!url) {
+        setAction({ ...ACTION_VIDE, erreur: messageRefusEspace(null) });
+        return;
+      }
+      window.location.assign(url);
+    });
+
+  const confirmerResiliation = (motDePasse) => {
+    const annulation = confirmation === "annuler";
+    const travail = annulation
+      ? (token, restaurantId) => annulerResiliation(token, restaurantId, motDePasse)
+      : (token, restaurantId) => resilier(token, restaurantId, motDePasse);
+    lancer(
+      confirmation,
+      travail,
+      (resultat) => {
+        const info = annulation
+          ? "La résiliation est annulée : votre abonnement continue."
+          : texteResiliationEnregistree(resultat?.effetLe);
+        // Le compte est mis à jour tout de suite (pas de bouton « Résilier » qui réapparaît), puis relu.
+        setEtat((e) =>
+          e.compte
+            ? { ...e, compte: { ...e.compte, resiliation: annulation ? null : resultat?.effetLe ? { effetLe: resultat.effetLe } : e.compte.resiliation } }
+            : e,
+        );
+        setAction({ ...ACTION_VIDE, info });
+        setAnnonce(info);
+        setConfirmation(null);
+        setRelance((n) => n + 1);
+        focusTitre();
+      },
+      (erreur) => {
+        if (!estMotDePasseRefuse(erreur)) return false;
+        setAction({ ...ACTION_VIDE, erreurMotDePasse: "Mot de passe incorrect." });
+        return true;
+      },
+    );
+  };
+
+  const exporter = () => {
+    const nom = nomFichierExport(restaurant?.nom);
+    lancer("export", telechargerExport, (fichier) => {
       const adresse = URL.createObjectURL(fichier);
       const lien = document.createElement("a");
       lien.href = adresse;
-      lien.download = NOM_FICHIER_EXPORT;
+      lien.download = nom;
       document.body.append(lien);
       lien.click();
       lien.remove();
       setTimeout(() => URL.revokeObjectURL(adresse), 60000);
-      setAction({ enCours: null, erreur: null, erreurMotDePasse: null, info: `Le téléchargement de ${NOM_FICHIER_EXPORT} a commencé.` });
-    } catch (erreur) {
-      echec(erreur);
-    }
+      const info = `Le téléchargement de ${nom} a commencé.`;
+      setAction({ ...ACTION_VIDE, info });
+      setAnnonce(info);
+    });
   };
 
-  const resume = etat.compte ? resumeCompte(etat.compte) : null;
+  const renoncer = () => {
+    setConfirmation(null);
+    setAction(ACTION_VIDE);
+    focusTitre();
+  };
+
+  const compteAffiche = etat.restaurantId === session.restaurantId ? etat.compte : null;
+  const resume = compteAffiche ? resumeCompte(compteAffiche) : null;
+  // Le message de confirmation d'une résiliation remplace le bandeau qui dit la même chose.
+  const bandeaux = resume ? resume.bandeaux.filter((b) => !(action.info && b.cle === "resiliation")) : [];
   const maquettePortail = BILLING_MOCK && new URLSearchParams(location.search).get("maquette") === "portail";
-  const occupe = Boolean(action.enCours);
 
   return (
     <section className="pt-12 pb-24 md:pt-20 md:pb-32">
       <div className="max-w-[760px] mx-auto px-5 md:px-6">
+        {/* Zone d'annonce permanente : les confirmations y sont lues par les lecteurs d'écran. */}
+        <p className="sr-only" role="status" aria-live="polite">{annonce}</p>
+
         <div className="flex items-start justify-between gap-4 mb-5">
           <p className="text-bottle text-[12px] font-medium uppercase tracking-[0.14em] pt-1">Mon abonnement</p>
-          <button type="button" onClick={deconnecter} disabled={action.enCours === "deconnexion"} className="link-underline text-[15px]">
+          <button type="button" onClick={deconnecter} disabled={occupe} className="link-underline text-[15px] disabled:opacity-60">
             {action.enCours === "deconnexion" ? "Déconnexion…" : "Se déconnecter"}
           </button>
         </div>
 
         {!session.restaurantId ? (
           <>
-            <h1 className="text-ink mb-5 text-[clamp(2rem,5vw,3rem)]">Choisissez l’établissement.</h1>
+            <h1 ref={titreRef} tabIndex={-1} className="text-ink mb-5 text-[clamp(2rem,5vw,3rem)] focus:outline-none">Choisissez l’établissement.</h1>
             <ChoixRestaurant restaurants={session.restaurants ?? []} onChoisir={choisir} />
           </>
         ) : (
           <>
             <h1 ref={titreRef} tabIndex={-1} className="text-ink mb-2 text-[clamp(2rem,5vw,3rem)] focus:outline-none">{restaurant?.nom ?? "Votre établissement"}</h1>
             {(session.restaurants?.length ?? 0) > 1 && (
-              <button type="button" className="link-underline text-[15px] mb-6" onClick={() => choisir(null)}>Changer d’établissement</button>
+              <button type="button" disabled={occupe} className="link-underline text-[15px] mb-6 disabled:opacity-60" onClick={() => choisir(null)}>
+                Changer d’établissement
+              </button>
             )}
 
             {maquettePortail && <Message type="info" className="mt-4">Maquette : ici s’ouvrirait le portail Stripe (factures, moyen de paiement).</Message>}
-            {action.info && <Message type="info" className="mt-4">{action.info}</Message>}
+            {/* Lu par la zone d'annonce ci-dessus : le bandeau visible n'est pas une seconde annonce. */}
+            {action.info && <Message type="info" role="note" className="mt-4">{action.info}</Message>}
 
-            {etat.chargement && !etat.compte && <p className="text-muted text-lg mt-6" role="status">Chargement de votre abonnement…</p>}
+            {etat.chargement && !compteAffiche && <p className="text-muted text-lg mt-6">Chargement de votre abonnement…</p>}
 
-            {etat.erreur && (
+            {etat.erreur && etat.restaurantId === session.restaurantId && (
               <>
                 <Message type="error" className="mt-6">{etat.erreur}</Message>
                 <button type="button" className="link-underline text-[15px] mt-4" onClick={() => setRelance((n) => n + 1)}>Réessayer</button>
@@ -259,8 +341,8 @@ export default function MonAbonnement() {
 
             {resume && (
               <>
-                {resume.bandeaux.map((b) => (
-                  <Message key={b.texte} type={b.type} className="mt-6">{b.texte}</Message>
+                {bandeaux.map((b) => (
+                  <Message key={b.cle ?? b.texte} type={b.type} className="mt-6">{b.texte}</Message>
                 ))}
 
                 <dl className="mt-8 grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-x-6 gap-y-3 text-[16px]">
@@ -313,7 +395,7 @@ export default function MonAbonnement() {
                             type="button"
                             disabled={occupe}
                             onClick={() => {
-                              setAction({ enCours: null, erreur: null, erreurMotDePasse: null, info: null });
+                              setAction(ACTION_VIDE);
                               setConfirmation(resume.actions.annulerResiliation ? "annuler" : "resilier");
                             }}
                             className={BOUTON_SECONDAIRE}
@@ -331,7 +413,7 @@ export default function MonAbonnement() {
                           enCours={action.enCours === "resilier"}
                           erreur={action.erreurMotDePasse}
                           onConfirmer={confirmerResiliation}
-                          onRenoncer={() => setConfirmation(null)}
+                          onRenoncer={renoncer}
                         />
                       )}
                       {confirmation === "annuler" && (
@@ -343,7 +425,7 @@ export default function MonAbonnement() {
                           enCours={action.enCours === "annuler"}
                           erreur={action.erreurMotDePasse}
                           onConfirmer={confirmerResiliation}
-                          onRenoncer={() => setConfirmation(null)}
+                          onRenoncer={renoncer}
                         />
                       )}
                     </div>
