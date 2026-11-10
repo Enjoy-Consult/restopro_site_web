@@ -1,8 +1,10 @@
 <?php
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
-require_once __DIR__ . '/config.php';
+// Configuration hors du dossier publié si disponible (partage NAS restoclair-prive), sinon repli local.
+$restoclairConfig = '/volume1/restoclair-prive/config.php';
+require_once (@is_readable($restoclairConfig) ? $restoclairConfig : __DIR__ . '/config.php');
 setCorsHeaders();
 
 $result = airtableRequest('BlogPost?view=Grid%20view');
