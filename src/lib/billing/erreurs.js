@@ -127,7 +127,6 @@ const CHAMPS_API = [
   ["responsable.prenom", "prenom", "Vérifiez votre prénom."],
   ["responsable.nom", "nom", "Vérifiez votre nom."],
   ["responsable.email", "email", "Vérifiez votre adresse e-mail."],
-  ["responsable.motDePasse", "motDePasse", "Ce mot de passe n’est pas accepté. Il faut de 8 à 200 caractères, dont une lettre et un chiffre."],
   ["restaurant.nomCommercial", "nomCommercial", "Vérifiez le nom commercial."],
   ["restaurant.raisonSociale", "raisonSociale", "Vérifiez la raison sociale."],
   ["restaurant.siret", "siret", "Ce numéro SIRET n’est pas reconnu. Vérifiez-le."],

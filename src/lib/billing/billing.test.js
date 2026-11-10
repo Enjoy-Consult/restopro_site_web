@@ -2,7 +2,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { formatHT, formatHTParPeriode, formatTTC, formatDate, calculerTTC, formatPourcentage } from "./format.js";
-import { estSiretValide, estMotDePasseValide, estCodePostalValide, estEmailValide, validerInscription } from "./validation.js";
+import { estSiretValide, estCodePostalValide, estEmailValide, memesEmails, validerInscription } from "./validation.js";
 import {
   calculer,
   versionsDisponibles,
@@ -73,7 +73,7 @@ test("SIRET de La Poste (SIREN 356000000) : somme des chiffres multiple de 5, sa
   assert.equal(estSiretValide("73282932000075"), false);
   // Le formulaire applique la même règle.
   const base = {
-    prenom: "Marie", nom: "Martin", email: "marie@exemple.fr", motDePasse: "motdepasse1", confirmation: "motdepasse1",
+    prenom: "Marie", nom: "Martin", email: "marie@exemple.fr", confirmationEmail: "marie@exemple.fr",
     nomCommercial: "Bureau de poste", raisonSociale: "La Poste", ligne1: "1 rue", codePostal: "75002", ville: "Paris", cgv: true,
   };
   assert.equal(validerInscription({ ...base, siret: "35600000000001" }).siret, undefined);
@@ -81,11 +81,9 @@ test("SIRET de La Poste (SIREN 356000000) : somme des chiffres multiple de 5, sa
   assert.equal(validerInscription({ ...base, siret: "35600000000048" }).siret, undefined);
 });
 
-test("mot de passe, code postal, e-mail", () => {
-  assert.equal(estMotDePasseValide("abcdefg1"), true);
-  assert.equal(estMotDePasseValide("abcdefgh"), false);
-  assert.equal(estMotDePasseValide("12345678"), false);
-  assert.equal(estMotDePasseValide("ab1"), false);
+test("code postal, e-mail et sa seconde saisie", () => {
+  assert.equal(memesEmails(" Marie@Exemple.fr ", "marie@exemple.fr"), true);
+  assert.equal(memesEmails("marie@exemple.fr", "marie@exemple.com"), false);
   assert.equal(estCodePostalValide("80700"), true);
   assert.equal(estCodePostalValide("8070"), false);
   assert.equal(estEmailValide("marie@exemple.fr"), true);
@@ -94,13 +92,15 @@ test("mot de passe, code postal, e-mail", () => {
 
 test("formulaire d'inscription : messages par champ", () => {
   const valide = {
-    prenom: "Marie", nom: "Martin", email: "marie@exemple.fr", motDePasse: "motdepasse1", confirmation: "motdepasse1",
+    prenom: "Marie", nom: "Martin", email: "marie@exemple.fr", confirmationEmail: "marie@exemple.fr",
     nomCommercial: "Chez Marie", raisonSociale: "Marie SAS", siret: "73282932000074",
     ligne1: "1 rue de la Paix", codePostal: "75002", ville: "Paris", cgv: true,
   };
   assert.deepEqual(validerInscription(valide), {});
-  const erreurs = validerInscription({ ...valide, email: "x", confirmation: "autre1234", siret: "123", codePostal: "7", cgv: false });
-  assert.deepEqual(Object.keys(erreurs).sort(), ["cgv", "codePostal", "confirmation", "email", "siret"]);
+  const erreurs = validerInscription({ ...valide, email: "x", confirmationEmail: "", siret: "123", codePostal: "7", cgv: false });
+  assert.deepEqual(Object.keys(erreurs).sort(), ["cgv", "codePostal", "confirmationEmail", "email", "siret"]);
+  // Aucun champ de mot de passe : le titulaire reçoit ses identifiants par e-mail après le paiement.
+  assert.deepEqual(validerInscription({ ...valide, motDePasse: "", confirmation: "" }), {});
 });
 
 test("totaux : Essentiel avec comptes supplémentaires", () => {

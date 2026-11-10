@@ -25,11 +25,9 @@ const LIEN_CGV = cheminVersionne(INDEX_LEGAL, "cgv") ?? "/cgv";
 const LIEN_ACCORD = cheminVersionne(INDEX_LEGAL, "accord-sous-traitance") ?? "/accord-sous-traitance";
 const LIEN_CGU = cheminVersionne(INDEX_LEGAL, "cgu-app") ?? "/application/cgu";
 
-// Un caractère de plus que la borne : un mot de passe collé trop long est signalé par le contrôle, jamais tronqué sans le dire.
-const MAX_SAISIE_MOT_DE_PASSE = BORNES.motDePasse + 1;
-
+// Pas de mot de passe : le titulaire reçoit ses identifiants par e-mail après le paiement (CGV 0.2, article 4.7).
 const VIDE = {
-  prenom: "", nom: "", email: "", motDePasse: "", confirmation: "",
+  prenom: "", nom: "", email: "", confirmationEmail: "",
   nomCommercial: "", raisonSociale: "", siret: "",
   ligne1: "", ligne2: "", codePostal: "", ville: "", cgv: false,
 };
@@ -90,7 +88,7 @@ export default function Inscription() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Retour de « Modifier mon choix » : la saisie gardée en mémoire revient, sans le mot de passe.
+  // Retour de « Modifier mon choix » : la saisie gardée en mémoire revient, sans la case d'acceptation.
   const [valeurs, setValeurs] = useState(() => ({ ...VIDE, ...lireSaisie() }));
   const [erreurs, setErreurs] = useState({});
   const [session, setSession] = useState(() => lireSession());
@@ -280,7 +278,6 @@ export default function Inscription() {
       setSession(nouvelle);
       // La case du formulaire était cochée pour exactement ce bloc : rien à refaire accepter au paiement.
       majCgv({ type: "compte-cree" });
-      setValeurs((v) => ({ ...v, motDePasse: "", confirmation: "" }));
       await paiement(token);
     } catch (erreur) {
       if (erreur.code === "EMAIL_DEJA_UTILISE") {
@@ -369,6 +366,7 @@ export default function Inscription() {
           <h1 className="text-ink mb-5">Créez votre compte.</h1>
           <p className="text-muted text-[17px] md:text-lg leading-relaxed mb-7 max-w-[560px]">
             Quelques informations sur vous et sur votre établissement, puis vous passez au paiement sécurisé.
+            Vous n’avez pas de mot de passe à choisir : vos identifiants de connexion vous sont envoyés par e-mail après le paiement.
           </p>
           <div className="mb-12 md:mb-14"><Etapes courant={2} /></div>
 
@@ -418,7 +416,7 @@ export default function Inscription() {
               ) : session ? (
                 <div className="border-t border-border pt-8">
                   <Message type="info">
-                    Votre compte est créé pour <strong>{session.email}</strong>. Si votre abonnement n’est pas encore réglé, passez au paiement. Si vous venez de payer, ne recommencez pas : vous recevrez un e-mail dès que votre abonnement sera actif.
+                    Votre compte est créé pour <strong>{session.email}</strong> : vos identifiants de connexion à l’application seront envoyés à cette adresse après le paiement. Si votre abonnement n’est pas encore réglé, passez au paiement. Si vous venez de payer, ne recommencez pas : vous recevrez un e-mail dès que votre abonnement sera actif.
                   </Message>
                   {erreurGenerale && <Message type="error" className="mt-4"><TexteErreur texte={erreurGenerale} /></Message>}
                   {etatCgv.aAccepterAuPaiement && (
@@ -481,10 +479,11 @@ export default function Inscription() {
                       <Champ label="Prénom" name="prenom" valeur={valeurs.prenom} erreur={erreurs.prenom} onChange={modifier} autoComplete="given-name" maxLength={BORNES.prenom} />
                       <Champ label="Nom" name="nom" valeur={valeurs.nom} erreur={erreurs.nom} onChange={modifier} autoComplete="family-name" maxLength={BORNES.nom} />
                       <div className="sm:col-span-2">
-                        <Champ label="Adresse e-mail" name="email" type="email" valeur={valeurs.email} erreur={erreurs.email} onChange={modifier} autoComplete="email" maxLength={BORNES.email} />
+                        <Champ label="Adresse e-mail" name="email" type="email" valeur={valeurs.email} erreur={erreurs.email} onChange={modifier} autoComplete="email" maxLength={BORNES.email} aide="Vos identifiants de connexion seront envoyés à cette adresse." />
                       </div>
-                      <Champ label="Mot de passe" name="motDePasse" type="password" valeur={valeurs.motDePasse} erreur={erreurs.motDePasse} onChange={modifier} autoComplete="new-password" maxLength={MAX_SAISIE_MOT_DE_PASSE} aide="8 caractères minimum, avec au moins une lettre et un chiffre." />
-                      <Champ label="Confirmation du mot de passe" name="confirmation" type="password" valeur={valeurs.confirmation} erreur={erreurs.confirmation} onChange={modifier} autoComplete="new-password" maxLength={MAX_SAISIE_MOT_DE_PASSE} />
+                      <div className="sm:col-span-2">
+                        <Champ label="Confirmez votre adresse e-mail" name="confirmationEmail" type="email" valeur={valeurs.confirmationEmail} erreur={erreurs.confirmationEmail} onChange={modifier} autoComplete="email" maxLength={BORNES.email} />
+                      </div>
                     </div>
                   </fieldset>
 

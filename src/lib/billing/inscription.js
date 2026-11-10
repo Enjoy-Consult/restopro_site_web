@@ -6,6 +6,8 @@ import { nettoyerSiret } from "./validation.js";
 // --- Corps de l'inscription ---
 
 // POST /api/billing/inscription. cgv : le bloc de blocCgv, le même qu'au checkout.
+// Ni mot de passe ni confirmation de l'adresse : Apirest crée le compte sans mot de passe connu, et le titulaire
+// reçoit ses identifiants par e-mail après le paiement, ou dès la signature du mandat SEPA (CGV 0.2, articles 4.7 et 5).
 export function corpsInscription(valeurs, cgv) {
   const adresse = {
     ligne1: valeurs.ligne1.trim(),
@@ -14,7 +16,7 @@ export function corpsInscription(valeurs, cgv) {
   };
   if (valeurs.ligne2.trim()) adresse.ligne2 = valeurs.ligne2.trim();
   return {
-    responsable: { prenom: valeurs.prenom.trim(), nom: valeurs.nom.trim(), email: valeurs.email.trim(), motDePasse: valeurs.motDePasse },
+    responsable: { prenom: valeurs.prenom.trim(), nom: valeurs.nom.trim(), email: valeurs.email.trim() },
     restaurant: {
       nomCommercial: valeurs.nomCommercial.trim(),
       raisonSociale: valeurs.raisonSociale.trim(),
@@ -28,8 +30,8 @@ export function corpsInscription(valeurs, cgv) {
 
 // --- Saisie gardée sur « Modifier mon choix » ---
 
-// Liste fermée : ni le mot de passe, ni sa confirmation, ni la case d'acceptation, à refaire à chaque retour.
-const CHAMPS_GARDES = ["prenom", "nom", "email", "nomCommercial", "raisonSociale", "siret", "ligne1", "ligne2", "codePostal", "ville"];
+// Liste fermée : jamais la case d'acceptation, à refaire à chaque retour.
+const CHAMPS_GARDES = ["prenom", "nom", "email", "confirmationEmail", "nomCommercial", "raisonSociale", "siret", "ligne1", "ligne2", "codePostal", "ville"];
 let saisieGardee = null;
 
 export function retenirSaisie(valeurs) {

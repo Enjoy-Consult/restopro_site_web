@@ -7,7 +7,6 @@ export const BORNES = {
   prenom: 50,
   nom: 50,
   email: 100,
-  motDePasse: 200,
   nomCommercial: 100,
   raisonSociale: 255,
   ligne1: 255,
@@ -61,9 +60,9 @@ export function estCodePostalValide(valeur) {
   return /^\d{5}$/.test(String(valeur ?? "").trim());
 }
 
-export function estMotDePasseValide(valeur) {
-  const mdp = String(valeur ?? "");
-  return mdp.length >= 8 && mdp.length <= BORNES.motDePasse && /\p{L}/u.test(mdp) && /\d/.test(mdp);
+// Deux saisies de la même adresse : les espaces autour et la casse ne comptent pas.
+export function memesEmails(a, b) {
+  return String(a ?? "").trim().toLowerCase() === String(b ?? "").trim().toLowerCase();
 }
 
 const REQUIS = {
@@ -87,6 +86,8 @@ const NOMS = {
 };
 
 // Renvoie { champ: message } ; objet vide si tout est valide.
+// Pas de mot de passe : le titulaire reçoit ses identifiants par e-mail après le paiement (CGV 0.2, article 4.7),
+// d'où la seconde saisie de l'adresse, qui évite de les envoyer à une adresse mal tapée.
 export function validerInscription(v) {
   const erreurs = {};
 
@@ -97,14 +98,9 @@ export function validerInscription(v) {
   if (!String(v.email ?? "").trim()) erreurs.email = "Indiquez votre adresse e-mail.";
   else if (!estEmailValide(v.email)) erreurs.email = "Cette adresse e-mail n’est pas valide.";
 
-  if (!v.motDePasse) erreurs.motDePasse = "Choisissez un mot de passe.";
-  else if (v.motDePasse.length > BORNES.motDePasse)
-    erreurs.motDePasse = `Le mot de passe ne doit pas dépasser ${BORNES.motDePasse} caractères.`;
-  else if (!estMotDePasseValide(v.motDePasse))
-    erreurs.motDePasse = "Le mot de passe doit faire au moins 8 caractères, dont une lettre et un chiffre.";
-
-  if (!v.confirmation) erreurs.confirmation = "Confirmez votre mot de passe.";
-  else if (v.confirmation !== v.motDePasse) erreurs.confirmation = "Les deux mots de passe ne sont pas identiques.";
+  if (!String(v.confirmationEmail ?? "").trim()) erreurs.confirmationEmail = "Saisissez de nouveau votre adresse e-mail.";
+  else if (!erreurs.email && !memesEmails(v.email, v.confirmationEmail))
+    erreurs.confirmationEmail = "Les deux adresses e-mail ne sont pas identiques.";
 
   const siret = nettoyerSiret(v.siret);
   if (!siret) erreurs.siret = "Indiquez le numéro SIRET.";

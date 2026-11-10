@@ -33,10 +33,10 @@ import {
 } from "./inscription.js";
 import { mockCatalogue, mockRequete } from "./mock.js";
 import { selectionVersCheckout } from "./pricing.js";
-import { BORNES, estMotDePasseValide, validerInscription } from "./validation.js";
+import { BORNES, validerInscription } from "./validation.js";
 
 const VALIDE = {
-  prenom: "Marie", nom: "Martin", email: "marie@exemple.fr", motDePasse: "motdepasse1", confirmation: "motdepasse1",
+  prenom: "Marie", nom: "Martin", email: "marie@exemple.fr", confirmationEmail: "marie@exemple.fr",
   nomCommercial: "Chez Marie", raisonSociale: "Marie SAS", siret: "73282932000074",
   ligne1: "1 rue de la Paix", ligne2: "", codePostal: "75002", ville: "Paris", cgv: true,
 };
@@ -45,7 +45,7 @@ const VALIDE = {
 
 test("bornes : les valeurs de l'API", () => {
   assert.deepEqual(BORNES, {
-    prenom: 50, nom: 50, email: 100, motDePasse: 200, nomCommercial: 100, raisonSociale: 255, ligne1: 255, ligne2: 255, ville: 100,
+    prenom: 50, nom: 50, email: 100, nomCommercial: 100, raisonSociale: 255, ligne1: 255, ligne2: 255, ville: 100,
   });
 });
 
@@ -61,8 +61,8 @@ test("bornes : accepté à la limite, refusé au-delà, avec un message sous le 
 test("bornes : l'e-mail valide mais trop long est refusé, le format reste vérifié d'abord", () => {
   const suffixe = "@exemple.fr";
   const email = (n) => `${"a".repeat(n - suffixe.length)}${suffixe}`;
-  assert.equal(validerInscription({ ...VALIDE, email: email(100) }).email, undefined);
-  assert.match(validerInscription({ ...VALIDE, email: email(101) }).email, /100 caractères/);
+  assert.equal(validerInscription({ ...VALIDE, email: email(100), confirmationEmail: email(100) }).email, undefined);
+  assert.match(validerInscription({ ...VALIDE, email: email(101), confirmationEmail: email(101) }).email, /100 caractères/);
   assert.match(validerInscription({ ...VALIDE, email: `${"a".repeat(120)}` }).email, /pas valide/);
 });
 
@@ -71,18 +71,14 @@ test("bornes : on mesure le texte envoyé, sans les espaces autour", () => {
   assert.equal(validerInscription({ ...VALIDE, prenom }).prenom, undefined);
 });
 
-test("mot de passe : la règle du site, plus le maximum de 200", () => {
-  const limite = `a1${"b".repeat(198)}`;
-  assert.equal(limite.length, 200);
-  assert.equal(estMotDePasseValide(limite), true);
-  assert.equal(estMotDePasseValide(`${limite}c`), false);
-  assert.equal(validerInscription({ ...VALIDE, motDePasse: limite, confirmation: limite }).motDePasse, undefined);
-  const trop = `${limite}c`;
-  assert.match(validerInscription({ ...VALIDE, motDePasse: trop, confirmation: trop }).motDePasse, /200 caractères/);
-  // La règle existante ne change pas : 8 caractères, une lettre, un chiffre.
-  for (const refuse of ["abc1", "abcdefgh", "12345678"]) {
-    assert.match(validerInscription({ ...VALIDE, motDePasse: refuse, confirmation: refuse }).motDePasse, /au moins 8 caractères/);
-  }
+test("seconde saisie de l'adresse : obligatoire, identique à la casse et aux espaces près", () => {
+  assert.match(validerInscription({ ...VALIDE, confirmationEmail: "  " }).confirmationEmail, /de nouveau/);
+  assert.match(validerInscription({ ...VALIDE, confirmationEmail: "marie@exemple.com" }).confirmationEmail, /pas identiques/);
+  assert.equal(validerInscription({ ...VALIDE, confirmationEmail: " MARIE@exemple.fr " }).confirmationEmail, undefined);
+  // Une première adresse invalide porte seule l'erreur : la seconde saisie n'en ajoute pas une autre.
+  assert.equal(validerInscription({ ...VALIDE, email: "marie", confirmationEmail: "autre@exemple.fr" }).confirmationEmail, undefined);
+  // Plus de mot de passe : ni champ, ni contrôle.
+  assert.deepEqual(validerInscription(VALIDE), {});
 });
 
 // --- a) VALIDATION_ERROR ---
@@ -92,7 +88,6 @@ test("VALIDATION_ERROR : chaque chemin du contrat va sur le bon champ", () => {
     "responsable.prenom": "prenom",
     "responsable.nom": "nom",
     "responsable.email": "email",
-    "responsable.motDePasse": "motDePasse",
     "restaurant.nomCommercial": "nomCommercial",
     "restaurant.raisonSociale": "raisonSociale",
     "restaurant.siret": "siret",
@@ -195,11 +190,11 @@ test("EMAIL_DEJA_UTILISE : la phrase de l'essai interrompu reste fidèle aux CGV
 
 // --- d) Saisie gardée ---
 
-test("saisie gardée : les champs reviennent, jamais le mot de passe ni la case d'acceptation", (t) => {
+test("saisie gardée : les champs reviennent, seconde saisie de l'adresse comprise, jamais la case d'acceptation", (t) => {
   t.after(effacerSaisie);
   retenirSaisie({ ...VALIDE, motDePasse: "secret-1234", confirmation: "secret-1234" });
   const gardee = lireSaisie();
-  for (const champ of ["prenom", "nom", "email", "nomCommercial", "raisonSociale", "siret", "ligne1", "ligne2", "codePostal", "ville"]) {
+  for (const champ of ["prenom", "nom", "email", "confirmationEmail", "nomCommercial", "raisonSociale", "siret", "ligne1", "ligne2", "codePostal", "ville"]) {
     assert.equal(gardee[champ], VALIDE[champ], champ);
   }
   for (const absent of ["motDePasse", "confirmation", "cgv"]) assert.ok(!(absent in gardee), absent);
@@ -347,15 +342,16 @@ test("corps de l'inscription : bloc cgv et case acceptée, plus aucun champ à p
   const corps = corpsInscription(VALIDE, CGV);
   assert.deepEqual(corps.cgv, CGV);
   assert.equal(corps.cgvAcceptees, true);
-  for (const absent of ["cgvVersion", "cgvSha256", "confirmation"]) assert.ok(!(absent in corps), absent);
+  for (const absent of ["cgvVersion", "cgvSha256", "confirmation", "confirmationEmail"]) assert.ok(!(absent in corps), absent);
 });
 
-test("corps de l'inscription : texte sans espaces autour, SIRET nettoyé, mot de passe intact, ligne 2 seulement si remplie", () => {
+test("corps de l'inscription : texte sans espaces autour, SIRET nettoyé, aucun mot de passe, ligne 2 seulement si remplie", () => {
   const corps = corpsInscription(
     { ...VALIDE, prenom: " Marie ", email: " marie@exemple.fr ", motDePasse: " motdepasse1 ", siret: "732 829 320 00074", ville: " Paris ", ligne2: "  " },
     CGV
   );
-  assert.deepEqual(corps.responsable, { prenom: "Marie", nom: "Martin", email: "marie@exemple.fr", motDePasse: " motdepasse1 " });
+  // Le titulaire reçoit ses identifiants par e-mail : même un mot de passe resté dans les valeurs ne part pas.
+  assert.deepEqual(corps.responsable, { prenom: "Marie", nom: "Martin", email: "marie@exemple.fr" });
   assert.equal(corps.restaurant.siret, "73282932000074");
   assert.deepEqual(corps.restaurant.adresse, { ligne1: "1 rue de la Paix", codePostal: "75002", ville: "Paris" });
   assert.equal(corpsInscription({ ...VALIDE, ligne2: " Bâtiment B " }, CGV).restaurant.adresse.ligne2, "Bâtiment B");
