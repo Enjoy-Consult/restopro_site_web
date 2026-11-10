@@ -51,7 +51,21 @@ const retablir = (texte) => texte
   .replace(/\\u([0-9a-f]{4})/gi, (_, h) => String.fromCharCode(parseInt(h, 16)))
   .replace(/\\x([0-9a-f]{2})/gi, (_, h) => String.fromCharCode(parseInt(h, 16)));
 
-const sansCommentaires = (html) => html.replace(/<!--[\s\S]*?-->/g, "");
+// Prudence dans les deux sens, sans imiter tout l'analyseur HTML du navigateur :
+// - ce qui est INTERDIT (script, style, gestionnaire on…=, referrer permissif, adresse hors /assets/) est cherché dans
+//   la page brute, commentaires compris : un commentaire ne cache jamais rien au contrôle ;
+// - ce qui est OBLIGATOIRE (meta no-referrer, noindex) ne compte que hors commentaires, retirés largement : retirés
+//   jusqu'à ce qu'il n'en reste plus (un retrait peut en reformer un), « <!--> » et « <!---> » compris, et tout le
+//   reste du document après un commentaire jamais fermé.
+function sansCommentaires(html) {
+  let texte = String(html);
+  for (let precedent = null; precedent !== texte; ) {
+    precedent = texte;
+    texte = texte.replace(/<!--(?:-?>|[\s\S]*?--!?>)/g, "");
+  }
+  const ouvert = texte.indexOf("<!--");
+  return ouvert === -1 ? texte : texte.slice(0, ouvert);
+}
 
 // La maquette de paiement n'existe que sous le serveur de développement (src/lib/billing/config.js) : aucun build ne la
 // contient, ni mock.js ni ses jetons de scénario.
@@ -65,8 +79,9 @@ const problemesMaquette = (fichiers) => fichiers.flatMap(({ chemin, contenu }) =
 const EXTENSIONS_TEXTE = new Set([".html", ".js", ".mjs", ".css", ".json", ".txt", ".md", ".xml", ".svg", ".map", ".webmanifest"]);
 
 // Scripts sans src d'une page HTML, avec leur type. Les blocs de données (application/ld+json) ne s'exécutent pas.
+// La balise de fin peut porter des espaces, des retours à la ligne ou des attributs ignorés (« </script foo> »).
 export function scriptsIntegres(html) {
-  return [...sansCommentaires(html).matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
+  return [...String(html).matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\b[^>]*>/gi)]
     .filter(([, attributs]) => !/\bsrc\s*=/i.test(attributs))
     .map(([, attributs, contenu]) => ({
       donnees: /type\s*=\s*["']?application\/(ld\+)?json/i.test(attributs),
@@ -74,16 +89,16 @@ export function scriptsIntegres(html) {
     }));
 }
 
-// Contenus des balises <meta name="…"> (hors commentaires), dans l'ordre.
+// Contenus des balises <meta name="…">, dans l'ordre (page brute ou sans commentaires, selon l'appel).
 const metas = (html, nom) =>
-  [...sansCommentaires(html).matchAll(/<meta\b[^>]*>/gi)]
+  [...String(html).matchAll(/<meta\b[^>]*>/gi)]
     .filter(([balise]) => new RegExp(`name\\s*=\\s*["']?${nom}["'\\s>/]`, "i").test(balise))
     .map(([balise]) => balise.match(/content\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i)?.slice(1).find((v) => v !== undefined) ?? "");
 
 // Adresses chargées ou suivies par la page : src, href, srcset, imagesrcset, poster, data, avec ou sans guillemets.
 function adressesHtml(html) {
   const adresses = [];
-  for (const m of sansCommentaires(html).matchAll(/\s(src|href|srcset|imagesrcset|poster|data)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)) {
+  for (const m of String(html).matchAll(/\s(src|href|srcset|imagesrcset|poster|data)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)) {
     const valeur = m[2] ?? m[3] ?? m[4] ?? "";
     const liste = /srcset$/i.test(m[1]) ? valeur.split(",").map((v) => v.trim().split(/\s+/)[0]) : [valeur.trim()];
     for (const adresse of liste.filter(Boolean)) adresses.push({ attribut: m[1].toLowerCase(), adresse });
@@ -94,17 +109,18 @@ function adressesHtml(html) {
 // fichiers : [{ chemin: "assets/index-x.js", contenu: "…" | null (binaire) }], chemins relatifs au dossier du build.
 export function problemesBuildCompte({ html, fichiers, marques = [...MARQUES_INTERDITES_COMPTE, ...marquesJuridiques()] }) {
   const problemes = [];
-  const page = sansCommentaires(html);
-  if (scriptsIntegres(html).length > 0) problemes.push("index.html contient un script intégré : la CSP de compte (script-src 'self') le bloquerait");
-  if (/<[a-z][^>]*\son[a-z]+\s*=/i.test(page)) problemes.push("index.html contient un gestionnaire d'événement intégré (on…=) : la CSP de compte le bloquerait");
-  if (/javascript\s*:/i.test(page)) problemes.push("index.html contient une adresse javascript: : la CSP de compte la bloquerait");
-  if (/<style\b/i.test(page) || /\sstyle\s*=/i.test(page)) problemes.push("index.html contient un style intégré : la CSP de compte (style-src 'self') le bloquerait");
-  if (/<meta\b[^>]*http-equiv\s*=\s*["']?refresh/i.test(page)) problemes.push("index.html contient une redirection <meta http-equiv=\"refresh\">");
-  const referrers = metas(html, "referrer");
-  if (referrers.length === 0 || referrers.some((r) => r.trim().toLowerCase() !== "no-referrer")) {
+  const brute = String(html);
+  const horsCommentaires = sansCommentaires(brute);
+  if (scriptsIntegres(brute).length > 0) problemes.push("index.html contient un script intégré : la CSP de compte (script-src 'self') le bloquerait");
+  if (/<[a-z][^>]*\son[a-z]+\s*=/i.test(brute)) problemes.push("index.html contient un gestionnaire d'événement intégré (on…=) : la CSP de compte le bloquerait");
+  if (/javascript\s*:/i.test(brute)) problemes.push("index.html contient une adresse javascript: : la CSP de compte la bloquerait");
+  if (/<style\b/i.test(brute) || /\sstyle\s*=/i.test(brute)) problemes.push("index.html contient un style intégré : la CSP de compte (style-src 'self') le bloquerait");
+  if (/<meta\b[^>]*http-equiv\s*=\s*["']?refresh/i.test(brute)) problemes.push("index.html contient une redirection <meta http-equiv=\"refresh\">");
+  const referrersPresents = metas(horsCommentaires, "referrer");
+  if (referrersPresents.length === 0 || metas(brute, "referrer").some((r) => r.trim().toLowerCase() !== "no-referrer")) {
     problemes.push("index.html doit avoir <meta name=\"referrer\" content=\"no-referrer\">, et aucune autre balise referrer");
   }
-  if (!metas(html, "robots").some((r) => /noindex/i.test(r))) problemes.push("index.html n'a pas de <meta name=\"robots\"> avec noindex");
+  if (!metas(horsCommentaires, "robots").some((r) => /noindex/i.test(r))) problemes.push("index.html n'a pas de <meta name=\"robots\"> avec noindex");
   for (const { attribut, adresse } of adressesHtml(html)) {
     if (!adresse.startsWith("/assets/")) problemes.push(`index.html charge « ${adresse} » (${attribut}) hors de /assets/ du build`);
   }

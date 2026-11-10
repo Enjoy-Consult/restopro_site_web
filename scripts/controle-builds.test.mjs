@@ -153,3 +153,23 @@ test("aucun build ne contient la maquette de paiement (mock.js, jetons de scéna
   assert.match(problemesBuildVitrine({ html, fichiers: [...base, { chemin: "assets/index-x.js", contenu: '"#jeton=maquette-reprise-valide"' }] }).join(), /maquette de paiement/);
   assert.match(compte(HTML_COMPTE, [...FICHIERS_COMPTE(), { chemin: "assets/x.js", contenu: "mockRequete()" }]).join(), /maquette de paiement/);
 });
+
+test("commentaires et fins de script mal formés : rien n'échappe au contrôle (alertes CodeQL n° 2 et 3)", () => {
+  // Ce qui est interdit se cherche commentaires compris : aucun montage de commentaires ne cache une meta permissive.
+  for (const piege of ['<!<!---->-- <meta name="referrer" content="unsafe-url"> -->', '<!<!---->--><meta name="referrer" content="unsafe-url">', '<!--><meta name="referrer" content="unsafe-url">', '<!-- <script>x()</script> -->']) {
+    assert.ok(compte(HTML_COMPTE.replace("</head>", `${piege}</head>`)).length > 0, piege);
+  }
+  // Ce qui est obligatoire ne compte pas dans un commentaire, même reformé ou abrégé.
+  for (const cache of ['<!<!---->-- <meta name="referrer" content="no-referrer" /> -->', '<!-- --!> <!-- <meta name="referrer" content="no-referrer" /> -->']) {
+    assert.match(compte(HTML_COMPTE.replace('<meta name="referrer" content="no-referrer" />', cache)).join(), /no-referrer/, cache);
+  }
+  // Commentaire jamais fermé : le reste du document est masqué, donc la page perd ses balises obligatoires.
+  const nonFerme = HTML_COMPTE.replace("<meta charset", "<!-- <meta charset");
+  assert.match(compte(nonFerme).join(), /no-referrer/);
+  // Fin de script avec espaces, retours à la ligne ou attributs.
+  for (const fin of ["</script >", "</script\t\n bar>", "</SCRIPT foo=1>"]) {
+    const html = HTML_COMPTE.replace("</head>", `<script>x()${fin}</head>`);
+    assert.match(compte(html).join(), /script intégré/, JSON.stringify(fin));
+    assert.equal(scriptsIntegres(`<script>a()${fin}`).length, 1, JSON.stringify(fin));
+  }
+});
