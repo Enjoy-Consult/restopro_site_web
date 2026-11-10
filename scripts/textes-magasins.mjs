@@ -1,7 +1,8 @@
 // Passages interdits dans les documents « application » (CGU, politique de confidentialité, mentions légales de l'app),
 // affichés tels quels sur iOS et Android : règle des magasins d'applications de l'app, reprise À L'IDENTIQUE de
 // STORE_FORBIDDEN_TEXTS (dépôt Saule42/App-EnjoyConsult-4.5, src/core/billing/storeLeaks.ts), transmise par le front le
-// 10/11/2026. L'import de l'app (scripts/import-legal-texts.mjs) refuse un texte au premier passage en cause.
+// 10/11/2026, mise à jour le même soir (commits de l'app 4321af2a et 3ade0575 : « euro », « payez », capital social).
+// L'import de l'app (scripts/import-legal-texts.mjs) refuse un texte au premier passage en cause.
 // Si la liste change dans l'app, la recopier ici telle quelle.
 //
 // Comparaison, comme l'import de l'app : sur le texte VISIBLE (Markdown rendu : ni **, ni [ ]( ), ni cibles des liens),
@@ -17,10 +18,12 @@ export const TEXTES_INTERDITS_MAGASINS = [
   ["€", /€/],
   ["HT", /\bHT\b/],
   ["TTC", /\bTTC\b/],
+  // Le prix en toutes lettres ; seul le capital social réel (CAPITAL_SOCIAL_PERMIS, textes juridiques) est permis.
+  ["euro", /\beuros?\b/i],
   ["nom de formule", /essentiel|s[ée]r[ée]nit[ée]|expert/i],
   ["formule", /formule/i],
   ["invitation à s'abonner", /abonnez|s['’]abonner|souscri/i],
-  ["Payer", /\bpayer\b/i],
+  ["Payer", /\bpay(?:er|ez)\b/i],
   ["Résilier", /r[ée]silier/i],
   ["Changer de formule", /changer de formule/i],
   ["Moyens de paiement", /moyens? de paiement/i],
@@ -37,8 +40,15 @@ export const TEXTES_INTERDITS_MAGASINS = [
   ["adresse ou espace web", /https?:\/\/|(?:^|[^@\w.-])(?:[\w-]+\.)*restoclair\.fr|espace web|sur (?:le|notre) site/i],
 ];
 
-// Phrases permises, retirées du texte avant la recherche (storePlatformText.ts de l'app). Exceptions étroites.
-export const PHRASES_PERMISES = [/L['’]accès offert se termine le [^.]*\./g, /période d['’]accès offert terminée/g, /supprimer mon compte/gi];
+// Capital social réel de l'éditeur (LCEN), seule mention d'euros permise, dans les textes juridiques seulement (ce script
+// ne traite que ceux-là) : STORE_ALLOWED_LEGAL_SENTENCES de l'app, recopiée telle quelle. « 1 000 », « 1000 » ou
+// « 1 000,00 » euros, en toutes lettres, suivi d'une ponctuation, d'un saut de ligne ou de la fin. Si le capital change,
+// l'app doit changer d'abord.
+export const CAPITAL_SOCIAL_PERMIS = /\b(?:capital social[    ]?:|au capital de)[    ]1[    ]?000(?:,00)?[    ]euros(?=[    ]*(?:[,.;)—–\n-]|$))/gi;
+
+// Phrases permises, retirées du texte avant la recherche, dans l'ordre de l'app : le capital social
+// (STORE_ALLOWED_LEGAL_SENTENCES), puis STORE_ALLOWED_ACCES_OFFERT_SENTENCES (storePlatformText.ts). Exceptions étroites.
+export const PHRASES_PERMISES = [CAPITAL_SOCIAL_PERMIS, /L['’]accès offert se termine le [^.]+\./g, /période d['’]accès offert terminée/g, /supprimer mon compte/gi];
 
 const ENTITES = { amp: "&", lt: "<", gt: ">", quot: "\"", "#x27": "'", "#39": "'", nbsp: "\u00A0" };
 const DEBUT_TITRE = "\u0001";

@@ -52,6 +52,31 @@ test("texte visible : insécables et invisibles normalisés, titres, citations e
   assert.deepEqual(passagesInterdits("Texte `[À VALIDER : facturation]`", { sansMarques: true }), []);
 });
 
+// Règle de l'app du 10/11 au soir (commits 4321af2a et 3ade0575) : « euro » et « payez » interdits ; seul le capital
+// social réel (1 000 euros) passe, dans les textes juridiques. Contre-épreuves transmises par le front.
+test("euros interdits, sauf le capital social réel ; « payez » interdit", () => {
+  for (const accepte of ["Capital social : 1 000 euros", "RestOclair SAS, au capital de 1 000 euros, immatriculée au RCS.", "Capital social : 1000 euros.", "Capital social : 1 000,00 euros ;", "Capital social : 1 000 euros."]) {
+    assert.deepEqual(regles(accepte), [], accepte);
+  }
+  const refuses = {
+    "1 000 €": ["€"],
+    "49 euros par mois": ["euro"],
+    "Capital social : 49 euros.": ["euro"],
+    "Abonnement au capital de 49 euros.": ["euro"],
+    "Capital social : 1 euro": ["euro"],
+    "au capital de 10 000 euros": ["euro"],
+    "capital de 1 000 euros, payez": ["euro", "Payer"],
+    "Abonnement 1 000 euros": ["euro"],
+    "Capital social : 1 000 euros HT": ["HT", "euro"],
+    "Capital social : 1 000 euros par mois.": ["euro"],
+  };
+  for (const [texte, attendu] of Object.entries(refuses)) assert.deepEqual(regles(texte).sort(), attendu.sort(), texte);
+  assert.deepEqual(regles("Payez ici, ou il faut payer."), ["Payer", "Payer"]);
+  assert.deepEqual(regles("Le pays et le paysage."), []);
+  // L'exception ne retire que la tournure : le reste du bloc est cherché comme avant.
+  assert.deepEqual(regles("Capital social : 1 000 euros. Facturation mensuelle."), ["facture"]);
+});
+
 test("normalisation alignée sur l'import de l'app : formatage Unicode retiré, toute espace ramenée à une espace simple", () => {
   assert.deepEqual(regles("fac\u200Eture"), ["facture"], "LRM");
   assert.deepEqual(regles("fac\u200Fture"), ["facture"], "RLM");
