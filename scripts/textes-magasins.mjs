@@ -54,16 +54,43 @@ const ENTITES = { amp: "&", lt: "<", gt: ">", quot: "\"", "#x27": "'", "#39": "'
 const DEBUT_TITRE = "\u0001";
 const SEPARATEUR = "\u0000";
 
+// Retire les éléments <code>…</code> (marques `[À …]`), contenu compris, jusqu'à ce qu'il n'en reste aucun.
+function sansCodeEnLigne(html) {
+  let reste = html;
+  let debut = reste.indexOf("<code>");
+  while (debut !== -1) {
+    const fin = reste.indexOf("</code>", debut);
+    if (fin === -1) break;
+    reste = reste.slice(0, debut) + reste.slice(fin + "</code>".length);
+    debut = reste.indexOf("<code>");
+  }
+  return reste;
+}
+
+// Retire les balises restantes, caractère par caractère : renderToStaticMarkup échappe le texte (« < » devient &lt;),
+// donc un « < » brut ouvre toujours une balise, fermée au « > » suivant. Le texte n'est jamais réinjecté dans du HTML :
+// il sert seulement à chercher les passages interdits.
+function sansBalises(html) {
+  let texte = "";
+  let dansBalise = false;
+  for (const caractere of html) {
+    if (dansBalise) dansBalise = caractere !== ">";
+    else if (caractere === "<") dansBalise = true;
+    else texte += caractere;
+  }
+  return texte;
+}
+
 // Texte visible d'un Markdown, bloc par bloc (titres, paragraphes, éléments de liste, citations), avec la section de
 // chacun, comme l'import de l'app. Les sous-listes sont des blocs à part. sansMarques : les marques `[À …]` (code en
 // ligne) sont retirées, comme elles le seront à la publication.
 export function blocsVisibles(markdown, { sansMarques = false } = {}) {
   let html = renderToStaticMarkup(createElement(ReactMarkdown, null, String(markdown ?? "")));
-  if (sansMarques) html = html.replace(/<code>[\s\S]*?<\/code>/g, "");
-  const morceaux = html
+  if (sansMarques) html = sansCodeEnLigne(html);
+  const separe = html
     .replace(/<h[1-6][^>]*>/g, `${SEPARATEUR}${DEBUT_TITRE}`)
-    .replace(/<\/?(?:p|li|ul|ol|blockquote|h[1-6]|br|hr|table|tr|td|th|pre)[^>]*>/g, SEPARATEUR)
-    .replace(/<[^>]+>/g, "")
+    .replace(/<\/?(?:p|li|ul|ol|blockquote|h[1-6]|br|hr|table|tr|td|th|pre)[^>]*>/g, SEPARATEUR);
+  const morceaux = sansBalises(separe)
     .replace(/&(#x27|#39|amp|lt|gt|quot|nbsp);/g, (_, e) => ENTITES[e])
     .split(SEPARATEUR);
   const blocs = [];
