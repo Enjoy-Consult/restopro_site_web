@@ -96,6 +96,11 @@ if ($errors) {
     repondre(422, ['success' => false, 'error' => 'Champs invalides', 'fields' => $errors]);
 }
 
+// Le formulaire actuel n'a plus de champ urgence : on la déduit du sujet, comme la version corrigée sur le serveur.
+if ($urgence === '' && $raison !== '') {
+    $urgence = ($raison === 'urgence' || $raison === 'urgence_ddpp') ? 'urgent' : 'normal';
+}
+
 // Limite d'envoi : le compteur garde une empreinte de l'adresse IP, jamais l'adresse.
 // Une empreinte sans envoi depuis 24 h est effacée à la demande suivante, quelle qu'en soit l'origine.
 // Si le dossier n'est pas accessible, on laisse passer : un client ne doit pas être bloqué par une panne du compteur.
@@ -145,6 +150,7 @@ $fields = array_filter([
     'Message' => $message,
     'Urgence' => URGENCES[$urgence] ?? '',
     'Demande spécifique' => $restaurant,
+    "Nom de l'établissement" => $restaurant,
 ], fn($valeur) => $valeur !== '');
 
 $result = airtableRequest('Base%20de%20donn%C3%A9e%20client', 'POST', [
