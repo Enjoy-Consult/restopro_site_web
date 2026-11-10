@@ -6,6 +6,8 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const RACINE_LEGALE = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "content", "legal");
+// Adresse du site de production, par défaut. Le build passe VITE_SITE_URL (scripts/vite-plugins.mjs) : le site de test
+// publie ainsi un index dont les adresses mènent à lui (http://localhost:4303), et non à la production.
 export const SITE_URL = "https://restoclair.fr";
 const AVERTISSEMENT = "Projet à faire relire par un avocat";
 
@@ -53,15 +55,15 @@ export function lireTexte(document, version, racine = RACINE_LEGALE) {
 }
 
 // Une entrée par version : { document, version, enVigueurLe, sha256, url, markdown, statut, enVigueur }.
-export function construireHistorique(racine = RACINE_LEGALE) {
+export function construireHistorique(racine = RACINE_LEGALE, siteUrl = SITE_URL) {
   return lireDocuments(racine).flatMap((doc) =>
     doc.versions.map((v) => ({
       document: doc.document,
       version: v.version,
       enVigueurLe: v.enVigueurLe,
       sha256: empreinteTexteLegal(lireTexte(doc.document, v.version, racine)),
-      url: `${SITE_URL}${doc.chemin}/${v.version}`,
-      markdown: `${SITE_URL}/legal/${doc.document}/${v.version}.md`,
+      url: `${siteUrl}${doc.chemin}/${v.version}`,
+      markdown: `${siteUrl}/legal/${doc.document}/${v.version}.md`,
       statut: v.statut,
       enVigueur: v.version === doc.versionEnVigueur,
     }))
@@ -70,8 +72,8 @@ export function construireHistorique(racine = RACINE_LEGALE) {
 
 // Index des versions en vigueur, au format convenu : [{ document, version, enVigueurLe, sha256, url }]
 // (plus markdown et statut).
-export function construireIndex(racine = RACINE_LEGALE) {
-  return construireHistorique(racine)
+export function construireIndex(racine = RACINE_LEGALE, siteUrl = SITE_URL) {
+  return construireHistorique(racine, siteUrl)
     .filter((e) => e.enVigueur)
     .map(({ enVigueur: _enVigueur, ...e }) => e);
 }

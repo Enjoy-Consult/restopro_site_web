@@ -146,3 +146,16 @@ test("aucune trace de « RestoClair » dans le site", () => {
   const fichiers = ["index.html", "README.md", ...readdirSync("src", { recursive: true }).map((f) => join("src", f))].filter((f) => /\.(jsx?|md|html|json)$/.test(f));
   for (const f of fichiers) assert.ok(!readFileSync(f, "utf8").includes("RestoClair"), f);
 });
+
+test("index : les adresses suivent l'adresse du site donnée au build (site de test), production par défaut", async () => {
+  const { adresseDuSite } = await import("./vite-plugins.mjs");
+  const test_ = construireIndex(undefined, "http://localhost:4303");
+  assert.ok(test_.every((e) => e.url.startsWith("http://localhost:4303/") && e.markdown.startsWith("http://localhost:4303/legal/")));
+  assert.ok(construireIndex().every((e) => e.url.startsWith("https://restoclair.fr/")));
+  assert.equal(adresseDuSite({ mode: "test", env: { VITE_SITE_URL: "http://localhost:4303/" } }), "http://localhost:4303");
+  assert.equal(adresseDuSite({ mode: "production", env: {} }), "https://restoclair.fr");
+  assert.equal(adresseDuSite({ mode: "production", env: { VITE_SITE_URL: " https://restoclair.fr/ " } }), "https://restoclair.fr");
+  for (const fausse of ["http://localhost:4303", "https://restoclair.fr/chemin", "restoclair.fr"]) {
+    assert.throws(() => adresseDuSite({ mode: "production", env: { VITE_SITE_URL: fausse } }), /https sans chemin/, fausse);
+  }
+});

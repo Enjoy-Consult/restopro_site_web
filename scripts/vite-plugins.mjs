@@ -3,7 +3,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { avertissementMaquette, messageGardeFou, problemesVente } from './garde-fou-vente.mjs'
-import { construireHistorique, construireIndex, lireDocuments, RACINE_LEGALE } from './legal.mjs'
+import { construireHistorique, construireIndex, lireDocuments, RACINE_LEGALE, SITE_URL } from './legal.mjs'
 
 // Garde-fou de la vente (règles dans scripts/garde-fou-vente.mjs).
 // config.env contient les variables que verra le site : .env*, puis celles du processus, qui passent devant.
@@ -31,12 +31,24 @@ export function maquetteDeveloppementSeulement() {
 // Documents légaux : module virtuel « virtual:documents-legaux » (versions en vigueur et empreintes), dans les deux builds.
 // publier : la vitrine publie aussi l'index et les textes sous /legal/ (index.json, historique.json,
 // <document>/<version>.md). Le build compte ne les publie pas : aucun texte juridique n'y est servi.
+// Les adresses de l'index (url, markdown) suivent VITE_SITE_URL : http://localhost:4303 pour le site de test,
+// https://restoclair.fr en production (valeur par défaut si la variable est vide). En production, https exigé.
+export function adresseDuSite({ mode, env }) {
+  const variable = String(env?.VITE_SITE_URL ?? '').trim().replace(/\/+$/, '')
+  const adresse = variable || SITE_URL
+  if (mode === 'production' && !/^https:\/\/[^/]+$/.test(adresse)) {
+    throw new Error(`Build de production refusé : VITE_SITE_URL doit être une adresse https sans chemin (« ${adresse} »).`)
+  }
+  return adresse
+}
+
 export function documentsLegaux({ publier = true } = {}) {
   const ID = 'virtual:documents-legaux'
   const RESOLU = `\0${ID}`
+  let siteUrl = SITE_URL
   const fichiers = () => [
-    ['legal/index.json', `${JSON.stringify(construireIndex(), null, 2)}\n`],
-    ['legal/historique.json', `${JSON.stringify(construireHistorique(), null, 2)}\n`],
+    ['legal/index.json', `${JSON.stringify(construireIndex(RACINE_LEGALE, siteUrl), null, 2)}\n`],
+    ['legal/historique.json', `${JSON.stringify(construireHistorique(RACINE_LEGALE, siteUrl), null, 2)}\n`],
     ...lireDocuments().flatMap((doc) =>
       doc.versions.map((v) => [
         `legal/${doc.document}/${v.version}.md`,
@@ -46,6 +58,9 @@ export function documentsLegaux({ publier = true } = {}) {
   ]
   const greffon = {
     name: 'documents-legaux',
+    configResolved(config) {
+      siteUrl = adresseDuSite(config)
+    },
     resolveId: (id) => (id === ID ? RESOLU : null),
     load(id) {
       if (id !== RESOLU) return null
@@ -53,7 +68,7 @@ export function documentsLegaux({ publier = true } = {}) {
       for (const doc of lireDocuments()) {
         for (const v of doc.versions) this.addWatchFile(path.join(RACINE_LEGALE, doc.document, `${v.version}.md`))
       }
-      return `export const INDEX_LEGAL = ${JSON.stringify(construireIndex())};`
+      return `export const INDEX_LEGAL = ${JSON.stringify(construireIndex(RACINE_LEGALE, siteUrl))};`
     },
   }
   if (!publier) return greffon
