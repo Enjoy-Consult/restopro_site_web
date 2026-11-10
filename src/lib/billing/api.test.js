@@ -189,6 +189,11 @@ test("429 : l'attente demandée vient de l'en-tête, sinon du corps (en-tête ma
   assert.equal(await attente(json(429, { retryAfter: 900 }, { "Retry-After": "30" })), 30000);
   assert.equal(await attente(json(429, { message: "Trop", retryAfter: 900 })), 900000);
   assert.equal(await attente(json(429, { data: { retryAfter: "12" } })), 12000);
+  // Format figé d'Apirest (429 TROP_DE_TENTATIVES) : Retry-After d'abord (exposé par le CORS), sinon
+  // details.reessayerDansSecondes.
+  const tentatives = (secondes) => ({ code: "TROP_DE_TENTATIVES", message: "Trop de tentatives", details: { reessayerDansSecondes: secondes } });
+  assert.equal(await attente(json(429, tentatives(99), { "Retry-After": "20" })), 20000);
+  assert.equal(await attente(json(429, tentatives(99))), 99000);
   assert.equal(await attente(json(429, { message: "Trop" })), null);
   assert.equal(await attente(new Response("<html>", { status: 429 })), null);
 });
