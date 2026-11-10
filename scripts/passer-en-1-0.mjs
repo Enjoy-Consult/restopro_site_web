@@ -21,6 +21,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
 import { construireIndex, empreinteTexteLegal, lireDocuments, lireTexte, normaliserTexteLegal, RACINE_LEGALE } from "./legal.mjs";
+import { passagesInterdits } from "./textes-magasins.mjs";
 
 const dateLongue = (iso) => {
   const date = new Date(`${iso}T12:00:00Z`);
@@ -103,6 +104,10 @@ export function passerEnVersion({ choix, racine = RACINE_LEGALE, ecrire = false 
   const resultats = documents.map((doc) => {
     const source = lireTexte(doc.document, doc.versionEnVigueur, racine);
     const { texte, problemes } = preparerTexte(source, { version, enVigueurLe, remplacements: remplacements.filter((r) => r.document === doc.document) });
+    // Documents de l'application : affichés tels quels sur iOS et Android, sans aucun passage interdit par les magasins.
+    if (doc.portee === "application") {
+      for (const p of passagesInterdits(texte)) problemes.push(`passage interdit par les magasins (« ${p.regle} », ${p.section}) : …${p.extrait}…`);
+    }
     if (doc.versions.some((v) => v.version === version)) {
       problemes.push(`la version ${version} existe déjà : une version publiée ne se republie jamais, une correction devient la version suivante`);
     } else if (existsSync(join(racine, doc.document, `${version}.md`))) {

@@ -71,10 +71,11 @@
     "titre": "Conditions générales d’utilisation de l’application",
     "description": "Conditions générales d’utilisation de l’application RestOclair.",
     "portee": "application",
-    "versionEnVigueur": "0.2",
+    "versionEnVigueur": "0.3",
     "versions": [
       { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
-      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" },
+      { "version": "0.3", "enVigueurLe": "2026-11-10", "statut": "projet" }
     ]
   },
   {
@@ -83,10 +84,20 @@
     "titre": "Politique de confidentialité de l’application",
     "description": "Comment l’application RestOclair traite les données personnelles.",
     "portee": "application",
-    "versionEnVigueur": "0.2",
+    "versionEnVigueur": "0.3",
     "versions": [
       { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
-      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" },
+      { "version": "0.3", "enVigueurLe": "2026-11-10", "statut": "projet" }
     ]
+  },
+  {
+    "document": "mentions-legales-app",
+    "chemin": "/application/mentions-legales",
+    "titre": "Mentions légales de l’application",
+    "description": "Mentions légales de l’application RestOclair (iOS, Android et version web).",
+    "portee": "application",
+    "versionEnVigueur": "0.1",
+    "versions": [{ "version": "0.1", "enVigueurLe": "2026-11-10", "statut": "projet" }]
   }
 ]

@@ -17,8 +17,9 @@ import {
   lireTexte,
   normaliserTexteLegal,
 } from "./legal.mjs";
+import { passagesInterdits } from "./textes-magasins.mjs";
 
-const sha = (t) => createHash("sha256").update(t, "utf8").digest("hex");
+const sha =(t) => createHash("sha256").update(t, "utf8").digest("hex");
 
 test("normalisation : UTF-8 sans BOM, fins de ligne \\n, sans le bandeau « projet », un seul \\n final", () => {
   const source = "﻿# Titre\r\n\r\nVersion 0.1\r\n\r\n> **Projet à faire relire par un avocat.** Texte\r\n> suite du bandeau\r\n\r\n## 1. Objet\r\n\r\nTexte.\r\n\r\n\r\n";
@@ -138,7 +139,25 @@ test("documents de l'application en vigueur : ni moyen de paiement, ni lien rela
   for (const doc of lireDocuments().filter((d) => d.portee === "application")) {
     const texte = lireTexte(doc.document, doc.versionEnVigueur);
     for (const motif of interdits) assert.ok(!motif.test(texte), `${doc.document} ${doc.versionEnVigueur} contient ${motif}`);
-    assert.ok(texte.includes("L’abonnement de l’établissement est régi par les conditions générales de vente, acceptées par son titulaire."), doc.document);
+    // Les mentions légales de l'app ne parlent pas de l'abonnement : la phrase n'y est pas exigée.
+    if (doc.document !== "mentions-legales-app") {
+      assert.ok(texte.includes("L’abonnement de l’établissement est régi par les conditions générales de vente, acceptées par son titulaire."), doc.document);
+    }
+  }
+});
+
+// Règle des magasins de l'app (STORE_FORBIDDEN_TEXTS, copiée dans scripts/textes-magasins.mjs) : aucun passage interdit
+// dans le texte qui sera affiché sur iOS et Android, pour la version en vigueur (sans bandeau ni marques, comme à la
+// publication) et pour toute version publiée. L'import de l'app refuserait le texte.
+test("documents de l'application : aucun passage interdit par les magasins", () => {
+  const applications = lireDocuments().filter((d) => d.portee === "application");
+  assert.deepEqual(applications.map((d) => d.document).sort(), ["cgu-app", "confidentialite-app", "mentions-legales-app"]);
+  for (const doc of applications) {
+    const versions = new Set([doc.versionEnVigueur, ...doc.versions.filter((v) => v.statut === "publie").map((v) => v.version)]);
+    for (const version of versions) {
+      const passages = passagesInterdits(normaliserTexteLegal(lireTexte(doc.document, version)), { sansMarques: true });
+      assert.deepEqual(passages.map((p) => `${p.regle} (${p.section})`), [], `${doc.document} ${version}`);
+    }
   }
 });
 
