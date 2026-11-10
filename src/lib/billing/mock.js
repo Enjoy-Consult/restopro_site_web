@@ -48,6 +48,7 @@
 //   /tarifs?paiement=annule&maquette=avec_jeton (ou sans_jeton) -> annulation avec ou sans compte créé
 // Le scénario reste dans la session de l'onglet : maquette=sans_jeton, ou fermer l'onglet, pour en sortir.
 import { ApiError } from "./errors.js";
+import { mockEspace } from "./mock-espace.js";
 import { EMAIL_SCENARIO, PREFIXE_JETON_SCENARIO } from "./scenarios.js";
 
 const CLE_ETAT = "restoclair_billing_mock";
@@ -274,6 +275,9 @@ function exigerNouvelleCgv(corps) {
 
 export async function mockRequete(methode, chemin, { corps, token, pms = false, scenarios = false } = {}) {
   await attendre(PAUSE_MS);
+  // Espace abonnement de compte.restoclair.fr : maquette à part (mock-espace.js).
+  const espace = await mockEspace(methode, chemin, { corps, token });
+  if (espace !== undefined) return espace;
   const route = `${methode} ${chemin}`;
 
   if (route === "GET /api/billing/catalogue") return mockCatalogue(pms);

@@ -7,9 +7,9 @@ Site vitrine de RestOclair : Vite, React 18, Tailwind 4. Le blog, les avis et le
 ```bash
 npm ci
 cp .env.example .env.local   # vente d'abonnements active, en mode maquette
-npm run dev
+npm run dev                  # vitrine ; npm run dev:compte pour compte.restoclair.fr
 npm test                     # calculs, formats et contrôles de la vente d'abonnements
-npm run build
+npm run build:test           # les deux builds en mode test (la maquette n'existe pas dans un build)
 ```
 
 En mode maquette (`VITE_BILLING_MOCK=true`), l'API est simulée, **sous le serveur de développement seulement** (`npm run dev`, `npm run dev:compte`) : dans un build, la maquette n'existe pas (`mock.js` n'entre pas dans le bundle) et la variable est sans effet, avec un avertissement. L'adresse e-mail saisie à l'inscription choisit le scénario (voir `src/lib/billing/mock.js`) : `existant@`, `indispo@`, `ko@`, `role@`, `comptes@`, `expire@` (401), `refus@` (403), `bloque@` (403 sur la page de retour), `sepa@`, `lent@`, `validation@`, `validationautre@` (400 VALIDATION_ERROR), `cgvobsolete@`, `cgvpaiement@`, `dejaactif@`, `gere@`, ou un SIRET commençant par `000000`. La page `/abonnement/reprendre` (reprise ou annulation d'une inscription non payée, par un lien reçu par e-mail) se teste avec `/abonnement/reprendre#jeton=maquette-reprise-valide`, ou `-expire`, `-utilise`, `-actif`, `-activation`, `-payee` (annulation refusée), `-indispo`, `-trop` ; la demande d'un lien accepte toute adresse, sauf `trop@`, `indispo@` et `validation@`. La page `/compte/mot-de-passe` se teste avec `#jeton=maquette-mdp-valide` (le mot de passe `Refuse123` reçoit le refus du serveur), ou `-expire`, `-indispo`, `-trop`. Un code consommé répond ensuite « lien indisponible ». Avec `npm run dev` seulement, `annule@` et le paramètre `?maquette=` (par exemple `/abonnement/retour?maquette=impaye`, liste dans le même fichier) simulent l'annulation, chaque statut de compte, le 401 et le 429.
@@ -42,7 +42,7 @@ Le build compte n'a **aucun script ni style intégré** (CSP `script-src 'self'`
 
 **Variables** : `VITE_SITE_URL` (`https://restoclair.fr`) et `VITE_COMPTE_URL` (`https://compte.restoclair.fr`), pour les liens d'une origine à l'autre, toujours par l'adresse complète. Site de test : `http://localhost:4303` et `http://localhost:4304`. Le workflow `deploy-production.yml` ne compile encore que la vitrine : le compte se publie à part, dans `web/compte.restoclair.fr`, quand ses pages seront prêtes.
 
-**État** : les adresses du compte affichent une page provisoire ; la connexion, l'espace abonnement et les pages de mot de passe y arrivent lot par lot. `/compte/mot-de-passe` reste pour l'instant dans la vitrine.
+**État (périmètre de l'ouverture du 15/11)** : `/connexion`, `/mon-abonnement` (état, portail Stripe, résiliation et son annulation avec mot de passe redemandé, export ZIP, déconnexion, choix de l'établissement), `/mot-de-passe#jeton=…` et `/mot-de-passe-oublie`, sur la maquette (`npm run dev:compte` ; scénarios dans `src/lib/billing/mock-espace.js`). Reportés : transfert du titulaire, comptes, formule, paiement depuis l'espace. `/compte/mot-de-passe` reste pour l'instant dans la vitrine.
 
 ## Déploiement
 

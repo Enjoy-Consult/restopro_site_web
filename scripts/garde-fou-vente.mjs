@@ -27,7 +27,7 @@ function problemeDocument(documents, cle) {
   const enVigueur = doc.versions.find((v) => v.version === doc.versionEnVigueur);
   if (!enVigueur) return `le document « ${cle} » n'a pas de version en vigueur connue (« ${doc.versionEnVigueur} »)`;
   if (enVigueur.statut === "projet") return `le document « ${cle} » (version ${enVigueur.version}) a encore le statut « projet »`;
-  // Un statut mal écrit ne doit pas ouvrir la vente : le workflow de production ne lance pas npm test.
+  // Un statut mal écrit ne doit pas ouvrir la vente, même si npm test n'a pas tourné (build lancé à la main).
   if (!STATUTS_ADMIS.includes(enVigueur.statut)) return `le document « ${cle} » (version ${enVigueur.version}) a un statut inconnu (« ${enVigueur.statut} »)`;
   return null;
 }

@@ -2,6 +2,7 @@
 // Le site ne connaît ni le service de paiement ni Stripe : il suit l'`url` renvoyée par l'API.
 import { API_URL, BILLING_MOCK, BILLING_MOCK_DEV, BILLING_MOCK_PMS } from "./config.js";
 import { ApiError } from "./errors.js";
+import { lireConnexion } from "./espace.js";
 
 export { ApiError };
 
@@ -40,7 +41,10 @@ export function lireRetryAfter(enTete, retryAfter, maintenant = Date.now()) {
   return dureeAttenteMs(enTete, maintenant) ?? dureeAttenteMs(retryAfter, maintenant);
 }
 
-export async function requete(methode, chemin, { corps, token } = {}) {
+// delaiMs : attente maximale de la réponse. La connexion et les actions à mot de passe passent par un limiteur à délai
+// croissant (spécification de la connexion, demande 4) : elles attendent plus longtemps, bouton « en cours ».
+// fichier : la réponse est un fichier (export ZIP) ; un refus reste lu en JSON.
+export async function requete(methode, chemin, { corps, token, delaiMs = DELAI_MAX_MS, fichier = false } = {}) {
   // BILLING_MOCK est faux dans tout build (config.js) : la maquette et mock.js n'en font jamais partie.
   if (BILLING_MOCK) {
     const { mockRequete } = await import("./mock.js");
@@ -52,7 +56,7 @@ export async function requete(methode, chemin, { corps, token } = {}) {
   if (token) headers[EN_TETE_AUTH] = `${SCHEMA_AUTH} ${token}`;
 
   const controleur = new AbortController();
-  const minuteur = setTimeout(() => controleur.abort(), DELAI_MAX_MS);
+  const minuteur = setTimeout(() => controleur.abort(), delaiMs);
   let reponse;
   let data;
   try {
@@ -66,7 +70,7 @@ export async function requete(methode, chemin, { corps, token } = {}) {
       signal: controleur.signal,
     });
     // Le délai couvre aussi la lecture du corps : un corps qui n'arrive jamais ne fige pas le bouton.
-    data = await reponse.json().catch(() => null);
+    data = fichier && reponse.ok ? await reponse.blob() : await reponse.json().catch(() => null);
     if (controleur.signal.aborted) throw new ApiError("RESEAU");
   } catch {
     throw new ApiError("RESEAU");
@@ -255,3 +259,21 @@ export const definirMotDePasse = (jeton, motDePasse) =>
 // « Mot de passe oublié » (spécification de la connexion, demande 9) : même réponse quel que soit le compte.
 export const demanderLienMotDePasse = (email) =>
   requete("POST", "/api/billing/mot-de-passe/oublie", { corps: { email } }).then(() => undefined);
+
+// Espace abonnement (compte.restoclair.fr, session « site » de 2 h). Voir espace.js pour les formes et les refus.
+const DELAI_LIMITEUR_MS = 45000;
+const avecRestaurant = (chemin, restaurantId) => `${chemin}?restaurantId=${encodeURIComponent(restaurantId)}`;
+export const seConnecter = (email, motDePasse) =>
+  requete("POST", "/api/billing/connexion", { corps: { email, motDePasse }, delaiMs: DELAI_LIMITEUR_MS }).then(lireConnexion);
+export const seDeconnecter = (token) => requete("POST", "/api/billing/deconnexion", { token }).then(() => undefined);
+export const getCompteEspace = (token, restaurantId) =>
+  requete("GET", avecRestaurant("/api/billing/compte", restaurantId), { token }).then(lireCompte);
+export const ouvrirPortail = (token, restaurantId) =>
+  requete("POST", "/api/billing/portail", { token, corps: { restaurantId } }).then((brut) => sansEnveloppe(brut)?.url);
+export const resilier = (token, restaurantId, motDePasse) =>
+  requete("POST", "/api/billing/resiliation", { token, corps: { restaurantId, motDePasse }, delaiMs: DELAI_LIMITEUR_MS })
+    .then((brut) => ({ effetLe: texte(sansEnveloppe(brut)?.effetLe) || null }));
+export const annulerResiliation = (token, restaurantId, motDePasse) =>
+  requete("DELETE", "/api/billing/resiliation", { token, corps: { restaurantId, motDePasse }, delaiMs: DELAI_LIMITEUR_MS }).then(() => undefined);
+export const telechargerExport = (token, restaurantId) =>
+  requete("GET", avecRestaurant("/api/billing/export-sortie", restaurantId), { token, fichier: true, delaiMs: 120000 });
