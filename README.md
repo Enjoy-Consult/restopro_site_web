@@ -44,6 +44,7 @@ Le workflow ne transmet jamais `VITE_BILLING_MOCK` : un build de production ne p
 À vérifier à la main :
 
 - **Documents.** `cgv`, `accord-sous-traitance` et `cgu-app` sont validés : statut `publie`, `sha256` enregistré, sans bandeau ni marque jaune. Lancer `npm test`, qui contrôle ces textes : le workflow ne le lance pas. `mentions-legales`, `confidentialite-site`, `cookies` et `confidentialite-app` ne bloquent pas le build : les relire aussi.
+- **Espace abonnement.** Les mentions avant paiement et les documents renvoient à `restoclair.fr/mon-abonnement`, et les e-mails du service de paiement y mèneront : ne pas activer la vente tant que cette page n'est pas en ligne.
 - **API.** Les routes `/api/billing/catalogue`, `/inscription`, `/checkout`, `/compte`, `/reprise/demande` et `/reprise` répondent sous `VITE_API_URL` (les noms des deux routes de reprise sont provisoires, à aligner sur Apirest). Apirest autorise les origines `https://restoclair.fr` et `https://www.restoclair.fr` (CORS), avec les en-têtes `Content-Type`, `X-Client-Type` et `Authorization`.
 - **`SITE_URL` côté Apirest.** Elle vaut exactement `https://restoclair.fr`, sans `www` ni `/` final : les retours Stripe en dépendent.
 - **Retours Stripe.** Adresses relevées dans le code d'Apirest : succès `{SITE_URL}/abonnement/retour?session_id={CHECKOUT_SESSION_ID}`, annulation `{SITE_URL}/tarifs?paiement=annule`. À confirmer en production par un vrai passage sur la page de paiement, dans les deux sens.

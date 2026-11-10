@@ -17,6 +17,7 @@ import DocumentLegal from './pages/DocumentLegal';
 import ErrorBoundary from '@/components/billing/ErrorBoundary';
 import { DOCUMENTS_LEGAUX } from '@/content/legal';
 import { BILLING_ACTIF } from '@/lib/billing/config';
+import { SITE_DE_PRODUCTION } from '@/lib/environnement';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 
@@ -89,7 +90,8 @@ const AuthenticatedApp = () => {
           Les pages de l'application sont sans en-tête ni pied de page (magasins d'applications, sans prix).
           Le pied de page ne lie CGV, CGU et accord de sous-traitance que si la vente est active. */}
       {Object.values(DOCUMENTS_LEGAUX).flatMap((doc) => {
-        const apres = doc.document === "cookies"
+        // Hors du site de production, Google n'est jamais chargé : pas de choix à gérer.
+        const apres = doc.document === "cookies" && SITE_DE_PRODUCTION
           ? <button type="button" onClick={ouvrirGestionCookies} className="btn-primary mt-8">Gérer mes cookies</button>
           : null;
         const page = doc.portee === "application"

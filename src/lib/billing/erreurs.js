@@ -70,11 +70,20 @@ export function messageRefus(erreur) {
   return REFUS[erreur.code] ?? MESSAGE_REFUS_GENERIQUE;
 }
 
-// Le jeton n'a plus d'usage : session expirée, ou abonnement déjà actif, qu'il ne reste donc plus à payer.
+// 403 MUST_FINALIZE : Apirest a envoyé les identifiants du titulaire, donc l'abonnement est en place (paiement confirmé
+// ou mandat SEPA signé). Tant que sa garde vise aussi le jeton du site, le checkout et GET /compte répondent ainsi.
+export const MESSAGE_ABONNEMENT_EN_PLACE =
+  "Votre abonnement est déjà en place : vos identifiants de connexion vous ont été envoyés par e-mail. Ne payez pas une seconde fois.";
+
+// Le jeton n'a plus d'usage : session expirée, ou abonnement déjà actif ou en place, qu'il ne reste donc plus à payer.
 // Supprime le jeton et renvoie { type, texte }, à afficher à la place du paiement. Sinon renvoie null et ne touche à rien.
 export function traiterFinDeSession(erreur) {
   const expiree = traiterSessionExpiree(erreur);
   if (expiree) return { type: "error", texte: expiree };
+  if (erreur?.code === "MUST_FINALIZE") {
+    effacerSession();
+    return { type: "info", texte: MESSAGE_ABONNEMENT_EN_PLACE };
+  }
   if (erreur?.code !== "ABONNEMENT_DEJA_ACTIF") return null;
   effacerSession();
   return { type: "info", texte: REFUS.ABONNEMENT_DEJA_ACTIF };

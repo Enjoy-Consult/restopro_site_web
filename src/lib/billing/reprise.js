@@ -6,7 +6,7 @@
 // Le code, à usage unique et valable 60 minutes, est échangé contre un nouveau jeton de paiement de 2 heures.
 // Il est dans le fragment (#) : le navigateur ne l'envoie pas au serveur web, ni dans l'en-tête Referer. La page le lit,
 // l'efface aussitôt de la barre d'adresse et ne l'échange qu'au clic, pour qu'un logiciel qui ouvre les liens
-// d'un e-mail ne le consomme pas. Il n'est jamais écrit dans le navigateur.
+// d'un e-mail ne le consomme pas. Le site ne l'écrit jamais dans un cookie ni dans le stockage du navigateur.
 import { estTropDEssais, MESSAGE_INDISPONIBLE, MESSAGE_TROP_D_ESSAIS } from "./erreurs.js";
 import { TEXTE_ACTIVATION_EN_COURS } from "./retour.js";
 

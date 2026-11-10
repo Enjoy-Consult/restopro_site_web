@@ -290,6 +290,19 @@ test("fin de session : abonnement déjà actif, jeton supprimé et message seul,
   }
 });
 
+test("fin de session : 403 MUST_FINALIZE au paiement, abonnement en place, jeton supprimé, pas de second paiement", async () => {
+  const stockage = faussePageSession();
+  const { ecrireSession, lireSession } = await import("./session.js");
+  const { traiterFinDeSession, MESSAGE_ABONNEMENT_EN_PLACE } = await import("./erreurs.js");
+  const { ApiError } = await import("./errors.js");
+
+  ecrireSession({ token: "jeton-paye", email: "marie@exemple.fr" });
+  assert.deepEqual(traiterFinDeSession(new ApiError("MUST_FINALIZE", 403)), { type: "info", texte: MESSAGE_ABONNEMENT_EN_PLACE });
+  assert.equal(stockage.size, 0);
+  assert.equal(lireSession(), null);
+  assert.match(MESSAGE_ABONNEMENT_EN_PLACE, /identifiants de connexion vous ont été envoyés par e-mail/);
+});
+
 test("fin de session : 401 en erreur ; les autres refus gardent le jeton", async () => {
   const stockage = faussePageSession();
   const { ecrireSession, lireSession } = await import("./session.js");

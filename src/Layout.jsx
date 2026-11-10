@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { BUSINESS } from "@/lib/business-info";
 import { BILLING_ACTIF } from "@/lib/billing/config";
 import { ouvrirGestionCookies } from "@/lib/consentement";
+import { traceursPermis } from "@/lib/environnement";
 
 const navigation = [
   { name: "Services", page: "Services" },
@@ -16,6 +17,8 @@ const navigation = [
 
 export default function Layout({ children, currentPageName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // « Gérer mes cookies » seulement là où Google peut être chargé : ailleurs, il n'y a aucun choix à gérer.
+  const gestionCookies = traceursPermis(useLocation().pathname);
 
   return (
     <div className="min-h-screen flex flex-col bg-paper">
@@ -189,7 +192,9 @@ export default function Layout({ children, currentPageName }) {
               <Link to={createPageUrl("MentionsLegales")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Mentions légales</Link>
               <Link to="/confidentialite" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Confidentialité</Link>
               <Link to="/cookies" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Cookies</Link>
-              <button type="button" onClick={ouvrirGestionCookies} className="hover:underline transition-colors text-left" style={{ color: '#6b7268' }}>Gérer mes cookies</button>
+              {gestionCookies && (
+                <button type="button" onClick={ouvrirGestionCookies} className="hover:underline transition-colors text-left" style={{ color: '#6b7268' }}>Gérer mes cookies</button>
+              )}
               {BILLING_ACTIF && (
                 <>
                   <Link to="/cgv" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>CGV</Link>

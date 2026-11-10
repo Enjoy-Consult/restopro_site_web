@@ -4,6 +4,7 @@ import {
   EVENEMENT_GESTION,
   appliquerConsentement,
   enregistrerConsentement,
+  gtmCharge,
   lireConsentement,
 } from "@/lib/consentement";
 import { traceursPermis } from "@/lib/environnement";
@@ -18,6 +19,8 @@ export default function ConsentementCookies() {
   // Ni bandeau ni Google hors du site de production, ni sur les pages exclues : documents de l'application,
   // reprise d'une inscription, espace abonnement (voir environnement.js).
   const permis = traceursPermis(useLocation().pathname);
+  const permisRef = useRef(permis);
+  permisRef.current = permis;
   const applique = useRef(false);
   const [ouvert, setOuvert] = useState(() => lireConsentement() === null);
   const [detail, setDetail] = useState(false);
@@ -32,9 +35,17 @@ export default function ConsentementCookies() {
     appliquerConsentement(lireConsentement());
   }, [permis]);
 
+  // Arrivée sur une page exclue alors que Google est déjà dans le document (lien interne, retour arrière) : rien ne peut
+  // retirer le script, on recharge la page, qui repart sans lui. Le fragment de l'adresse (#jeton=…) est conservé.
+  useEffect(() => {
+    if (!permis && gtmCharge()) window.location.reload();
+  }, [permis]);
+
   // « Gérer mes cookies » : rouvre le bandeau, prérempli, sur le détail des finalités.
   useEffect(() => {
     const ouvrir = () => {
+      // Sur une page exclue, il n'y a aucun choix à gérer : rien ne s'ouvre, ni ici ni plus tard sur une autre page.
+      if (!permisRef.current) return;
       setPublicite(lireConsentement()?.publicite ?? false);
       setDetail(true);
       setOuvert(true);
@@ -47,7 +58,7 @@ export default function ConsentementCookies() {
   // Le bandeau ne doit pas masquer la fin des pages : on réserve sa hauteur sous le contenu.
   useEffect(() => {
     const bandeau = regionRef.current;
-    if (!ouvert || !bandeau || typeof ResizeObserver === "undefined") return undefined;
+    if (!ouvert || !permis || !bandeau || typeof ResizeObserver === "undefined") return undefined;
     const observateur = new ResizeObserver(() => {
       document.body.style.paddingBottom = `${bandeau.offsetHeight}px`;
     });
@@ -56,7 +67,7 @@ export default function ConsentementCookies() {
       observateur.disconnect();
       document.body.style.paddingBottom = "";
     };
-  }, [ouvert, detail]);
+  }, [ouvert, detail, permis]);
 
   const decider = (accepter) => {
     const { rechargement } = enregistrerConsentement(accepter);

@@ -4,6 +4,7 @@ import SEO from "@/components/SEO";
 import Message from "@/components/billing/Message";
 import { BUSINESS } from "@/lib/business-info";
 import { demanderLienReprise, echangerLienReprise } from "@/lib/billing/api";
+import { gtmCharge } from "@/lib/consentement";
 import { APP_WEB_URL, BILLING_MOCK } from "@/lib/billing/config";
 import {
   DUREE_LIEN_MINUTES,
@@ -52,8 +53,11 @@ function DejaAbonne() {
 export default function AbonnementReprendre() {
   const navigate = useNavigate();
   const { pathname, search, hash } = useLocation();
-  // Code du lien, lu une fois à l'arrivée. Il quitte aussitôt la barre d'adresse et n'est jamais écrit dans le navigateur.
-  const [jeton, setJeton] = useState(() => lireJetonDuFragment(window.location.hash));
+  // Google déjà dans le document (arrivée par un lien interne ou par le retour arrière) : ConsentementCookies recharge
+  // la page, qui repartira sans lui. D'ici là, on ne lit ni n'efface le code, et on n'affiche rien.
+  const [rechargement] = useState(gtmCharge);
+  // Code du lien, lu une fois à l'arrivée. Il quitte aussitôt la barre d'adresse et n'est jamais écrit dans le stockage du navigateur.
+  const [jeton, setJeton] = useState(() => (rechargement ? null : lireJetonDuFragment(window.location.hash)));
   const [echange, setEchange] = useState({ envoi: false, issue: null });
 
   const [email, setEmail] = useState(prendreEmailReprise);
@@ -64,7 +68,7 @@ export default function AbonnementReprendre() {
 
   // Le code quitte la barre d'adresse dès son arrivée, y compris par un lien ouvert alors que la page l'est déjà.
   useEffect(() => {
-    if (!hash) return;
+    if (rechargement || !hash) return;
     const lu = lireJetonDuFragment(hash);
     if (lu && lu !== jeton) {
       setJeton(lu);
@@ -127,6 +131,8 @@ export default function AbonnementReprendre() {
     }
     envoiEnCours.current = false;
   };
+
+  if (rechargement) return null;
 
   const issue = echange.issue;
   // Abonnement déjà actif ou en cours d'activation : rien à reprendre, la demande d'un lien n'a plus de sens.

@@ -173,17 +173,20 @@ test("maquette : le lien valable donne un jeton qui paie ; les autres codes donn
   const { url } = await mockRequete("POST", "/api/billing/checkout", { corps: { offre: "serenite", version: "mensuel", cgv }, token });
   assert.match(url, /\/abonnement\/retour\?session_id=/);
 
+  // Chaque refus de la maquette, puis l'issue que la page en tire.
   const attendu = {
-    expire: (e) => e.code === "LIEN_INDISPONIBLE" && e.status === 410,
-    utilise: (e) => e.code === "LIEN_INDISPONIBLE" && e.status === 410,
-    actif: (e) => e.code === "ABONNEMENT_DEJA_ACTIF" && !e.detail,
-    activation: (e) => e.code === "ABONNEMENT_DEJA_ACTIF" && e.detail?.motif === "activation_en_cours",
-    indispo: (e) => e.status === 503,
-    trop: (e) => e.status === 429,
+    expire: [(e) => e.code === "LIEN_INDISPONIBLE" && e.status === 410, "lien_indisponible", undefined],
+    utilise: [(e) => e.code === "LIEN_INDISPONIBLE" && e.status === 410, "lien_indisponible", undefined],
+    actif: [(e) => e.code === "ABONNEMENT_DEJA_ACTIF" && !e.detail, "deja_actif", undefined],
+    activation: [(e) => e.code === "ABONNEMENT_DEJA_ACTIF" && e.detail?.motif === "activation_en_cours", "activation_en_cours", undefined],
+    indispo: [(e) => e.status === 503, "erreur", true],
+    trop: [(e) => e.status === 429, "erreur", true],
   };
-  for (const [fin, verifier] of Object.entries(attendu)) {
-    await assert.rejects(mockRequete("POST", "/api/billing/reprise", { corps: { jeton: `${PREFIXE_JETON_REPRISE}${fin}` } }), verifier, fin);
-    const issue = issueEchange(await mockRequete("POST", "/api/billing/reprise", { corps: { jeton: `${PREFIXE_JETON_REPRISE}${fin}` } }).catch((e) => e));
-    assert.ok(issue.type, fin);
+  for (const [fin, [verifier, type, garderBouton]] of Object.entries(attendu)) {
+    const requete = () => mockRequete("POST", "/api/billing/reprise", { corps: { jeton: `${PREFIXE_JETON_REPRISE}${fin}` } });
+    await assert.rejects(requete(), verifier, fin);
+    const issue = issueEchange(await requete().catch((e) => e));
+    assert.equal(issue.type, type, fin);
+    assert.equal(issue.garderBouton, garderBouton, fin);
   }
 });

@@ -419,7 +419,11 @@ export default function Inscription() {
               ) : session ? (
                 <div className="border-t border-border pt-8">
                   <Message type="info">
-                    Votre compte est créé pour <strong>{session.email}</strong> : vos identifiants de connexion à l’application seront envoyés à cette adresse après le paiement. Si votre abonnement n’est pas encore réglé, passez au paiement. Si vous venez de payer, ne recommencez pas : vous recevrez un e-mail dès que votre abonnement sera actif.
+                    {session.email ? (
+                      <>Votre compte est créé pour <strong>{session.email}</strong> : vos identifiants de connexion à l’application seront envoyés à cette adresse après le paiement.</>
+                    ) : (
+                      "Votre compte est créé : vos identifiants de connexion à l’application seront envoyés à son adresse e-mail après le paiement."
+                    )} Si votre abonnement n’est pas encore réglé, passez au paiement. Si vous venez de payer, ne recommencez pas : vous recevrez un e-mail dès que votre abonnement sera actif.
                   </Message>
                   {erreurGenerale && <Message type="error" className="mt-4"><TexteErreur texte={erreurGenerale} email={session.email} /></Message>}
                   {etatCgv.aAccepterAuPaiement && (
