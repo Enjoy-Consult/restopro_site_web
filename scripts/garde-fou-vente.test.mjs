@@ -28,18 +28,16 @@ test("sans VITE_BILLING_ACTIF, le build continue, même avec des documents en pr
   assert.deepEqual(controle({ documents, env: {} }), []);
 });
 
-test("développement et maquette ne sont pas bloqués", () => {
+test("développement non bloqué ; la maquette n'exempte plus un build (elle n'existe pas dans un build)", () => {
   const documents = DOCUMENTS_REQUIS.map((cle) => doc(cle, "projet"));
   const env = { VITE_BILLING_ACTIF: "true" };
   assert.deepEqual(controle({ documents, env, commande: "serve", mode: "development" }), []);
   // vite preview : commande « serve » en mode production.
   assert.deepEqual(controle({ documents, env, commande: "serve" }), []);
   assert.deepEqual(controle({ documents, env, mode: "development" }), []);
-  for (const VITE_BILLING_MOCK of ["true", " TRUE "]) {
-    assert.deepEqual(controle({ documents, env: { ...env, VITE_BILLING_MOCK } }), [], VITE_BILLING_MOCK);
+  for (const VITE_BILLING_MOCK of ["true", " TRUE ", "false", undefined]) {
+    assert.equal(controle({ documents, env: { ...env, VITE_BILLING_MOCK } }).length, 5, String(VITE_BILLING_MOCK));
   }
-  // Une maquette éteinte ne protège de rien.
-  assert.equal(controle({ documents, env: { ...env, VITE_BILLING_MOCK: "false" } }).length, 5);
 });
 
 test("chaque document contractuel en projet bloque, et le problème le nomme", () => {
@@ -102,11 +100,11 @@ test("le garde-fou lit les variables comme src/lib/billing/config.js", async () 
       const controlee = problemesVente({ commande: "build", mode: "production", env: { ...process.env }, documents: documentsValides() }).length > 0;
       assert.equal(controlee, config.BILLING_ACTIF, `interrupteur « ${valeur} »`);
 
+      // Maquette : sans effet sur le garde-fou, quelle que soit son écriture (elle n'existe pas dans un build).
       process.env.VITE_BILLING_ACTIF = "true";
       process.env.VITE_BILLING_MOCK = valeur;
-      const maquette = await import(`../src/lib/billing/config.js?maquette=${cas++}`);
-      const passe = problemesVente({ commande: "build", mode: "production", env: { ...process.env }, documents: documentsValides() }).length === 0;
-      assert.equal(passe, maquette.BILLING_MOCK, `maquette « ${valeur} »`);
+      const controleeMalgreMaquette = problemesVente({ commande: "build", mode: "production", env: { ...process.env }, documents: documentsValides() }).length > 0;
+      assert.equal(controleeMalgreMaquette, true, `maquette « ${valeur} »`);
     }
     process.env.VITE_BILLING_ACTIF = "true";
     process.env.VITE_BILLING_MOCK = "false";
@@ -145,7 +143,7 @@ test("vite.config.js branche le garde-fou : il arrête le build de production, p
     await assert.rejects(resolveConfig({ logLevel: "silent" }, "build", "production"), /Build de production refusé[\s\S]*VITE_API_URL est vide/);
     await resolveConfig({ logLevel: "silent" }, "serve", "development");
     process.env.VITE_BILLING_MOCK = "true";
-    await resolveConfig({ logLevel: "silent" }, "build", "production");
+    await assert.rejects(resolveConfig({ logLevel: "silent" }, "build", "production"), /Build de production refusé/);
     process.env.VITE_BILLING_MOCK = "false";
     process.env.VITE_BILLING_ACTIF = "";
     await resolveConfig({ logLevel: "silent" }, "build", "production");
@@ -166,13 +164,20 @@ test("workflow de production : il transmet l'interrupteur et les adresses, jamai
   assert.ok(!workflow.includes("VITE_BILLING_MOCK"));
 });
 
-test("maquette en production : le build passe, mais avec un avertissement", async () => {
+test("VITE_BILLING_MOCK dans un build : avertissement (sans effet, le build appelle la vraie API)", async () => {
   const { avertissementMaquette } = await import("./garde-fou-vente.mjs");
   const actif = { VITE_BILLING_ACTIF: "true", VITE_BILLING_MOCK: "true" };
-  assert.match(avertissementMaquette({ commande: "build", mode: "production", env: actif }), /simule le paiement/);
-  assert.equal(avertissementMaquette({ commande: "serve", mode: "development", env: actif }), null);
-  assert.equal(avertissementMaquette({ commande: "build", mode: "production", env: { VITE_BILLING_ACTIF: "true" } }), null);
-  assert.equal(avertissementMaquette({ commande: "build", mode: "production", env: {} }), null);
+  assert.match(avertissementMaquette({ commande: "build", env: actif }), /aucun effet dans un build[\s\S]*vraie API/);
+  assert.match(avertissementMaquette({ commande: "build", env: { VITE_BILLING_MOCK: "true" } }), /aucun effet/);
+  assert.equal(avertissementMaquette({ commande: "serve", env: actif }), null);
+  assert.equal(avertissementMaquette({ commande: "build", env: { VITE_BILLING_ACTIF: "true" } }), null);
+  assert.equal(avertissementMaquette({ commande: "build", env: {} }), null);
+});
+
+test("la maquette n'existe que sous le serveur de développement (config.js)", async () => {
+  const source = readFileSync("src/lib/billing/config.js", "utf8");
+  assert.match(source, /const DEVELOPPEMENT = typeof __MAQUETTE_POSSIBLE__ === "undefined" \? true : __MAQUETTE_POSSIBLE__;/);
+  assert.match(source, /export const BILLING_MOCK = DEVELOPPEMENT && vrai\(env\.VITE_BILLING_MOCK\);/);
 });
 
 // Build compte (compte.restoclair.fr) : il ne sert qu'à la vente, il est donc contrôlé même sans VITE_BILLING_ACTIF.
@@ -192,14 +197,11 @@ test("compte : contrôlé même sans VITE_BILLING_ACTIF ; documents en projet et
   }
 });
 
-test("compte : développement, site de test et maquette ne sont pas bloqués ; la maquette avertit", async () => {
-  const { avertissementMaquette } = await import("./garde-fou-vente.mjs");
+test("compte : développement et site de test non bloqués ; la maquette n'exempte pas la production", () => {
   const documents = DOCUMENTS_REQUIS.map((cle) => doc(cle, "projet"));
   assert.deepEqual(controleCompte({ documents, env: {}, mode: "test" }), []);
   assert.deepEqual(controleCompte({ documents, env: {}, commande: "serve", mode: "development" }), []);
-  assert.deepEqual(controleCompte({ documents, env: { VITE_BILLING_MOCK: "true" } }), []);
-  assert.match(avertissementMaquette({ commande: "build", mode: "production", env: { VITE_BILLING_MOCK: "true" }, build: "compte" }), /simule le paiement/);
-  assert.equal(avertissementMaquette({ commande: "build", mode: "production", env: { VITE_BILLING_MOCK: "true" } }), null);
+  assert.equal(controleCompte({ documents, env: { VITE_BILLING_MOCK: "true" } }).length, 6);
 });
 
 test("compte : message propre au compte ; build inconnu refusé", () => {

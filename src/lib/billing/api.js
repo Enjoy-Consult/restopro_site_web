@@ -41,6 +41,7 @@ export function lireRetryAfter(enTete, retryAfter, maintenant = Date.now()) {
 }
 
 export async function requete(methode, chemin, { corps, token } = {}) {
+  // BILLING_MOCK est faux dans tout build (config.js) : la maquette et mock.js n'en font jamais partie.
   if (BILLING_MOCK) {
     const { mockRequete } = await import("./mock.js");
     return mockRequete(methode, chemin, { corps, token, pms: BILLING_MOCK_PMS, scenarios: BILLING_MOCK_DEV });

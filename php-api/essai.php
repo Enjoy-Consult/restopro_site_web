@@ -1,5 +1,6 @@
 <?php
 // Demandes d'essai gratuit (page /essai-gratuit) -> table Airtable "DemandesEssai"
+require_once __DIR__ . '/securite.php';
 // Configuration hors du dossier publié si disponible (partage NAS restoclair-prive), sinon repli local.
 $restoclairConfig = '/volume1/restoclair-prive/config.php';
 require_once (@is_readable($restoclairConfig) ? $restoclairConfig : __DIR__ . '/config.php');

@@ -1,7 +1,7 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import path from 'path'
-import { documentsLegaux, gardeFouVente } from './scripts/vite-plugins.mjs'
+import { documentsLegaux, gardeFouVente, maquetteDeveloppementSeulement } from './scripts/vite-plugins.mjs'
 
 // Build compte (compte.restoclair.fr) : connexion, espace abonnement, choix et réinitialisation du mot de passe.
 // Même commit que la vitrine (vite.config.js), autre point d'entrée : compte/index.html, sans script ni style intégré,
@@ -20,6 +20,7 @@ export default defineConfig({
   logLevel: 'error',
   plugins: [
     gardeFouVente('compte'),
+    maquetteDeveloppementSeulement(),
     react(),
     documentsLegaux({ publier: false }),
   ],

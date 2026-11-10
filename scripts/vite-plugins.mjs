@@ -19,6 +19,15 @@ export function gardeFouVente(build = 'vitrine') {
   }
 }
 
+// Maquette de paiement : serveur de développement seulement. __MAQUETTE_POSSIBLE__ vaut true sous `vite` (serve) et
+// false dans tout build ; le code qui en dépend (src/lib/billing/config.js) disparaît du bundle, mock.js compris.
+export function maquetteDeveloppementSeulement() {
+  return {
+    name: 'maquette-developpement-seulement',
+    config: (_config, { command }) => ({ define: { __MAQUETTE_POSSIBLE__: JSON.stringify(command === 'serve') } }),
+  }
+}
+
 // Documents légaux : module virtuel « virtual:documents-legaux » (versions en vigueur et empreintes), dans les deux builds.
 // publier : la vitrine publie aussi l'index et les textes sous /legal/ (index.json, historique.json,
 // <document>/<version>.md). Le build compte ne les publie pas : aucun texte juridique n'y est servi.

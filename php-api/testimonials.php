@@ -1,7 +1,9 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 0);
+ini_set('log_errors', 1);
 
+require_once __DIR__ . '/securite.php';
 // Configuration hors du dossier publié si disponible (partage NAS restoclair-prive), sinon repli local.
 $restoclairConfig = '/volume1/restoclair-prive/config.php';
 require_once (@is_readable($restoclairConfig) ? $restoclairConfig : __DIR__ . '/config.php');
@@ -10,8 +12,9 @@ setCorsHeaders();
 $result = airtableRequest('AvisSiteWeb');
 
 if ($result['status'] !== 200) {
-    http_response_code($result['status']);
-    echo json_encode(['error' => 'Erreur API Airtable', 'details' => $result]);
+    error_log('testimonials.php Airtable error: ' . json_encode($result));
+    http_response_code(502);
+    echo json_encode(['error' => 'Service indisponible']);
     exit();
 }
 

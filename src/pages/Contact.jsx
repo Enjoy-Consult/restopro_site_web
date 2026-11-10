@@ -10,7 +10,8 @@ export default function Contact() {
     phone: "",
     restaurant: "",
     subject: "",
-    message: ""
+    message: "",
+    _honey: ""
   });
   const [status, setStatus] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -21,6 +22,7 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (formData._honey) return;
     // Hors du site de production, rien ne part vers le PHP de production (environnement.js).
     if (!ecrituresProductionPermises()) {
       setStatus("coupe");
@@ -31,7 +33,7 @@ export default function Contact() {
     try {
       await submitContactForm(formData);
       setStatus("success");
-      setFormData({ name: "", email: "", phone: "", restaurant: "", subject: "", message: "" });
+      setFormData({ name: "", email: "", phone: "", restaurant: "", subject: "", message: "", _honey: "" });
     } catch (err) {
       setStatus("error");
     } finally {
@@ -151,6 +153,10 @@ export default function Contact() {
                       className="w-full border border-border bg-paper px-4 py-3 text-ink text-[15px] leading-relaxed resize-y focus:outline-none focus:border-bottle"
                       placeholder="Décrivez brièvement votre situation..."
                     />
+                  </div>
+
+                  <div className="absolute -left-[9999px]" aria-hidden="true">
+                    <label>Ne pas remplir<input name="_honey" value={formData._honey} onChange={handleChange} tabIndex={-1} autoComplete="off" /></label>
                   </div>
 
                   {status === "success" && (

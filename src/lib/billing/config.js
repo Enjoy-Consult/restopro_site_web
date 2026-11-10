@@ -8,8 +8,14 @@ const vrai = (valeur) => String(valeur ?? "").trim().toLowerCase() === "true";
 const url = (valeur) => String(valeur ?? "").trim().replace(/\/+$/, "");
 
 export const BILLING_ACTIF = vrai(env.VITE_BILLING_ACTIF);
-export const BILLING_MOCK = vrai(env.VITE_BILLING_MOCK);
-export const BILLING_MOCK_PMS = vrai(env.VITE_BILLING_MOCK_PMS);
+// Maquette (réponses simulées de l'API) : serveur de développement seulement. Vite remplace __MAQUETTE_POSSIBLE__ par
+// true sous `vite` et par false dans tout build (production ou test) : BILLING_MOCK vaut alors false et mock.js n'entre
+// pas dans le bundle (garde de la livraison A, commit 8a846c7, alerte CodeQL n° 1). VITE_BILLING_MOCK n'a donc aucun
+// effet dans un build, qui appelle la vraie API. Sous node (tests), la constante n'existe pas : process.env décide.
+/* global __MAQUETTE_POSSIBLE__ */
+const DEVELOPPEMENT = typeof __MAQUETTE_POSSIBLE__ === "undefined" ? true : __MAQUETTE_POSSIBLE__;
+export const BILLING_MOCK = DEVELOPPEMENT && vrai(env.VITE_BILLING_MOCK);
+export const BILLING_MOCK_PMS = BILLING_MOCK && vrai(env.VITE_BILLING_MOCK_PMS);
 // Scénarios de la maquette : serveur de développement seulement, jamais dans un build.
 export const BILLING_MOCK_DEV = BILLING_MOCK && env.DEV === true;
 

@@ -33,12 +33,13 @@ function problemeDocument(documents, cle) {
 }
 
 // Renvoie la liste des problèmes, vide si le build peut continuer.
-// Seul un build de production qui ouvre la vente réelle est contrôlé : ni le développement, ni le site de test
-// (--mode test), ni la maquette, ni une vitrine sans VITE_BILLING_ACTIF.
+// Seul un build de production qui ouvre la vente est contrôlé : ni le développement, ni le site de test (--mode test),
+// ni une vitrine sans VITE_BILLING_ACTIF. La maquette n'exempte plus de rien : elle n'existe pas dans un build
+// (src/lib/billing/config.js), qui appelle donc toujours la vraie API.
 export function problemesVente({ commande, mode, env, documents, build = "vitrine" }) {
   if (!ADRESSES_REQUISES[build]) return [`build inconnu : « ${build} »`];
   if (commande !== "build" || mode !== "production") return [];
-  if (!venteEnJeu(env, build) || vrai(env.VITE_BILLING_MOCK)) return [];
+  if (!venteEnJeu(env, build)) return [];
   return [
     ...DOCUMENTS_REQUIS.map((cle) => problemeDocument(documents, cle)).filter(Boolean),
     ...ADRESSES_REQUISES[build].filter((nom) => !url(env[nom])).map((nom) => `${nom} est vide`),
@@ -49,11 +50,10 @@ export function problemesVente({ commande, mode, env, documents, build = "vitrin
   ];
 }
 
-// La maquette n'est pas bloquée, mais un build de production qui simule le paiement ne doit pas passer en silence.
-export function avertissementMaquette({ commande, mode, env, build = "vitrine" }) {
-  if (commande !== "build" || mode !== "production") return null;
-  if (!venteEnJeu(env, build) || !vrai(env.VITE_BILLING_MOCK)) return null;
-  return "Attention : ce build de production simule le paiement (VITE_BILLING_MOCK=true). Ne le publiez pas.";
+// VITE_BILLING_MOCK dans un build : sans effet, mais celui qui l'a mis croit peut-être compiler une maquette.
+export function avertissementMaquette({ commande, env }) {
+  if (commande !== "build" || !vrai(env.VITE_BILLING_MOCK)) return null;
+  return "Attention : VITE_BILLING_MOCK=true n'a aucun effet dans un build. La maquette ne fonctionne qu'avec le serveur de développement (npm run dev, npm run dev:compte) ; ce build appelle la vraie API (VITE_API_URL).";
 }
 
 export function messageGardeFou(problemes, build = "vitrine") {

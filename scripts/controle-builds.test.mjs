@@ -77,7 +77,7 @@ test("vitrine : un script intégré modifié est refusé, un bloc JSON-LD est ig
   assert.match(problemesBuildVitrine({ html, fichiers: [] })[0], /legal\/index\.json est absent/);
 });
 
-test("vite.compte.config.js branche le garde-fou du compte : production refusée sans adresses, test et maquette admis", async () => {
+test("vite.compte.config.js branche le garde-fou du compte : production refusée sans adresses, même en maquette ; test admis", async () => {
   const { resolveConfig } = await import("vite");
   const noms = ["VITE_BILLING_ACTIF", "VITE_BILLING_MOCK", "VITE_API_URL", "VITE_SITE_URL", "VITE_COMPTE_URL", "NODE_ENV"];
   const sauvegarde = Object.fromEntries(noms.map((nom) => [nom, process.env[nom]]));
@@ -90,7 +90,7 @@ test("vite.compte.config.js branche le garde-fou du compte : production refusée
     await resolveConfig(config, "build", "test");
     await resolveConfig(config, "serve", "development");
     process.env.VITE_BILLING_MOCK = "true";
-    await resolveConfig(config, "build", "production");
+    await assert.rejects(resolveConfig(config, "build", "production"), /Build de production du compte refusé/);
   } finally {
     for (const nom of noms) {
       if (sauvegarde[nom] === undefined) delete process.env[nom];
@@ -143,4 +143,13 @@ test("compte : chaque texte juridique est repéré, même écrit en \\uXXXX par 
 
 test("contrôle d'un dossier absent : message clair, pas d'exception", () => {
   assert.deepEqual(controler("compte", "dossier-qui-n-existe-pas"), ["le dossier dossier-qui-n-existe-pas est absent : lancer le build d'abord"]);
+});
+
+test("aucun build ne contient la maquette de paiement (mock.js, jetons de scénario)", () => {
+  const html = readFileSync("index.html", "utf8");
+  const base = [{ chemin: "legal/index.json", contenu: "{}" }];
+  assert.deepEqual(problemesBuildVitrine({ html, fichiers: base }), []);
+  assert.match(problemesBuildVitrine({ html, fichiers: [...base, { chemin: "assets/mock-Bs8NBD2j.js", contenu: "x" }] }).join(), /fichier de la maquette/);
+  assert.match(problemesBuildVitrine({ html, fichiers: [...base, { chemin: "assets/index-x.js", contenu: '"#jeton=maquette-reprise-valide"' }] }).join(), /maquette de paiement/);
+  assert.match(compte(HTML_COMPTE, [...FICHIERS_COMPTE(), { chemin: "assets/x.js", contenu: "mockRequete()" }]).join(), /maquette de paiement/);
 });

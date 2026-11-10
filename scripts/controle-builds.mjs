@@ -53,6 +53,15 @@ const retablir = (texte) => texte
 
 const sansCommentaires = (html) => html.replace(/<!--[\s\S]*?-->/g, "");
 
+// La maquette de paiement n'existe que sous le serveur de développement (src/lib/billing/config.js) : aucun build ne la
+// contient, ni mock.js ni ses jetons de scénario.
+export const MARQUES_MAQUETTE = ["maquette-reprise-", "maquette-mdp-", "mockRequete"];
+
+const problemesMaquette = (fichiers) => fichiers.flatMap(({ chemin, contenu }) => [
+  ...(/(^|\/)mock[-.][^/]*\.js$/.test(chemin) ? [`fichier de la maquette dans le build : ${chemin}`] : []),
+  ...(contenu === null ? [] : MARQUES_MAQUETTE.filter((m) => contenu.includes(m)).map((m) => `maquette de paiement dans le build (« ${m} ») : ${chemin}`)),
+]);
+
 const EXTENSIONS_TEXTE = new Set([".html", ".js", ".mjs", ".css", ".json", ".txt", ".md", ".xml", ".svg", ".map", ".webmanifest"]);
 
 // Scripts sans src d'une page HTML, avec leur type. Les blocs de données (application/ld+json) ne s'exécutent pas.
@@ -99,6 +108,7 @@ export function problemesBuildCompte({ html, fichiers, marques = [...MARQUES_INT
   for (const { attribut, adresse } of adressesHtml(html)) {
     if (!adresse.startsWith("/assets/")) problemes.push(`index.html charge « ${adresse} » (${attribut}) hors de /assets/ du build`);
   }
+  problemes.push(...problemesMaquette(fichiers));
   for (const { chemin, contenu } of fichiers) {
     if (chemin !== "index.html" && !chemin.startsWith("assets/")) problemes.push(`fichier inattendu dans le build compte : ${chemin}`);
     if (contenu === null) continue;
@@ -118,6 +128,7 @@ export function problemesBuildVitrine({ html, fichiers }) {
     }
   }
   if (!fichiers.some((f) => f.chemin === "legal/index.json")) problemes.push("legal/index.json est absent : l'API ne pourrait plus lire les documents juridiques");
+  problemes.push(...problemesMaquette(fichiers));
   return problemes;
 }
 
