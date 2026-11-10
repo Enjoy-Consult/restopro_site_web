@@ -80,8 +80,8 @@ export function prendreExplicationChoix() {
 // La période court depuis le début de l'abonnement : ne jamais écrire « fin du mois ».
 // L'engagement n'apparaît que pour une version engagée, proposée seulement quand le PMS est disponible.
 const PROFESSIONNELS = "L’abonnement est réservé aux professionnels : en souscrivant, vous déclarez agir pour les besoins de votre activité professionnelle.";
-// Espace abonnement du site (CGV 0.2, article 2) : adresse encore à confirmer, d'où l'absence de chemin ici.
-const DEPUIS_ESPACE = "depuis votre espace abonnement, sur le site restoclair.fr";
+// Espace abonnement du site (CGV 0.2, article 2), à l'adresse restoclair.fr/mon-abonnement.
+const DEPUIS_ESPACE = "depuis votre espace abonnement, sur le site restoclair.fr/mon-abonnement";
 const GARANTIE = "Garantie « satisfait ou remboursé » : pour le premier abonnement d’un établissement, vous pouvez demander le remboursement de la première période dans les 14 jours qui suivent la confirmation du paiement.";
 
 export function mentionsAbonnement(version) {
