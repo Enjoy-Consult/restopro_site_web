@@ -1,24 +1,33 @@
 // Tests du passage en 1.0 : `npm test`. Tout se fait sur une copie temporaire des documents.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { empreinteTexteLegal, lireDocuments, lireTexte, RACINE_LEGALE } from "./legal.mjs";
+import { empreinteTexteLegal, lireDocuments, lireTexte } from "./legal.mjs";
 import { defautsDePublication, passerEnVersion, preparerTexte, squelette, versionValide } from "./passer-en-1-0.mjs";
 
-const copie = () => {
-  const dossier = mkdtempSync(join(tmpdir(), "legal-1-0-"));
-  cpSync(RACINE_LEGALE, dossier, { recursive: true });
-  return dossier;
+// Documents fictifs, dans un dossier temporaire : les tests ne dépendent pas de l'état réel (0.2 en projet aujourd'hui,
+// 1.0 publiées après samedi), sinon le workflow de déploiement, qui lance npm test, se bloquerait après la publication.
+const BANDEAU = "> **Projet à faire relire par un avocat.** Texte de travail.\n\n";
+const fixture = () => {
+  const racine = mkdtempSync(join(tmpdir(), "legal-1-0-"));
+  const documents = [
+    { document: "cgv", chemin: "/cgv", titre: "CGV", portee: "site", versionEnVigueur: "0.2", versions: [{ version: "0.2", enVigueurLe: "2026-11-10", statut: "projet" }] },
+    { document: "conditions-acheteurs-publics", chemin: "/conditions-acheteurs-publics", titre: "Acheteurs publics", portee: "site", versionEnVigueur: "0.1", versions: [{ version: "0.1", enVigueurLe: "2026-11-10", statut: "projet" }] },
+    { document: "mentions-legales", chemin: "/MentionsLegales", titre: "Mentions", portee: "site", versionEnVigueur: "0.1", versions: [{ version: "0.1", enVigueurLe: "2026-11-03", statut: "projet" }] },
+  ];
+  writeFileSync(join(racine, "documents.json"), `${JSON.stringify(documents, null, 2)}\n`);
+  const ecrire = (doc, version, texte) => {
+    mkdirSync(join(racine, doc), { recursive: true });
+    writeFileSync(join(racine, doc, `${version}.md`), texte);
+  };
+  ecrire("cgv", "0.2", `# CGV\n\nVersion 0.2 — 10 novembre 2026\n\n${BANDEAU}## 10.3\n\nRésiliation. \`[À VALIDER PAR L’AVOCAT]\`\n\n## 16\n\nSuspension. \`[À VALIDER PAR L’AVOCAT]\`\n\n## 22\n\nTransfert. \`[À VALIDER PAR L’AVOCAT : garantie du transfert]\`\n`);
+  ecrire("conditions-acheteurs-publics", "0.1", `# Acheteurs publics\n\nVersion 0.1 — 10 novembre 2026\n\n${BANDEAU}## 2\n\n- Le contrat comprend les [CGV](/cgv/0.2) (version 0.2). \`[À CONFIRMER : compte bancaire]\`\n`);
+  ecrire("mentions-legales", "0.1", `# Mentions\n\nVersion 0.1 — 3 novembre 2026\n\n${BANDEAU}## 1\n\nÉditeur.\n`);
+  return racine;
 };
-
-// Les renvois des conditions acheteurs publics vers les versions 0.2, à mettre à jour avec le reste.
-const RENVOIS = (racine) => {
-  const texte = lireTexte("conditions-acheteurs-publics", "0.1", racine);
-  const ligne = texte.split("\n").find((l) => l.includes("(version 0.2)"));
-  return ligne ? [{ document: "conditions-acheteurs-publics", avant: ligne, apres: ligne.replace(/\/0\.2\)/g, "/1.0)").replace(/\(version 0\.2\)/g, "(version 1.0)") }] : [];
-};
+const RENVOI = { document: "conditions-acheteurs-publics", avant: "[CGV](/cgv/0.2) (version 0.2)", apres: "[CGV](/cgv/1.0) (version 1.0)" };
 
 test("préparation : marque retirée, passage remplacé, bandeau retiré, ligne de version à jour", () => {
   const source = "# T\n\nVersion 0.2 — 10 novembre 2026\n\n> **Projet à faire relire par un avocat.** Texte.\n\n## 1\n\nUn engagement. `[À VALIDER PAR L’AVOCAT : x]`\n\nAncienne phrase.\n";
@@ -58,23 +67,27 @@ test("squelette : une entrée par marque des versions en vigueur", () => {
 });
 
 test("essai : rien n'est écrit, et un choix incomplet est refusé", () => {
-  const racine = copie();
+  const racine = fixture();
   try {
     const avant = readFileSync(join(racine, "documents.json"), "utf8");
     const incomplet = passerEnVersion({ racine, choix: { enVigueurLe: "2026-11-15", remplacements: [] }, ecrire: true });
     assert.equal(incomplet.ecrit, false);
-    assert.ok(incomplet.problemes.length > 0);
+    assert.ok(incomplet.problemes.some((p) => /renvoi « \[À/.test(p)));
+    assert.ok(incomplet.problemes.some((p) => /version de travail/.test(p)));
     assert.equal(readFileSync(join(racine, "documents.json"), "utf8"), avant);
     assert.equal(existsSync(join(racine, "cgv", "1.0.md")), false);
+    // Même marque deux fois : il faut deux décisions.
+    const uneSeule = passerEnVersion({ racine, choix: { enVigueurLe: "2026-11-15", remplacements: [{ document: "cgv", retirerMarque: "À VALIDER PAR L’AVOCAT" }] } });
+    assert.ok(uneSeule.problemes.some((p) => /trouvée 2 fois pour 1 décision/.test(p)));
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }
 });
 
 test("écriture complète sur une copie : 1.0 publiées, empreintes enregistrées, règles de publication respectées", () => {
-  const racine = copie();
+  const racine = fixture();
   try {
-    const choix = { ...squelette(racine), remplacements: [...squelette(racine).remplacements, ...RENVOIS(racine)] };
+    const choix = { ...squelette(racine), remplacements: [...squelette(racine).remplacements, RENVOI] };
     const essai = passerEnVersion({ racine, choix });
     assert.deepEqual(essai.problemes, []);
     assert.equal(essai.ecrit, false);
