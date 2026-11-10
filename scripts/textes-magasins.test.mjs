@@ -51,3 +51,14 @@ test("texte visible : insécables et invisibles normalisés, titres, citations e
   assert.deepEqual(regles("Texte `[À VALIDER : facturation]`"), ["facture"]);
   assert.deepEqual(passagesInterdits("Texte `[À VALIDER : facturation]`", { sansMarques: true }), []);
 });
+
+test("normalisation alignée sur l'import de l'app : formatage Unicode retiré, toute espace ramenée à une espace simple", () => {
+  assert.deepEqual(regles("fac\u200Eture"), ["facture"], "LRM");
+  assert.deepEqual(regles("fac\u200Fture"), ["facture"], "RLM");
+  assert.deepEqual(regles("fac\u2063ture"), ["facture"], "U+2063");
+  assert.deepEqual(regles("fac\u2067ture"), ["facture"], "isolat directionnel");
+  assert.deepEqual(regles("fac\u034Fture"), ["facture"], "CGJ");
+  assert.deepEqual(regles("fac\uFE0Fture"), ["facture"], "sélecteur de variante");
+  assert.deepEqual(regles("Mon\u2009compte"), ["Mon compte"], "espace fine");
+  assert.deepEqual(regles("sur\u2007le site"), ["adresse ou espace web"], "espace tabulaire");
+});

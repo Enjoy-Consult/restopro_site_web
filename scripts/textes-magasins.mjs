@@ -5,8 +5,10 @@
 // Si la liste change dans l'app, la recopier ici telle quelle.
 //
 // Comparaison, comme l'import de l'app : sur le texte VISIBLE (Markdown rendu : ni **, ni [ ]( ), ni cibles des liens),
-// après retrait des caractères invisibles (U+00AD, U+200B à U+200D, U+2060, U+FEFF) et avec les espaces insécables
-// (U+00A0, U+202F) ramenées à des espaces. Les adresses e-mail sont permises (contact@restoclair.fr).
+// après retrait de tous les caractères de formatage Unicode et de quelques invisibles (/[\p{Cf}\u034F\u180E\uFE00-\uFE0F]/u :
+// tiret conditionnel, U+200B à U+200F dont LRM et RLM, U+2060 à U+2064, U+2066 à U+2069, U+FEFF…), puis avec toute espace
+// Unicode autre que le saut de ligne ramenée à une espace simple (/[^\S\n]/ : insécables, espace fine…). Alignement du
+// 10/11 au soir sur l'import de l'app. Les adresses e-mail sont permises (contact@restoclair.fr).
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ReactMarkdown from "react-markdown";
@@ -60,8 +62,8 @@ export function blocsVisibles(markdown, { sansMarques = false } = {}) {
     const titre = brut.startsWith(DEBUT_TITRE);
     const texte = brut
       .replace(DEBUT_TITRE, "")
-      .replace(/[\u00AD\u200B-\u200D\u2060\uFEFF]/g, "")
-      .replace(/[\u00A0\u202F]/g, " ")
+      .replace(/[\p{Cf}\u034F\u180E\uFE00-\uFE0F]/gu, "")
+      .replace(/[^\S\n]/g, " ")
       .trim();
     if (!texte) continue;
     if (titre) section = texte;
