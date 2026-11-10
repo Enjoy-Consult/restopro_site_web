@@ -21,8 +21,10 @@ export default function MotDePasseOublie() {
   const envoiEnCours = useRef(false);
   const titreRef = useRef(null);
 
+  // Titre au focus à l'arrivée sur la page, puis après l'envoi : un lecteur d'écran repart du haut.
   useEffect(() => {
     document.title = "Mot de passe oublié · RestOclair";
+    titreRef.current?.focus();
   }, []);
 
   useEffect(() => {
@@ -72,7 +74,7 @@ export default function MotDePasseOublie() {
           <>
             <Message type="info">
               {envoye.avant}
-              <strong className="font-medium">{envoye.email}</strong>
+              <strong className="font-medium [overflow-wrap:anywhere]">{envoye.email}</strong>
               {envoye.apres}
             </Message>
             <p className="text-muted text-[15px] leading-relaxed mt-6">
@@ -89,18 +91,19 @@ export default function MotDePasseOublie() {
             <label htmlFor="champ-email" className="block text-muted text-[14px] mb-2">Adresse e-mail</label>
             <input
               id="champ-email"
+              name="username"
               type="email"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
                 if (issue?.champ) setIssue(null);
               }}
-              autoComplete="email"
+              autoComplete="username"
               inputMode="email"
               disabled={envoi}
               aria-invalid={issue?.champ ? "true" : undefined}
               aria-describedby={issue?.champ ? "champ-email-erreur" : undefined}
-              className={`${CLASSE_CHAMP} ${issue?.champ ? "border-[#8a2424]" : "border-border"}`}
+              className={`${CLASSE_CHAMP} ${issue?.champ ? "border-[#8a2424]" : "border-faint"}`}
             />
             {issue?.champ && <p id="champ-email-erreur" role="alert" className="text-[#8a2424] text-[14px] mt-1.5">{issue.texte}</p>}
             {issue && !issue.champ && (

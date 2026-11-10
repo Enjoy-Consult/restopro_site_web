@@ -9,8 +9,8 @@ import {
   LONGUEUR_MAX,
   TEXTE_LIEN_INDISPONIBLE_COMPTE,
   TEXTE_REGLE,
-  heureEcheance,
-  issueDefinition,
+  echeanceLien,
+  issueDefinitionCompte,
   issueVerification,
   validerMotDePasse,
 } from "@/lib/billing/motdepasse";
@@ -27,25 +27,31 @@ function Telephone() {
   );
 }
 
-function ChampMotDePasse({ id, label, valeur, onChange, erreur, aide, visible, disabled }) {
+// Champ de mot de passe : jamais de majuscule ni de correction automatiques, même affiché en clair (type text), pour
+// que le mot de passe enregistré soit celui que la personne a tapé.
+function ChampMotDePasse({ id, name, label, valeur, onChange, erreur, aide, visible, disabled }) {
   const decrit = [aide && `${id}-aide`, erreur && `${id}-erreur`].filter(Boolean).join(" ") || undefined;
   return (
     <div>
       <label htmlFor={id} className="block text-muted text-[14px] mb-2">{label}</label>
       <input
         id={id}
+        name={name}
         type={visible ? "text" : "password"}
         value={valeur}
         onChange={onChange}
         autoComplete="new-password"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
         maxLength={LONGUEUR_MAX + 1}
         disabled={disabled}
         aria-invalid={erreur ? "true" : undefined}
         aria-describedby={decrit}
-        className={`${CLASSE_CHAMP} ${erreur ? "border-[#8a2424]" : "border-border"}`}
+        className={`${CLASSE_CHAMP} ${erreur ? "border-[#8a2424]" : "border-faint"}`}
       />
       {aide && !erreur && <p id={`${id}-aide`} className="text-faint text-[13px] mt-1.5">{aide}</p>}
-      {erreur && <p id={`${id}-erreur`} className="text-[#8a2424] text-[14px] mt-1.5">{erreur}</p>}
+      {erreur && <p id={`${id}-erreur`} role="alert" className="text-[#8a2424] text-[14px] mt-1.5">{erreur}</p>}
     </div>
   );
 }
@@ -64,7 +70,8 @@ export default function MotDePasse() {
   // Jeton affiché maintenant : le résultat d'un envoi fait avec un lien précédent est ignoré.
   const jetonCourant = useRef(jeton);
   jetonCourant.current = jeton;
-  // Un enregistrement resté sans réponse (coupure) a peut-être abouti : un refus du lien ensuite ne dit pas « expiré ».
+  // Un enregistrement resté sans réponse lisible (coupure, 5xx du proxy) a peut-être abouti : un refus du lien ensuite
+  // ne dit pas « expiré » (issueDefinitionCompte).
   const reponsePerdue = useRef(false);
   const [relance, setRelance] = useState(0);
   const [valeurs, setValeurs] = useState({ motDePasse: "", confirmation: "" });
@@ -102,7 +109,7 @@ export default function MotDePasse() {
     setEtat({ etape: "verification" });
     verifierLienMotDePasse(jeton)
       .then((lien) => {
-        if (!arrete) setEtat({ etape: "formulaire", emailMasque: lien.emailMasque, echeance: heureEcheance(lien.expireLe) });
+        if (!arrete) setEtat({ etape: "formulaire", emailMasque: lien.emailMasque, echeance: echeanceLien(lien.expireLe) });
       })
       .catch((erreur) => {
         if (arrete) return;
@@ -146,12 +153,12 @@ export default function MotDePasse() {
       setEtat({ etape: "defini", email });
     } catch (erreur) {
       if (jetonCourant.current !== envoye) return;
-      const issue = issueDefinition(erreur);
-      if (erreur?.code === "RESEAU") reponsePerdue.current = true;
-      if (issue.type === "lien_indisponible") {
+      const issue = issueDefinitionCompte(erreur, reponsePerdue.current);
+      reponsePerdue.current = issue.reponsePerdue;
+      if (issue.type === "lien_indisponible" || issue.type === "peut_etre_defini") {
         setJeton(null);
         setValeurs({ motDePasse: "", confirmation: "" });
-        setEtat({ etape: reponsePerdue.current ? "peut_etre_defini" : "indisponible" });
+        setEtat({ etape: issue.type === "peut_etre_defini" ? "peut_etre_defini" : "indisponible" });
       } else if (issue.type === "refuse") {
         // Le lien reste valable : on corrige et on réessaie. Le champ est encore désactivé : focus après le rendu.
         setErreurs({ motDePasse: issue.texte });
@@ -231,17 +238,18 @@ export default function MotDePasse() {
             <p className="text-muted text-lg leading-relaxed mb-8">
               {etat.emailMasque ? (
                 <>
-                  Choisissez le mot de passe du compte <strong className="text-ink font-medium">{etat.emailMasque}</strong>.
+                  Choisissez le mot de passe du compte <strong className="text-ink font-medium [overflow-wrap:anywhere]">{etat.emailMasque}</strong>.
                 </>
               ) : (
                 "Choisissez le mot de passe de votre compte."
               )}{" "}
               Il sert à vous connecter à l’application et à votre espace abonnement.
-              {etat.echeance && <> Ce lien est valable jusqu’à {etat.echeance} et ne sert qu’une fois.</>}
+              {etat.echeance && <> Ce lien est valable {etat.echeance} et ne sert qu’une fois.</>}
             </p>
             <div className="flex flex-col gap-5">
               <ChampMotDePasse
                 id="champ-mot-de-passe"
+                name="password"
                 label="Nouveau mot de passe"
                 valeur={valeurs.motDePasse}
                 onChange={modifier("motDePasse")}
@@ -252,6 +260,7 @@ export default function MotDePasse() {
               />
               <ChampMotDePasse
                 id="champ-confirmation"
+                name="password-confirmation"
                 label="Confirmez le mot de passe"
                 valeur={valeurs.confirmation}
                 onChange={modifier("confirmation")}
@@ -286,7 +295,7 @@ export default function MotDePasse() {
             <p className="text-muted text-lg leading-relaxed">
               {etat.email ? (
                 <>
-                  Connectez-vous avec l’adresse <strong className="text-ink font-medium">{etat.email}</strong> et ce mot de passe.
+                  Connectez-vous avec l’adresse <strong className="text-ink font-medium [overflow-wrap:anywhere]">{etat.email}</strong> et ce mot de passe.
                 </>
               ) : (
                 "Connectez-vous avec votre adresse e-mail et ce mot de passe."

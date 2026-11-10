@@ -7,14 +7,14 @@ import { seConnecter, seDeconnecter } from "@/lib/billing/api";
 import { echeanceLocale, ecrireSessionEspace, issueConnexion, issueConnexionReussie, lireSessionEspace, prendreRetour } from "@/lib/billing/espace";
 
 const CLASSE_CHAMP =
-  "w-full border border-border bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
+  "w-full border border-faint bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
 
 // Connexion à l'espace abonnement (POST /api/billing/connexion). Le mot de passe est celui de l'application ; il ne quitte
 // la page que vers l'API, et le jeton reçu (2 h) ne vit que dans le stockage de session de compte.restoclair.fr.
 // Le limiteur d'Apirest peut faire attendre la réponse (délai croissant) : le bouton reste « Connexion… », sans erreur.
 export default function Connexion() {
   const navigate = useNavigate();
-  const { state } = useLocation();
+  const { pathname, search, state } = useLocation();
   const [deja] = useState(() => Boolean(lireSessionEspace()));
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
@@ -22,13 +22,17 @@ export default function Connexion() {
   const [envoi, setEnvoi] = useState(false);
   const [issue, setIssue] = useState(null);
   const envoiEnCours = useRef(false);
-  const avis = typeof state?.message === "string" ? state.message : null;
+  // Avis de l'arrivée (session expirée, déconnexion), gardé ici : l'état de l'historique est aussitôt effacé, sinon
+  // l'avis reviendrait à chaque rechargement de la page et à chaque retour arrière sur elle.
+  const [avis] = useState(() => (typeof state?.message === "string" ? state.message : null));
   const titreRef = useRef(null);
 
   useEffect(() => {
     document.title = "Connexion à mon abonnement · RestOclair";
-    // Arrivée avec un avis (session expirée, déconnexion) : le focus sur le titre le fait lire juste après.
-    if (avis) titreRef.current?.focus();
+    if (deja) return;
+    // Titre au focus à l'arrivée : un lecteur d'écran repart du haut de la nouvelle page.
+    titreRef.current?.focus();
+    if (state?.message !== undefined) navigate({ pathname, search }, { replace: true, state: null });
   }, []);
 
   if (deja) return <Navigate to={CHEMINS_COMPTE.espace} replace />;
@@ -89,6 +93,7 @@ export default function Connexion() {
               <label htmlFor="champ-email" className="block text-muted text-[14px] mb-2">Adresse e-mail</label>
               <input
                 id="champ-email"
+                name="username"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -102,10 +107,14 @@ export default function Connexion() {
               <label htmlFor="champ-mot-de-passe" className="block text-muted text-[14px] mb-2">Mot de passe</label>
               <input
                 id="champ-mot-de-passe"
+                name="password"
                 type={visible ? "text" : "password"}
                 value={motDePasse}
                 onChange={(e) => setMotDePasse(e.target.value)}
                 autoComplete="current-password"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 disabled={envoi}
                 className={CLASSE_CHAMP}
               />

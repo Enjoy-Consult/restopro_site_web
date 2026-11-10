@@ -41,7 +41,7 @@ function compteDe(scenario, restaurantId) {
   if (scenario === "sepa") return { ...base, statut: "activation_provisoire" };
   if (scenario === "resilie") return { ...base, statut: "resilie", periodeFin: iso(-10), suppressionPrevueLe: iso(50), exportSortieDisponible: true };
   if (scenario === "resiliation") return { ...base, resiliation: { effetLe: iso(18) } };
-  if (scenario === "sans") return { ...base, statut: "sans_abonnement", offre: null, version: null, montantPeriodiqueHTCentimes: 0 };
+  if (scenario === "sans") return { ...base, statut: "sans_abonnement", offre: null, version: null, montantPeriodiqueHTCentimes: 0, periodeFin: null };
   return base;
 }
 

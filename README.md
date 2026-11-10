@@ -42,6 +42,8 @@ Le build compte n'a **aucun script ni style intégré** (CSP `script-src 'self'`
 
 **Variables** : `VITE_SITE_URL` (`https://restoclair.fr`) et `VITE_COMPTE_URL` (`https://compte.restoclair.fr`), pour les liens d'une origine à l'autre, toujours par l'adresse complète. Site de test : `http://localhost:4303` et `http://localhost:4304`. Le workflow `deploy-production.yml` ne compile encore que la vitrine : le compte se publie à part, dans `web/compte.restoclair.fr`, quand ses pages seront prêtes.
 
+**Site de test, sur le Mac seulement.** Les deux adresses passent par un tunnel qui ne s'ouvre que sur le Mac. Les liens du site de test, y compris celui reçu par e-mail (`http://localhost:4303/compte/mot-de-passe#jeton=…`), s'ouvrent donc sur le Mac (navigateur, en navigation privée) ou dans Safari du simulateur iOS, dont `localhost` est celui du Mac. Pas sur un vrai téléphone : `localhost` y désigne le téléphone lui-même et la page ne charge rien. Remplacer `localhost` par l'adresse IP du Mac ne suffit pas non plus : la page renvoie de toute façon vers `http://localhost:4304/mot-de-passe`. L'essai sur un vrai téléphone se fait en production.
+
 **État (périmètre de l'ouverture du 15/11)** : `/connexion`, `/mon-abonnement` (état, portail Stripe, résiliation et son annulation avec mot de passe redemandé, export ZIP, déconnexion, choix de l'établissement), `/mot-de-passe#jeton=…` et `/mot-de-passe-oublie`, sur la maquette (`npm run dev:compte` ; scénarios dans `src/lib/billing/mock-espace.js`). Reportés : transfert du titulaire, comptes, formule, paiement depuis l'espace. `/compte/mot-de-passe` reste pour l'instant dans la vitrine.
 
 ## Déploiement

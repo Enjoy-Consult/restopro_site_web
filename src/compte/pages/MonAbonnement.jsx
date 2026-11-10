@@ -2,18 +2,26 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import Message from "@/components/billing/Message";
 import { CHEMINS_COMPTE } from "@/compte/chemins";
+import { adresseSite } from "@/compte/liens";
 import { BUSINESS } from "@/lib/business-info";
 import { annulerResiliation, getCompteEspace, ouvrirPortail, resilier, seDeconnecter, telechargerExport } from "@/lib/billing/api";
-import { BILLING_MOCK } from "@/lib/billing/config";
+import { BILLING_MOCK, SITE_URL } from "@/lib/billing/config";
+import { MESSAGE_TROP_D_ESSAIS } from "@/lib/billing/erreurs";
 import {
+  CHEMIN_SOUSCRIRE,
+  DEBUT_CONTACT_FORMULE,
+  LIBELLE_GARDER_ABONNEMENT,
+  LIBELLE_SOUSCRIRE,
   TEXTE_DECONNECTE,
   TEXTE_EXPORT_A_LA_FIN,
+  TEXTE_MISE_A_JOUR_ETAT,
+  TEXTE_RESILIATION_ANNULEE,
   TEXTE_SESSION_EXPIREE,
   TEXTE_SUPPORT,
   ecrireSessionEspace,
   effacerSessionEspace,
-  estMotDePasseRefuse,
   estSessionFinie,
+  issueResiliation,
   lireSessionEspace,
   messageRefusEspace,
   nomFichierExport,
@@ -24,10 +32,17 @@ import {
 } from "@/lib/billing/espace";
 
 const CLASSE_CHAMP =
-  "w-full border border-border bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
+  "w-full border border-faint bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
 const BOUTON_SECONDAIRE =
   "border border-ink px-5 py-3 text-[15px] text-ink hover:bg-ink hover:text-paper transition-colors disabled:opacity-60 disabled:cursor-wait text-center";
-const ACTION_VIDE = { enCours: null, erreur: null, erreurMotDePasse: null, info: null };
+// erreur : refus d'une action, sous l'état du compte. erreurMotDePasse et erreurConfirmation : refus de la résiliation
+// ou de son annulation, dans le formulaire de confirmation (sous le champ), qui reste ouvert. info : message en tête de
+// page ; infoResiliation : il remplace le bandeau de la résiliation programmée, qui dirait la même chose ;
+// infoApresRelecture : il parle de l'état relu, et n'est affiché et lu qu'une fois le compte relu.
+const ACTION_VIDE = { enCours: null, erreur: null, erreurMotDePasse: null, erreurConfirmation: null, info: null, infoResiliation: false, infoApresRelecture: false };
+const ID_CHAMP_MDP = "champ-confirmation-mdp";
+// « Souscrire sur restoclair.fr » : les tarifs du site, par l'adresse complète (aucun lien sans VITE_SITE_URL).
+const URL_SOUSCRIRE = adresseSite(SITE_URL, CHEMIN_SOUSCRIRE);
 
 function Support() {
   return (
@@ -40,19 +55,33 @@ function Support() {
 }
 
 // Mot de passe redemandé avant de résilier ou d'annuler une résiliation (demande 5). Le champ est vidé après chaque essai.
-function ConfirmationParMotDePasse({ titre, explication, libelle, enCours, erreur, onConfirmer, onRenoncer, libelleRenoncer }) {
+// erreur : mot de passe refusé, sous le champ. alerte : autre refus (429, 403…), sous le champ aussi : sur téléphone, un
+// message en haut de page serait hors de l'écran. attenteJusqua : fin du délai d'un 429, bouton désactivé jusque-là,
+// même si le formulaire a été fermé puis rouvert entre-temps. Les deux messages décrivent le champ, qui reprend le focus.
+function ConfirmationParMotDePasse({ titre, explication, libelle, enCours, erreur, alerte, attenteJusqua, onConfirmer, onRenoncer, libelleRenoncer }) {
   const [motDePasse, setMotDePasse] = useState("");
+  const [bloque, setBloque] = useState(() => (attenteJusqua ?? 0) > Date.now());
   const champ = useRef(null);
   useEffect(() => {
     champ.current?.focus();
   }, []);
   useEffect(() => {
-    // Après un refus, le champ (désactivé pendant l'envoi) reprend le focus.
-    if (!enCours && erreur) champ.current?.focus();
-  }, [enCours, erreur]);
+    // Après un refus, le champ (désactivé pendant l'envoi) reprend le focus ; le message est juste dessous.
+    if (!enCours && (erreur || alerte)) champ.current?.focus();
+  }, [enCours, erreur, alerte]);
+  useEffect(() => {
+    const reste = (attenteJusqua ?? 0) - Date.now();
+    setBloque(reste > 0);
+    if (reste <= 0) return undefined;
+    const minuteur = setTimeout(() => setBloque(false), reste);
+    return () => clearTimeout(minuteur);
+  }, [attenteJusqua]);
+  // Formulaire rouvert pendant le délai d'un 429 : le refus d'avant n'est plus là, la raison du bouton désactivé l'est.
+  const message = alerte ?? (bloque ? MESSAGE_TROP_D_ESSAIS : null);
+  const decrit = [erreur && `${ID_CHAMP_MDP}-erreur`, message && `${ID_CHAMP_MDP}-alerte`].filter(Boolean).join(" ") || undefined;
   const envoyer = (e) => {
     e.preventDefault();
-    if (enCours || !motDePasse) return;
+    if (enCours || bloque || !motDePasse) return;
     const valeur = motDePasse;
     setMotDePasse("");
     onConfirmer(valeur);
@@ -61,22 +90,27 @@ function ConfirmationParMotDePasse({ titre, explication, libelle, enCours, erreu
     <form onSubmit={envoyer} noValidate className="mt-6 border border-border bg-white p-5 md:p-6">
       <h3 className="text-ink text-[20px] mb-3">{titre}</h3>
       <p className="text-muted text-[15px] leading-relaxed mb-5">{explication}</p>
-      <label htmlFor="champ-confirmation-mdp" className="block text-muted text-[14px] mb-2">Votre mot de passe</label>
+      <label htmlFor={ID_CHAMP_MDP} className="block text-muted text-[14px] mb-2">Votre mot de passe</label>
       <input
-        id="champ-confirmation-mdp"
+        id={ID_CHAMP_MDP}
         ref={champ}
+        name="password"
         type="password"
         value={motDePasse}
         onChange={(e) => setMotDePasse(e.target.value)}
         autoComplete="current-password"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
         disabled={enCours}
         aria-invalid={erreur ? "true" : undefined}
-        aria-describedby={erreur ? "champ-confirmation-mdp-erreur" : undefined}
+        aria-describedby={decrit}
         className={CLASSE_CHAMP}
       />
-      {erreur && <p id="champ-confirmation-mdp-erreur" role="alert" className="text-[#8a2424] text-[14px] mt-1.5">{erreur}</p>}
+      {erreur && <p id={`${ID_CHAMP_MDP}-erreur`} role="alert" className="text-[#8a2424] text-[14px] mt-1.5">{erreur}</p>}
+      {message && <Message id={`${ID_CHAMP_MDP}-alerte`} type="error" className="mt-4">{message}</Message>}
       <div className="mt-5 flex flex-col sm:flex-row gap-3">
-        <button type="submit" disabled={enCours || !motDePasse} aria-busy={enCours} className="btn-primary text-center disabled:opacity-60 disabled:cursor-wait">
+        <button type="submit" disabled={enCours || bloque || !motDePasse} aria-busy={enCours} className="btn-primary text-center disabled:opacity-60 disabled:cursor-wait">
           {enCours ? "Envoi…" : libelle}
         </button>
         <button type="button" disabled={enCours} onClick={onRenoncer} className={BOUTON_SECONDAIRE}>{libelleRenoncer}</button>
@@ -115,6 +149,9 @@ export default function MonAbonnement() {
   const [relance, setRelance] = useState(0);
   const [confirmation, setConfirmation] = useState(null); // null, "resilier", "annuler"
   const [action, setAction] = useState(ACTION_VIDE);
+  // Fin du délai demandé par un 429 sur la résiliation ou son annulation : hors d'ACTION_VIDE, pour survivre à la
+  // fermeture et à la réouverture du formulaire. Effacée au changement d'établissement et au retour depuis Stripe.
+  const [attenteJusqua, setAttenteJusqua] = useState(null);
   const [annonce, setAnnonce] = useState("");
   const titreRef = useRef(null);
   const contexteCourant = useRef(null);
@@ -149,6 +186,7 @@ export default function MonAbonnement() {
       if (!e.persisted) return;
       setAction(ACTION_VIDE);
       setConfirmation(null);
+      setAttenteJusqua(null);
       const relue = lireSessionEspace();
       if (!relue) finDeSession(TEXTE_SESSION_EXPIREE);
       else {
@@ -181,6 +219,27 @@ export default function MonAbonnement() {
     };
   }, [session?.token, session?.restaurantId, relance, finDeSession]);
 
+  const compteAffiche = session && etat.restaurantId === session.restaurantId ? etat.compte : null;
+  const resume = compteAffiche ? resumeCompte(compteAffiche) : null;
+
+  // Confirmation dont l'action n'est plus proposée (le compte relu montre la résiliation déjà programmée, ou déjà
+  // annulée) : fermée, au lieu de rester ouverte sous un autre titre.
+  const resilierPropose = Boolean(resume?.actions.resilier);
+  const annulerPropose = Boolean(resume?.actions.annulerResiliation);
+  const confirmationOuverte =
+    (confirmation === "resilier" && resilierPropose) || (confirmation === "annuler" && annulerPropose) ? confirmation : null;
+  useEffect(() => {
+    if (confirmation && !confirmationOuverte) setConfirmation(null);
+  }, [confirmation, confirmationOuverte]);
+
+  // Message d'une issue « relire » (réponse perdue, 409) : il parle de l'état relu ; affiché et lu seulement une fois le
+  // compte relu, jamais sur l'état d'avant. Pendant la relecture : TEXTE_MISE_A_JOUR_ETAT.
+  const infoEnAttente = Boolean(action.info && action.infoApresRelecture && (etat.chargement || !compteAffiche));
+  const infoRelue = Boolean(action.info && action.infoApresRelecture && !infoEnAttente);
+  useEffect(() => {
+    if (infoRelue) setAnnonce(action.info);
+  }, [infoRelue, action.info]);
+
   if (!session) {
     retenirRetour(`${location.pathname}${location.search}`);
     return <Navigate to={CHEMINS_COMPTE.connexion} replace />;
@@ -196,8 +255,15 @@ export default function MonAbonnement() {
     setEtat({ chargement: Boolean(restaurantId), restaurantId, compte: null, erreur: null });
     setConfirmation(null);
     setAction(ACTION_VIDE);
+    setAttenteJusqua(null);
     setAnnonce("");
     focusTitre();
+  };
+
+  // Relit le compte, en chargement dès ce rendu-ci : rien ne s'affiche ni ne s'annonce comme relu avant la réponse.
+  const relire = () => {
+    setEtat((e) => ({ ...e, chargement: true, erreur: null }));
+    setRelance((n) => n + 1);
   };
 
   const deconnecter = async () => {
@@ -239,33 +305,47 @@ export default function MonAbonnement() {
       window.location.assign(url);
     });
 
+  // Après une réponse perdue ou un 409, le formulaire se ferme et le compte est relu : le message, en tête de page une
+  // fois le compte relu, invite à vérifier l'état avant de recommencer (issueResiliation). Pendant la relecture, les
+  // boutons de la résiliation sont désactivés.
   const confirmerResiliation = (motDePasse) => {
-    const annulation = confirmation === "annuler";
+    const geste = confirmation;
+    const annulation = geste === "annuler";
+    // Date annoncée avant la confirmation : reprise si le serveur n'en rend pas (comme l'app).
+    const effetAnnonce = resume?.resiliation.effetLe ?? null;
     const travail = annulation
       ? (token, restaurantId) => annulerResiliation(token, restaurantId, motDePasse)
       : (token, restaurantId) => resilier(token, restaurantId, motDePasse);
     lancer(
-      confirmation,
+      geste,
       travail,
       (resultat) => {
-        const info = annulation
-          ? "La résiliation est annulée : votre abonnement continue."
-          : texteResiliationEnregistree(resultat?.effetLe);
-        // Le compte est mis à jour tout de suite (pas de bouton « Résilier » qui réapparaît), puis relu.
+        const effetLe = annulation ? null : (resultat?.effetLe ?? effetAnnonce);
+        const info = annulation ? TEXTE_RESILIATION_ANNULEE : texteResiliationEnregistree(effetLe);
+        // Le compte est mis à jour tout de suite (pas de bouton « Résilier » qui réapparaît), puis relu. Une résiliation
+        // sans date lisible reste une résiliation programmée (resumeCompte).
         setEtat((e) =>
-          e.compte
-            ? { ...e, compte: { ...e.compte, resiliation: annulation ? null : resultat?.effetLe ? { effetLe: resultat.effetLe } : e.compte.resiliation } }
-            : e,
+          e.compte ? { ...e, compte: { ...e.compte, resiliation: annulation ? null : { effetLe: effetLe ?? null } } } : e,
         );
-        setAction({ ...ACTION_VIDE, info });
+        setAction({ ...ACTION_VIDE, info, infoResiliation: true });
         setAnnonce(info);
         setConfirmation(null);
-        setRelance((n) => n + 1);
+        relire();
         focusTitre();
       },
       (erreur) => {
-        if (!estMotDePasseRefuse(erreur)) return false;
-        setAction({ ...ACTION_VIDE, erreurMotDePasse: "Mot de passe incorrect." });
+        const issue = issueResiliation(erreur);
+        if (issue.type === "mot_de_passe") setAction({ ...ACTION_VIDE, erreurMotDePasse: issue.texte });
+        else if (issue.type === "relire") {
+          setConfirmation(null);
+          setAction({ ...ACTION_VIDE, info: issue.texte, infoApresRelecture: true });
+          setAnnonce(TEXTE_MISE_A_JOUR_ETAT);
+          relire();
+          focusTitre();
+        } else {
+          setAction({ ...ACTION_VIDE, erreurConfirmation: issue.texte });
+          if (issue.attenteMs) setAttenteJusqua(Date.now() + issue.attenteMs);
+        }
         return true;
       },
     );
@@ -294,10 +374,8 @@ export default function MonAbonnement() {
     focusTitre();
   };
 
-  const compteAffiche = etat.restaurantId === session.restaurantId ? etat.compte : null;
-  const resume = compteAffiche ? resumeCompte(compteAffiche) : null;
   // Le message de confirmation d'une résiliation remplace le bandeau qui dit la même chose.
-  const bandeaux = resume ? resume.bandeaux.filter((b) => !(action.info && b.cle === "resiliation")) : [];
+  const bandeaux = resume ? resume.bandeaux.filter((b) => !(action.infoResiliation && b.cle === "resiliation")) : [];
   const maquettePortail = BILLING_MOCK && new URLSearchParams(location.search).get("maquette") === "portail";
 
   return (
@@ -329,7 +407,8 @@ export default function MonAbonnement() {
 
             {maquettePortail && <Message type="info" className="mt-4">Maquette : ici s’ouvrirait le portail Stripe (factures, moyen de paiement).</Message>}
             {/* Lu par la zone d'annonce ci-dessus : le bandeau visible n'est pas une seconde annonce. */}
-            {action.info && <Message type="info" role="note" className="mt-4">{action.info}</Message>}
+            {action.info && !infoEnAttente && <Message type="info" role="note" className="mt-4">{action.info}</Message>}
+            {infoEnAttente && etat.chargement && compteAffiche && <p className="text-muted text-[15px] mt-4">{TEXTE_MISE_A_JOUR_ETAT}</p>}
 
             {etat.chargement && !compteAffiche && <p className="text-muted text-lg mt-6">Chargement de votre abonnement…</p>}
 
@@ -350,7 +429,7 @@ export default function MonAbonnement() {
                   {resume.lignes.map(([terme, valeur]) => (
                     <React.Fragment key={terme}>
                       <dt className="text-faint">{terme}</dt>
-                      <dd className="text-ink">{valeur}</dd>
+                      <dd className="text-ink min-w-0 [overflow-wrap:anywhere]">{valeur}</dd>
                     </React.Fragment>
                   ))}
                 </dl>
@@ -358,6 +437,12 @@ export default function MonAbonnement() {
                 {action.erreur && <Message type="error" className="mt-8">{action.erreur}</Message>}
 
                 <div className="mt-10 flex flex-col gap-8">
+                  {resume.actions.souscrire && URL_SOUSCRIRE && (
+                    <div>
+                      <a href={URL_SOUSCRIRE} className="btn-primary text-center">{LIBELLE_SOUSCRIRE}</a>
+                    </div>
+                  )}
+
                   {resume.actions.portail && (
                     <div>
                       <h2 className="text-ink text-[22px] mb-2">Factures et moyen de paiement</h2>
@@ -367,6 +452,18 @@ export default function MonAbonnement() {
                       <button type="button" onClick={portail} disabled={occupe} aria-busy={action.enCours === "portail"} className="btn-primary text-center disabled:opacity-60 disabled:cursor-wait">
                         {action.enCours === "portail" ? "Ouverture…" : "Ouvrir le portail de paiement"}
                       </button>
+                    </div>
+                  )}
+
+                  {resume.actions.contactFormule && (
+                    <div>
+                      <h2 className="text-ink text-[22px] mb-2">Formule et comptes</h2>
+                      <p className="text-muted text-[15px] leading-relaxed">
+                        {DEBUT_CONTACT_FORMULE}
+                        <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>
+                        {" ou "}
+                        <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+                      </p>
                     </div>
                   )}
 
@@ -392,16 +489,16 @@ export default function MonAbonnement() {
                   {(resume.actions.resilier || resume.actions.annulerResiliation) && (
                     <div>
                       <h2 className="text-ink text-[22px] mb-2">{resume.actions.annulerResiliation ? "Résiliation programmée" : "Résilier l’abonnement"}</h2>
-                      {confirmation === null && (
+                      {confirmationOuverte === null && (
                         <>
                           <p className="text-muted text-[15px] leading-relaxed mb-4">
                             {resume.actions.annulerResiliation
                               ? "Vous pouvez annuler la résiliation jusqu’à sa date d’effet : l’abonnement continue alors normalement."
-                              : "La résiliation prend effet à la fin de la période en cours, ou à la fin de l’engagement. D’ici là, l’accès reste complet."}
+                              : resume.resiliation.confirmation}
                           </p>
                           <button
                             type="button"
-                            disabled={occupe}
+                            disabled={occupe || etat.chargement}
                             onClick={() => {
                               setAction(ACTION_VIDE);
                               setConfirmation(resume.actions.annulerResiliation ? "annuler" : "resilier");
@@ -412,19 +509,21 @@ export default function MonAbonnement() {
                           </button>
                         </>
                       )}
-                      {confirmation === "resilier" && (
+                      {confirmationOuverte === "resilier" && (
                         <ConfirmationParMotDePasse
                           titre="Confirmer la résiliation"
-                          explication="Pour confirmer, saisissez le mot de passe de votre compte. La résiliation prendra effet à la fin de la période en cours, ou à la fin de l’engagement ; vous pourrez l’annuler d’ici là."
+                          explication={`${resume.resiliation.confirmation} Pour confirmer, saisissez le mot de passe de votre compte.`}
                           libelle="Confirmer la résiliation"
-                          libelleRenoncer="Garder mon abonnement"
+                          libelleRenoncer={LIBELLE_GARDER_ABONNEMENT}
                           enCours={action.enCours === "resilier"}
                           erreur={action.erreurMotDePasse}
+                          alerte={action.erreurConfirmation}
+                          attenteJusqua={attenteJusqua}
                           onConfirmer={confirmerResiliation}
                           onRenoncer={renoncer}
                         />
                       )}
-                      {confirmation === "annuler" && (
+                      {confirmationOuverte === "annuler" && (
                         <ConfirmationParMotDePasse
                           titre="Annuler la résiliation"
                           explication="Pour confirmer, saisissez le mot de passe de votre compte. Votre abonnement continuera normalement."
@@ -432,6 +531,8 @@ export default function MonAbonnement() {
                           libelleRenoncer="Ne rien changer"
                           enCours={action.enCours === "annuler"}
                           erreur={action.erreurMotDePasse}
+                          alerte={action.erreurConfirmation}
+                          attenteJusqua={attenteJusqua}
                           onConfirmer={confirmerResiliation}
                           onRenoncer={renoncer}
                         />

@@ -1,6 +1,7 @@
 // Définition du mot de passe par un lien reçu par e-mail (/compte/mot-de-passe#jeton=…) : décisions pures, testées sous node.
 //
-// Apirest envoie ce lien, valable 60 minutes, quand une demande de reprise porte sur une inscription déjà payée.
+// Liens d'Apirest : celui de l'e-mail des identifiants du titulaire, valable 72 h (retour.js, CGV 0.2, CGU 0.3), et
+// celui de « Mot de passe oublié » ou d'une demande de reprise sur une inscription déjà payée, valable 60 minutes.
 // À l'ouverture, la page vérifie le lien (POST …/mot-de-passe/verifier), ce qui ne le consomme pas, pour afficher
 // l'adresse masquée et l'échéance. Le lien n'est consommé qu'au clic sur « Enregistrer », par POST …/mot-de-passe/definir.
 // Un 400 VALIDATION_ERROR ne le consomme pas : on peut corriger et réessayer.
@@ -50,11 +51,27 @@ export function validerMotDePasse(motDePasse, confirmation) {
   return erreurs;
 }
 
-// Heure d'échéance du lien (expireLe, date ISO), en heure de Paris, ou null si illisible.
+const HEURE_PARIS = new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
+const JOUR_PARIS = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "Europe/Paris" });
+const JOUR_ISO_PARIS = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: "Europe/Paris" });
+
+// Heure d'échéance du lien (expireLe, date ISO), en heure de Paris, ou null si illisible. Page de la vitrine
+// (DefinirMotDePasse) ; compte.restoclair.fr dit aussi le jour : echeanceLien.
 export function heureEcheance(expireLe) {
   const date = new Date(String(expireLe ?? ""));
   if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" }).format(date);
+  return HEURE_PARIS.format(date);
+}
+
+// Échéance du lien pour « Ce lien est valable {…} et ne sert qu’une fois », en heure de Paris : « jusqu’à 21:06 » si
+// elle tombe le jour même (à `maintenant`), sinon avec le jour, « jusqu’au lundi 16 novembre à 10:00 » (lien de 72 h).
+// null si expireLe est illisible.
+export function echeanceLien(expireLe, maintenant = Date.now()) {
+  const date = new Date(String(expireLe ?? ""));
+  if (Number.isNaN(date.getTime())) return null;
+  const heure = HEURE_PARIS.format(date);
+  if (JOUR_ISO_PARIS.format(date) === JOUR_ISO_PARIS.format(new Date(maintenant))) return `jusqu’à ${heure}`;
+  return `jusqu’au ${JOUR_PARIS.format(date).replace(" 1 ", " 1er ")} à ${heure}`;
 }
 
 // Vérification à l'ouverture. Renvoie l'une de :
@@ -79,4 +96,18 @@ export function issueDefinition(erreur) {
   if (estTropDEssais(erreur)) return { type: "erreur", texte: messageTropDEssais(erreur) };
   if (erreur?.status >= 400 && erreur?.status < 500) return { type: "lien_indisponible" };
   return { type: "erreur", texte: MESSAGE_INDISPONIBLE, telephone: true };
+}
+
+// Enregistrement sur compte.restoclair.fr (page MotDePasse) : l'issue d'issueDefinition, plus la réponse perdue.
+// reponseDejaPerdue : un envoi précédent avec ce lien est resté sans réponse lisible. Renvoie l'issue avec :
+//   type "peut_etre_defini"   2xx sans « defini: true » (204, autre enveloppe : DEFINITION_NON_CONFIRMEE, le serveur a
+//                             accepté), ou lien refusé après une réponse perdue : se connecter avant de redemander un lien
+//   reponsePerdue             à garder pour l'envoi suivant : réseau ou délai dépassé, ou 5xx (502 ou 504 du proxy
+//                             pendant que le limiteur fait attendre Apirest), après lesquels le lien a pu être consommé
+export function issueDefinitionCompte(erreur, reponseDejaPerdue = false) {
+  if (erreur?.code === "DEFINITION_NON_CONFIRMEE") return { type: "peut_etre_defini", reponsePerdue: true };
+  const reponsePerdue = reponseDejaPerdue === true || erreur?.code === "RESEAU" || erreur?.status >= 500;
+  const issue = issueDefinition(erreur);
+  if (issue.type === "lien_indisponible" && reponsePerdue) return { type: "peut_etre_defini", reponsePerdue };
+  return { ...issue, reponsePerdue };
 }
