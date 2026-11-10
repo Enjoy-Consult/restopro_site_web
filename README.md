@@ -121,6 +121,16 @@ Source unique pour le site, l'application et l'API : `src/content/legal/<documen
 - Le build publie `https://restoclair.fr/legal/index.json` (versions en vigueur), `https://restoclair.fr/legal/historique.json` (toutes les versions) et chaque texte sous `https://restoclair.fr/legal/<document>/<version>.md`. `npm run legal:index` affiche le même index en local.
 - L'inscription et le checkout envoient `cgv: { version, sha256 }` de la version en vigueur (contrat final d'Apirest du 05/11, § D : bloc absent ou différent, 409 `CGV_VERSION_OBSOLETE`). À l'inscription, ce 409 demande de recharger la page pour accepter la nouvelle version. Au checkout, le compte existe déjà et la page n'a plus de case à cocher : le même code renvoie vers l'espace client ou le téléphone.
 
+**Passage en 1.0** (`scripts/passer-en-1-0.mjs`, testé par `scripts/passer-en-1-0.test.mjs`). Une fois les choix de Louis faits, un fichier de choix (JSON) dit, marque par marque, si on la retire seulement (`retirerMarque`) ou si l'on remplace un passage (`avant`, `apres`) :
+
+```bash
+node scripts/passer-en-1-0.mjs --squelette > choix-1.0.json   # une entrée « garder » par marque, à compléter
+node scripts/passer-en-1-0.mjs --choix choix-1.0.json          # essai : n'écrit rien, liste les problèmes
+node scripts/passer-en-1-0.mjs --choix choix-1.0.json --ecrire # écrit les 1.0, met à jour documents.json, affiche l'index
+```
+
+Le script refuse d'écrire tant qu'il reste un bandeau, une marque, un texte en code, une mention « version 0.x » ou un lien vers une version de travail (les conditions des acheteurs publics renvoient aux CGV, à l'accord et aux CGU 0.2 : à remplacer par 1.0). Tous les documents passent en 1.0 ensemble, au statut `publie`, avec leur `sha256`. Ensuite : `npm test`, puis `CGV_VERSION=1.0` côté Apirest au moment de la mise en ligne.
+
 Format de l'index (une entrée par document) :
 
 ```json
