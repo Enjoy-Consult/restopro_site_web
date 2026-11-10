@@ -75,6 +75,7 @@ Source unique pour le site, l'application et l'API : `src/content/legal/<documen
 | `mentions-legales` | `/MentionsLegales` | `/MentionsLegales/<version>` |
 | `cgv` | `/cgv` | `/cgv/<version>` |
 | `accord-sous-traitance` | `/accord-sous-traitance` | `/accord-sous-traitance/<version>` |
+| `conditions-acheteurs-publics` | `/conditions-acheteurs-publics` | `/conditions-acheteurs-publics/<version>` |
 | `confidentialite-site` | `/confidentialite` | `/confidentialite/<version>` |
 | `cookies` | `/cookies` | `/cookies/<version>` |
 | `cgu-app` | `/application/cgu` | `/application/cgu/<version>` |

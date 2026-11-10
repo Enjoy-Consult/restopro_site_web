@@ -33,6 +33,15 @@
     ]
   },
   {
+    "document": "conditions-acheteurs-publics",
+    "chemin": "/conditions-acheteurs-publics",
+    "titre": "Conditions particulières pour les acheteurs publics",
+    "description": "Conditions particulières de l’abonnement RestOclair pour les acheteurs publics (CCAS, syndicats intercommunaux, collectivités).",
+    "portee": "site",
+    "versionEnVigueur": "0.1",
+    "versions": [{ "version": "0.1", "enVigueurLe": "2026-11-10", "statut": "projet" }]
+  },
+  {
     "document": "confidentialite-site",
     "chemin": "/confidentialite",
     "titre": "Politique de confidentialité du site",
