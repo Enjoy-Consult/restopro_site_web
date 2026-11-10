@@ -81,7 +81,7 @@ Source unique pour le site, l'application et l'API : `src/content/legal/<documen
 | `cgu-app` | `/application/cgu` | `/application/cgu/<version>` |
 | `confidentialite-app` | `/application/confidentialite` | `/application/confidentialite/<version>` |
 
-- Les pages `/application/…` n'ont ni en-tête ni pied de page, et leurs textes ne contiennent ni prix, ni mention d'abonnement payant, ni lien d'achat (vérifié par `npm test`).
+- Les pages `/application/…` n'ont ni en-tête ni pied de page, et leurs textes ne contiennent ni prix, ni mention d'abonnement payant, ni lien d'achat (vérifié par `npm test`). Leurs versions en vigueur, recopiées dans les applications iOS et Android, ne citent ni moyen ni rythme de paiement, renvoient aux CGV par une phrase neutre et n'ont que des liens absolus.
 - `/PolitiqueConfidentialite` (ancienne URL des magasins) redirige en 301 vers `/application/confidentialite` (`public/.htaccess`).
 - Statuts admis dans `documents.json` : `projet` et `publie` (`STATUTS_ADMIS`, `scripts/legal.mjs`). Hors `projet`, un texte ne contient ni bandeau, ni marque jaune, ni renvoi `[À VALIDER…]` (vérifié par `npm test`). Toute portion de texte entre accents graves s'affiche en jaune.
 - Une version publiée ne se modifie plus : on ajoute un fichier `<version>.md`, on le déclare dans `documents.json` et on change `versionEnVigueur`. Quand le statut d'une version n'est plus `projet`, son `sha256` doit être enregistré dans `documents.json` ; `npm test` échoue si le texte change ensuite.

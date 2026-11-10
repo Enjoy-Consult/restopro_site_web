@@ -130,6 +130,18 @@ test("documents de l'application : ni prix, ni abonnement payant, ni lien d'acha
   }
 });
 
+// Versions en vigueur des documents de l'application : le front les recopie dans les applications iOS et Android.
+// L'abonnement y est régi par une phrase neutre (renvoi aux CGV) : ni moyen ni rythme de paiement, ni prestataire de
+// paiement ; et les liens sont absolus, pour que le texte reste autonome hors du site.
+test("documents de l'application en vigueur : ni moyen de paiement, ni lien relatif", () => {
+  const interdits = [/SEPA/i, /stripe/i, /prélèvement/i, /\bmensuel/i, /\bannuel/i, /carte bancaire/i, /\bIBAN\b/, /\]\(\//];
+  for (const doc of lireDocuments().filter((d) => d.portee === "application")) {
+    const texte = lireTexte(doc.document, doc.versionEnVigueur);
+    for (const motif of interdits) assert.ok(!motif.test(texte), `${doc.document} ${doc.versionEnVigueur} contient ${motif}`);
+    assert.ok(texte.includes("L’abonnement de l’établissement est régi par les conditions générales de vente, acceptées par son titulaire."), doc.document);
+  }
+});
+
 test("aucune trace de « RestoClair » dans le site", () => {
   const fichiers = ["index.html", "README.md", ...readdirSync("src", { recursive: true }).map((f) => join("src", f))].filter((f) => /\.(jsx?|md|html|json)$/.test(f));
   for (const f of fichiers) assert.ok(!readFileSync(f, "utf8").includes("RestoClair"), f);

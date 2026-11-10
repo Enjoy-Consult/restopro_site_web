@@ -68,8 +68,11 @@
     "titre": "Conditions générales d’utilisation de l’application",
     "description": "Conditions générales d’utilisation de l’application RestOclair.",
     "portee": "application",
-    "versionEnVigueur": "0.1",
-    "versions": [{ "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" }]
+    "versionEnVigueur": "0.2",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
   },
   {
     "document": "confidentialite-app",
@@ -77,7 +80,10 @@
     "titre": "Politique de confidentialité de l’application",
     "description": "Comment l’application RestOclair traite les données personnelles.",
     "portee": "application",
-    "versionEnVigueur": "0.1",
-    "versions": [{ "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" }]
+    "versionEnVigueur": "0.2",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
   }
 ]
