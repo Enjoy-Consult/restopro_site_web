@@ -7,7 +7,8 @@ import {
   gtmCharge,
   lireConsentement,
 } from "@/lib/consentement";
-import { traceursPermis } from "@/lib/environnement";
+import { lireSession } from "@/lib/billing/session";
+import { googlePermisDansCeDocument } from "@/lib/environnement";
 
 // Trois boutons de même apparence : refuser est aussi simple et visible qu'accepter.
 const BOUTON =
@@ -16,9 +17,10 @@ const BOUTON =
 // Bandeau de consentement aux cookies : en bas de l'écran, sans bloquer la navigation, sans croix de fermeture
 // (ignorer le bandeau ne vaut pas acceptation : tant que rien n'est choisi, rien n'est chargé).
 export default function ConsentementCookies() {
-  // Ni bandeau ni Google hors du site de production, ni sur les pages exclues : documents de l'application,
-  // reprise d'une inscription, espace abonnement (voir environnement.js).
-  const permis = traceursPermis(useLocation().pathname);
+  // Ni bandeau ni Google hors du site de production, ni sur les pages exclues (documents de l'application, reprise,
+  // inscription, retour de paiement, espace abonnement), ni tant qu'un jeton d'inscription existe dans l'onglet, ni
+  // dans un document déjà passé par l'un de ces cas (voir environnement.js).
+  const permis = googlePermisDansCeDocument(useLocation().pathname, Boolean(lireSession()));
   const permisRef = useRef(permis);
   permisRef.current = permis;
   const applique = useRef(false);
@@ -35,8 +37,9 @@ export default function ConsentementCookies() {
     appliquerConsentement(lireConsentement());
   }, [permis]);
 
-  // Arrivée sur une page exclue alors que Google est déjà dans le document (lien interne, retour arrière) : rien ne peut
-  // retirer le script, on recharge la page, qui repart sans lui. Le fragment de l'adresse (#jeton=…) est conservé.
+  // Arrivée sur une page exclue, ou jeton d'inscription présent, alors que Google est déjà dans le document (lien interne,
+  // retour arrière) : rien ne peut retirer le script, on recharge la page, qui repart sans lui. Le fragment de l'adresse
+  // (#jeton=…) et le jeton en sessionStorage sont conservés.
   useEffect(() => {
     if (!permis && gtmCharge()) window.location.reload();
   }, [permis]);

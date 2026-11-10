@@ -4,7 +4,8 @@ import { createPageUrl } from "@/utils";
 import { BUSINESS } from "@/lib/business-info";
 import { BILLING_ACTIF } from "@/lib/billing/config";
 import { ouvrirGestionCookies } from "@/lib/consentement";
-import { traceursPermis } from "@/lib/environnement";
+import { lireSession } from "@/lib/billing/session";
+import { googlePermisDansCeDocument } from "@/lib/environnement";
 
 const navigation = [
   { name: "Services", page: "Services" },
@@ -18,7 +19,7 @@ const navigation = [
 export default function Layout({ children, currentPageName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   // « Gérer mes cookies » seulement là où Google peut être chargé : ailleurs, il n'y a aucun choix à gérer.
-  const gestionCookies = traceursPermis(useLocation().pathname);
+  const gestionCookies = googlePermisDansCeDocument(useLocation().pathname, Boolean(lireSession()));
 
   return (
     <div className="min-h-screen flex flex-col bg-paper">
