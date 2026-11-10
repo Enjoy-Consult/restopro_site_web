@@ -59,8 +59,11 @@
     "titre": "Politique de cookies",
     "description": "Cookies et traceurs utilisés sur le site restoclair.fr.",
     "portee": "site",
-    "versionEnVigueur": "0.1",
-    "versions": [{ "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" }]
+    "versionEnVigueur": "0.2",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
   },
   {
     "document": "cgu-app",
