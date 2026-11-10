@@ -5,7 +5,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { empreinteTexteLegal, lireDocuments, lireTexte } from "./legal.mjs";
-import { defautsDePublication, passerEnVersion, preparerTexte, squelette, versionValide } from "./passer-en-1-0.mjs";
+import { defautsDePublication, passerEnVersion, preparerTexte, squelette, versionSuperieure, versionValide } from "./passer-en-1-0.mjs";
 
 // Documents fictifs, dans un dossier temporaire : les tests ne dépendent pas de l'état réel (0.2 en projet aujourd'hui,
 // 1.0 publiées après samedi), sinon le workflow de déploiement, qui lance npm test, se bloquerait après la publication.
@@ -110,6 +110,40 @@ test("écriture complète sur une copie : 1.0 publiées, empreintes enregistrée
     assert.equal((brut.match(/"version": "1\.0"/g) ?? []).length, lireDocuments(racine).length);
     // Une seconde fois : la 1.0 existe déjà, rien n'est écrit.
     assert.ok(passerEnVersion({ racine, choix, ecrire: true }).problemes.some((p) => /existe déjà/.test(p)));
+  } finally {
+    rmSync(racine, { recursive: true, force: true });
+  }
+});
+
+test("jamais de republication : version existante, fichier déjà présent ou version inférieure refusés, rien n'est écrasé", () => {
+  assert.equal(versionSuperieure("1.1", "1.0"), true);
+  assert.equal(versionSuperieure("1.0", "0.2"), true);
+  assert.equal(versionSuperieure("10.0", "9.9"), true);
+  assert.equal(versionSuperieure("1.0", "1.0"), false);
+  assert.equal(versionSuperieure("0.9", "1.0"), false);
+  const racine = fixture();
+  try {
+    const choix = { ...squelette(racine), remplacements: [...squelette(racine).remplacements, RENVOI] };
+    // Fichier 1.0.md déjà présent sans être déclaré : refusé, et le fichier reste tel quel.
+    writeFileSync(join(racine, "mentions-legales", "1.0.md"), "texte déjà là\n");
+    const orphelin = passerEnVersion({ racine, choix, ecrire: true });
+    assert.equal(orphelin.ecrit, false);
+    assert.ok(orphelin.problemes.some((p) => /1\.0\.md existe déjà sans être déclaré/.test(p)));
+    assert.equal(readFileSync(join(racine, "mentions-legales", "1.0.md"), "utf8"), "texte déjà là\n");
+    rmSync(join(racine, "mentions-legales", "1.0.md"));
+    // Publication de la 1.0, puis tentative de republier la 1.0 avec un autre texte : refusée, empreinte inchangée.
+    assert.equal(passerEnVersion({ racine, choix, ecrire: true }).ecrit, true);
+    const empreinte = lireDocuments(racine).find((d) => d.document === "cgv").versions.find((v) => v.version === "1.0").sha256;
+    const autre = passerEnVersion({ racine, choix: { version: "1.0", enVigueurLe: "2026-11-16", remplacements: [] }, ecrire: true });
+    assert.equal(autre.ecrit, false);
+    assert.ok(autre.problemes.some((p) => /ne se republie jamais/.test(p)));
+    assert.equal(lireDocuments(racine).find((d) => d.document === "cgv").versions.find((v) => v.version === "1.0").sha256, empreinte);
+    // Version inférieure à une version déjà déclarée : refusée.
+    assert.ok(passerEnVersion({ racine, choix: { version: "0.9", enVigueurLe: "2026-11-16", remplacements: [] } }).problemes.some((p) => /n'est pas supérieure/.test(p)));
+    // Une correction passe par la version suivante.
+    const correction = passerEnVersion({ racine, choix: { version: "1.1", enVigueurLe: "2026-11-16", remplacements: [] }, ecrire: true });
+    assert.deepEqual(correction.problemes, []);
+    assert.ok(lireDocuments(racine).every((d) => d.versionEnVigueur === "1.1" && d.versions.some((v) => v.version === "1.0")));
   } finally {
     rmSync(racine, { recursive: true, force: true });
   }

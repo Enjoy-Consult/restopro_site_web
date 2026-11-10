@@ -14,7 +14,7 @@
 // Le résultat ne doit plus contenir ni bandeau « projet », ni texte en `code`, ni renvoi « [À … ] », ni mention d'une
 // version de travail (« version 0.x ») : sinon rien n'est écrit, et la liste des problèmes est affichée.
 // Les documents sans remplacement passent aussi en 1.0 (bandeau retiré), pour que tout l'ensemble soit publié d'un coup.
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createElement } from "react";
@@ -32,6 +32,15 @@ const dateLongue = (iso) => {
 // Forme admise : un entier, un point, un chiffre, en chaîne de caractères.
 export function versionValide(version) {
   return typeof version === "string" && /^(0|[1-9]\d*)\.\d$/.test(version);
+}
+
+// Une version publiée ne se republie jamais avec un autre texte : Apirest garde son empreinte et répondrait
+// 409 CGV_VERSION_OBSOLETE jusqu'à sa relecture. Une correction devient la version suivante (1.1).
+// Comparaison numérique des versions « entier.chiffre » : 1.1 > 1.0 > 0.2.
+export function versionSuperieure(a, b) {
+  const [ma, na] = String(a).split(".").map(Number);
+  const [mb, nb] = String(b).split(".").map(Number);
+  return ma > mb || (ma === mb && na > nb);
 }
 
 const occurrences = (texte, morceau) => (morceau ? texte.split(morceau).length - 1 : 0);
@@ -94,7 +103,13 @@ export function passerEnVersion({ choix, racine = RACINE_LEGALE, ecrire = false 
   const resultats = documents.map((doc) => {
     const source = lireTexte(doc.document, doc.versionEnVigueur, racine);
     const { texte, problemes } = preparerTexte(source, { version, enVigueurLe, remplacements: remplacements.filter((r) => r.document === doc.document) });
-    if (doc.versions.some((v) => v.version === version)) problemes.push(`la version ${version} existe déjà`);
+    if (doc.versions.some((v) => v.version === version)) {
+      problemes.push(`la version ${version} existe déjà : une version publiée ne se republie jamais, une correction devient la version suivante`);
+    } else if (existsSync(join(racine, doc.document, `${version}.md`))) {
+      problemes.push(`le fichier ${version}.md existe déjà sans être déclaré : rien n'est écrasé`);
+    }
+    const plusHaute = doc.versions.map((v) => v.version).find((v) => !versionSuperieure(version, v));
+    if (plusHaute && plusHaute !== version) problemes.push(`la version ${version} n'est pas supérieure à la version ${plusHaute} déjà déclarée`);
     return { doc, texte, problemes, sha256: empreinteTexteLegal(texte) };
   });
   const problemes = [...new Set(inconnus)].map((d) => `document inconnu dans les choix : « ${d} »`);
