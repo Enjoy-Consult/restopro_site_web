@@ -134,6 +134,9 @@ export const TEXTE_DECONNECTE = "Vous êtes déconnecté.";
 export const TEXTE_SUPPORT = "Pour toute autre demande, contactez le support.";
 export const TEXTE_SANS_ABONNEMENT = "Aucun abonnement payé pour cet établissement. Pour souscrire, contactez le support RestOclair.";
 export const TEXTE_PORTEE_INSUFFISANTE = "Cette action n’est pas disponible depuis cet espace. Contactez le support.";
+// Abonnement en cours : billing ne sert l'export de sortie qu'après la fin de l'accès (exportSortieDisponible).
+export const TEXTE_EXPORT_A_LA_FIN =
+  "L’export complet sera disponible ici à la fin de votre abonnement. Pendant l’abonnement, vos données s’exportent depuis l’application.";
 
 // Après une connexion réussie : l'espace (restaurants dont la personne est titulaire), ou un refus.
 export function issueConnexionReussie(connexion) {
@@ -215,6 +218,8 @@ export function resumeCompte(compte, maintenant = Date.now()) {
     : null;
   const effet = Date.parse(compte?.resiliation?.effetLe ?? "");
   const resiliationProgrammee = !Number.isNaN(effet) && effet > maintenant && statut !== "resilie";
+  // Seul billing décide : l'export de sortie n'est servi qu'après la fin de l'accès, pendant la conservation.
+  const exportDisponible = compte?.exportSortieDisponible === true;
 
   const lignes = [
     ["Statut", LIBELLES_STATUT[statut] ?? "Inconnu"],
@@ -241,11 +246,11 @@ export function resumeCompte(compte, maintenant = Date.now()) {
     bandeaux.push({ cle: "resiliation", type: "info", texte: `Votre abonnement prendra fin le ${date(compte.resiliation.effetLe)}. D’ici là, l’accès reste complet et vous pouvez annuler la résiliation.` });
   if (statut === "resilie") {
     const suppression = date(compte?.suppressionPrevueLe);
-    bandeaux.push({
-      cle: "termine",
-      type: "info",
-      texte: `Votre abonnement est terminé.${suppression ? ` Les données de l’établissement seront supprimées le ${suppression} :` : ""} téléchargez l’export complet avant cette date.`,
-    });
+    let texteFin = "Votre abonnement est terminé.";
+    if (suppression && exportDisponible) texteFin += ` Les données de l’établissement seront supprimées le ${suppression} : téléchargez l’export complet avant cette date.`;
+    else if (suppression) texteFin += ` Les données de l’établissement seront supprimées le ${suppression}.`;
+    else if (exportDisponible) texteFin += " Vous pouvez télécharger ci-dessous l’export complet des données de l’établissement.";
+    bandeaux.push({ cle: "termine", type: "info", texte: texteFin });
   }
   if (statut === "sans_abonnement" || statut === "en_attente_paiement") bandeaux.push({ cle: "sans", type: "info", texte: TEXTE_SANS_ABONNEMENT });
 
@@ -257,7 +262,11 @@ export function resumeCompte(compte, maintenant = Date.now()) {
       portail: enCours || statut === "resilie",
       resilier: enCours && !resiliationProgrammee,
       annulerResiliation: resiliationProgrammee,
-      export: compte?.exportSortieDisponible === true || statut === "resilie" || enCours,
+      export: exportDisponible,
+      // À la place du bouton, TEXTE_EXPORT_A_LA_FIN, pour un abonnement actif seulement (résiliation programmée
+      // comprise). En impayé ou en accès provisoire, le site ne sait pas si un premier prélèvement a été refusé : dans
+      // ce cas, aucun abonnement n'est conclu et il n'y aura ni export ni consultation (CGV 11.3). Rien n'est promis.
+      exportALaFin: !exportDisponible && statut === "actif",
     },
   };
 }

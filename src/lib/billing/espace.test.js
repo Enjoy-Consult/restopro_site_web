@@ -3,10 +3,11 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { ApiError } from "./errors.js";
 import {
-  TEXTE_NON_TITULAIRE, TEXTE_PORTEE_INSUFFISANTE, TEXTE_SANS_ABONNEMENT, TEXTE_TRANSFERT_RECU,
+  TEXTE_EXPORT_A_LA_FIN, TEXTE_NON_TITULAIRE, TEXTE_PORTEE_INSUFFISANTE, TEXTE_SANS_ABONNEMENT, TEXTE_TRANSFERT_RECU,
   DUREE_SESSION_MS, cheminDeRetourAdmis, echeanceLocale, estMotDePasseRefuse, estSessionFinie, issueConnexion,
   issueConnexionReussie, lireConnexion, messageRefusEspace, nomFichierExport, resumeCompte, sessionValable, urlPortail,
 } from "./espace.js";
+import { mockEspace } from "./mock-espace.js";
 
 const MAINTENANT = Date.parse("2026-11-12T10:00:00Z");
 const jours = (n) => new Date(MAINTENANT + n * 86400000).toISOString();
@@ -66,7 +67,7 @@ test("retour après connexion : seulement un chemin de l'espace", () => {
 
 test("accueil : actions selon le statut, résiliation programmée, sans abonnement", () => {
   const actif = resumeCompte({ statut: "actif", offre: "serenite", version: "mensuel", montantPeriodiqueHTCentimes: 4900, periodeFin: jours(10) }, MAINTENANT);
-  assert.deepEqual(actif.actions, { portail: true, resilier: true, annulerResiliation: false, export: true });
+  assert.deepEqual(actif.actions, { portail: true, resilier: true, annulerResiliation: false, export: false, exportALaFin: true });
   assert.deepEqual(actif.lignes[1], ["Formule", "Sérénité, version mensuelle sans engagement"]);
   const programmee = resumeCompte({ statut: "actif", resiliation: { effetLe: jours(10) } }, MAINTENANT);
   assert.equal(programmee.actions.resilier, false);
@@ -75,12 +76,56 @@ test("accueil : actions selon le statut, résiliation programmée, sans abonneme
   const passee = resumeCompte({ statut: "actif", resiliation: { effetLe: jours(-1) } }, MAINTENANT);
   assert.equal(passee.actions.annulerResiliation, false);
   const sans = resumeCompte({ statut: "sans_abonnement" }, MAINTENANT);
-  assert.deepEqual(sans.actions, { portail: false, resilier: false, annulerResiliation: false, export: false });
+  assert.deepEqual(sans.actions, { portail: false, resilier: false, annulerResiliation: false, export: false, exportALaFin: false });
   assert.equal(sans.bandeaux[0].texte, TEXTE_SANS_ABONNEMENT);
-  const termine = resumeCompte({ statut: "resilie", suppressionPrevueLe: jours(40) }, MAINTENANT);
+  const termine = resumeCompte({ statut: "resilie", suppressionPrevueLe: jours(40), exportSortieDisponible: true }, MAINTENANT);
   assert.equal(termine.actions.export, true);
   assert.equal(termine.actions.resilier, false);
   assert.match(resumeCompte({ statut: "impaye", graceJusquau: jours(3) }, MAINTENANT).bandeaux[0].texte, /lecture seule/);
+});
+
+// Essai de billing du 10/11 sur 4304 : le bouton s'affichait sur un abonnement actif, et billing répondait 403 (l'export
+// de sortie n'est servi qu'après la fin de l'accès). Le bouton suit exportSortieDisponible, et lui seul.
+test("export : bouton seulement si exportSortieDisponible vaut true ; sinon, abonnement actif, la phrase neutre", () => {
+  const actions = (compte) => resumeCompte(compte, MAINTENANT).actions;
+  const paire = (compte) => [actions(compte).export, actions(compte).exportALaFin];
+  for (const drapeau of [false, undefined, null, "true", 1]) {
+    assert.deepEqual(paire({ statut: "actif", exportSortieDisponible: drapeau }), [false, true], `actif ${drapeau}`);
+    // Impayé ou accès provisoire : peut-être un premier prélèvement refusé (ni abonnement, ni export) : aucune promesse.
+    for (const statut of ["impaye", "activation_provisoire"]) assert.deepEqual(paire({ statut, exportSortieDisponible: drapeau }), [false, false], `${statut} ${drapeau}`);
+  }
+  for (const statut of ["actif", "impaye", "activation_provisoire"]) assert.deepEqual(paire({ statut, exportSortieDisponible: true }), [true, false], statut);
+  // Résiliation programmée : l'abonnement court encore, l'export viendra à la fin.
+  assert.equal(actions({ statut: "actif", resiliation: { effetLe: jours(10) } }).exportALaFin, true);
+  // Terminé : bouton si billing le sert ; sinon ni bouton, ni promesse, ni consigne de téléchargement.
+  const termine = (exportSortieDisponible, suppressionPrevueLe = jours(40)) => resumeCompte({ statut: "resilie", suppressionPrevueLe, exportSortieDisponible }, MAINTENANT);
+  assert.match(termine(true).bandeaux[0].texte, /^Votre abonnement est terminé\. Les données de l’établissement seront supprimées le .+ : téléchargez l’export complet avant cette date\.$/);
+  assert.deepEqual([termine(false).actions.export, termine(false).actions.exportALaFin], [false, false]);
+  assert.match(termine(false).bandeaux[0].texte, /^Votre abonnement est terminé\. Les données de l’établissement seront supprimées le [^:]+\.$/);
+  assert.equal(termine(true, null).bandeaux[0].texte, "Votre abonnement est terminé. Vous pouvez télécharger ci-dessous l’export complet des données de l’établissement.");
+  assert.equal(termine(false, null).bandeaux[0].texte, "Votre abonnement est terminé.");
+  // Sans abonnement : rien sur l'export.
+  for (const statut of ["sans_abonnement", "en_attente_paiement", undefined]) {
+    assert.deepEqual([actions({ statut }).export, actions({ statut }).exportALaFin], [false, false], String(statut));
+  }
+  assert.equal(TEXTE_EXPORT_A_LA_FIN, "L’export complet sera disponible ici à la fin de votre abonnement. Pendant l’abonnement, vos données s’exportent depuis l’application.");
+});
+
+// La maquette suit billing : sinon, elle masque le défaut (elle donnait l'export disponible sur un abonnement actif).
+test("maquette de l'espace : export seulement à la fin de l'accès, refusé en 403 avant", async () => {
+  const connexion = (email) => mockEspace("POST", "/api/billing/connexion", { corps: { email, motDePasse: "Essai123" } });
+  for (const email of ["marie@exemple.fr", "impaye@exemple.fr", "sepa@exemple.fr", "resiliation@exemple.fr"]) {
+    const { token, restaurants } = await connexion(email);
+    const id = restaurants[0].restaurantId;
+    const compte = await mockEspace("GET", `/api/billing/compte?restaurantId=${id}`, { token });
+    assert.equal(compte.exportSortieDisponible, false, email);
+    await assert.rejects(mockEspace("GET", `/api/billing/export-sortie?restaurantId=${id}`, { token }), (e) => e.status === 403, email);
+  }
+  const { token, restaurants } = await connexion("resilie@exemple.fr");
+  const id = restaurants[0].restaurantId;
+  assert.equal((await mockEspace("GET", `/api/billing/compte?restaurantId=${id}`, { token })).exportSortieDisponible, true);
+  const fichier = await mockEspace("GET", `/api/billing/export-sortie?restaurantId=${id}`, { token });
+  assert.equal(fichier.type, "application/zip");
 });
 
 test("échéance locale : durée restante bornée à 2 h, 2 h si expireLe est illisible ou passé (horloge en avance)", () => {

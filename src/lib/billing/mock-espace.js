@@ -33,12 +33,13 @@ function compteDe(scenario, restaurantId) {
     montantPeriodiqueHTCentimes: 4900,
     engagementFin: null,
     resiliation: null,
-    exportSortieDisponible: true,
+    // Comme billing : l'export de sortie n'est servi qu'après la fin de l'accès.
+    exportSortieDisponible: false,
     comptes: [],
   };
   if (restaurantId === "r-bistrot" || scenario === "impaye") return { ...base, statut: "impaye", graceJusquau: iso(6) };
   if (scenario === "sepa") return { ...base, statut: "activation_provisoire" };
-  if (scenario === "resilie") return { ...base, statut: "resilie", periodeFin: iso(-10), suppressionPrevueLe: iso(50) };
+  if (scenario === "resilie") return { ...base, statut: "resilie", periodeFin: iso(-10), suppressionPrevueLe: iso(50), exportSortieDisponible: true };
   if (scenario === "resiliation") return { ...base, resiliation: { effetLe: iso(18) } };
   if (scenario === "sans") return { ...base, statut: "sans_abonnement", offre: null, version: null, montantPeriodiqueHTCentimes: 0 };
   return base;
@@ -121,7 +122,9 @@ export async function mockEspace(methode, cheminComplet, { corps, token } = {}) 
   }
 
   if (route === "GET /api/billing/export-sortie" && parametres.has("restaurantId")) {
-    restaurant(session(token), parametres.get("restaurantId"));
+    const compte = restaurant(session(token), parametres.get("restaurantId"));
+    // Code de la maquette : le site traite tout 403 de l'espace de la même façon (messageRefusEspace).
+    if (!compte.exportSortieDisponible) throw new ApiError("EXPORT_SORTIE_INDISPONIBLE", 403);
     await attendre(800);
     return new Blob(["Export de la maquette RestOclair (fichier factice)."], { type: "application/zip" });
   }

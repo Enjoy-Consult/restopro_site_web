@@ -7,6 +7,7 @@ import { annulerResiliation, getCompteEspace, ouvrirPortail, resilier, seDeconne
 import { BILLING_MOCK } from "@/lib/billing/config";
 import {
   TEXTE_DECONNECTE,
+  TEXTE_EXPORT_A_LA_FIN,
   TEXTE_SESSION_EXPIREE,
   TEXTE_SUPPORT,
   ecrireSessionEspace,
@@ -378,6 +379,13 @@ export default function MonAbonnement() {
                       <button type="button" onClick={exporter} disabled={occupe} aria-busy={action.enCours === "export"} className={BOUTON_SECONDAIRE}>
                         {action.enCours === "export" ? "Préparation de l’export…" : "Télécharger l’export (ZIP)"}
                       </button>
+                    </div>
+                  )}
+
+                  {resume.actions.exportALaFin && (
+                    <div>
+                      <h2 className="text-ink text-[22px] mb-2">Export de vos données</h2>
+                      <p className="text-muted text-[15px] leading-relaxed">{TEXTE_EXPORT_A_LA_FIN}</p>
                     </div>
                   )}
 
