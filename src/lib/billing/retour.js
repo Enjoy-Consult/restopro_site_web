@@ -30,14 +30,26 @@ export const TEXTE_IMPAYE =
 export const TEXTE_NON_CONFIRME =
   "Votre paiement n’est pas confirmé à ce stade. S’il n’a pas abouti, vous pouvez le reprendre en choisissant de nouveau votre formule : votre compte est conservé.";
 
-const ENVOI_IDENTIFIANTS = "par e-mail, avec un lien sécurisé valable 72 heures.";
+// Le titulaire n'a pas choisi de mot de passe : ses identifiants partent par e-mail après le paiement, ou dès la signature
+// du mandat SEPA, dans un e-mail à part de celui de l'équipe (CGV 0.2, article 4.7 ; décisions de Louis, questions 39 et 40).
+const LIEN_IDENTIFIANTS = "avec un lien sécurisé valable 72 heures. Ceux de votre équipe arrivent dans un autre e-mail.";
 
 // Phrase du succès, découpée pour mettre l'adresse en avant. Sans adresse lisible : phrase sans adresse.
 export function phraseIdentifiants(email) {
   return email
-    ? { avant: "Les identifiants de votre équipe ont été envoyés à ", email, apres: ` ${ENVOI_IDENTIFIANTS}` }
-    : { avant: `Les identifiants de votre équipe ont été envoyés ${ENVOI_IDENTIFIANTS}`, email: null, apres: "" };
+    ? { avant: "Vos identifiants de connexion arrivent par e-mail à ", email, apres: `, ${LIEN_IDENTIFIANTS}` }
+    : { avant: `Vos identifiants de connexion arrivent par e-mail, ${LIEN_IDENTIFIANTS}`, email: null, apres: "" };
 }
+
+// Rien reçu : courriers indésirables, puis « Mot de passe oublié » dans l'application, puis le téléphone (ajouté par la page).
+export const TEXTE_RIEN_RECU =
+  "Rien reçu d’ici quelques minutes ? Regardez dans vos courriers indésirables. Si le lien a expiré, utilisez « Mot de passe oublié » sur l’écran de connexion de l’application, avec cette adresse.";
+
+// MUST_FINALIZE : Apirest pose « mot de passe à changer » quand il envoie les identifiants, c'est-à-dire à l'activation
+// (paiement confirmé ou mandat SEPA signé). Tant que sa garde vise aussi le jeton du site, GET /compte répond alors 403
+// MUST_FINALIZE : c'est une issue réussie, sans statut lisible.
+export const TEXTE_EN_PLACE_SEPA =
+  "Si vous avez choisi le prélèvement SEPA, sa validation prend quelques jours ouvrés : vous pouvez déjà utiliser l’application.";
 
 // Une décision est l'une de :
 //   { type: "interroger" }                                  appeler GET /compte maintenant
@@ -89,6 +101,7 @@ export function decisionRetour({ compte = null, erreur = null, dernierStatut = n
   if (compte?.statut === "actif") return { type: "fin", phase: "actif", compte, effacerJeton: true };
   if (compte?.statut === "activation_provisoire") return { type: "fin", phase: "provisoire", compte, effacerJeton: true };
   if (estSessionExpiree(erreur)) return { type: "fin", phase: "inverifiable", effacerJeton: true };
+  if (erreur?.code === "MUST_FINALIZE") return { type: "fin", phase: "en_place", effacerJeton: true };
   const refus = messageRefus(erreur);
   if (refus) return { type: "fin", phase: "refus", refus };
 

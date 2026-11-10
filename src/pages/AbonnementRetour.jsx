@@ -6,14 +6,16 @@ import Etapes from "@/components/billing/Etapes";
 import LienReprise from "@/components/billing/LienReprise";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, getCompte } from "@/lib/billing/api";
-import { APP_STORE_URL, BILLING_MOCK_DEV, PLAY_STORE_URL, URL_MON_COMPTE } from "@/lib/billing/config";
+import { APP_STORE_URL, APP_WEB_URL, BILLING_MOCK_DEV, PLAY_STORE_URL, URL_MON_COMPTE } from "@/lib/billing/config";
 import {
   TEXTE_ACTIVATION_EN_COURS,
   TEXTE_DELAI,
   TEXTE_DELAI_REPRISE,
+  TEXTE_EN_PLACE_SEPA,
   TEXTE_IMPAYE,
   TEXTE_INVERIFIABLE,
   TEXTE_NON_CONFIRME,
+  TEXTE_RIEN_RECU,
   decisionDepart,
   decisionRetour,
   estActivationEnCours,
@@ -27,6 +29,7 @@ const TITRES = {
   attente: "Nous confirmons votre paiement…",
   actif: "Votre abonnement est actif.",
   provisoire: "Votre prélèvement est en cours de validation.",
+  en_place: "Votre abonnement est en place.",
   delai: "Confirmation en cours.",
   delai_reprise: "Confirmation en cours.",
   impaye: "Paiement à régulariser.",
@@ -34,6 +37,15 @@ const TITRES = {
   inverifiable: "Votre abonnement.",
   non_confirme: "Paiement non confirmé.",
 };
+
+// Issues réussies : les identifiants arrivent par e-mail ; s'ils n'arrivent pas, la marche à suivre.
+function RienRecu() {
+  return (
+    <p className="text-muted text-[15px] leading-relaxed mt-5">
+      {TEXTE_RIEN_RECU} Vous pouvez aussi nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+    </p>
+  );
+}
 
 // Issues sans confirmation : le lien de reprise (paiement non abouti), l'espace client et le téléphone restent à portée de main.
 function Aide({ email }) {
@@ -58,9 +70,10 @@ function Pastille({ phase }) {
         <span className="w-6 h-6 border-2 border-border border-t-bottle rounded-full animate-spin" />
       </span>
     );
-  const chemin = phase === "actif" ? "M5 12.5l4.5 4.5L19 7.5" : phase === "provisoire" ? "M12 6.5V12l3.5 2" : "M12 7v6M12 16.5v.5";
+  const reussi = phase === "actif" || phase === "en_place";
+  const chemin = reussi ? "M5 12.5l4.5 4.5L19 7.5" : phase === "provisoire" ? "M12 6.5V12l3.5 2" : "M12 7v6M12 16.5v.5";
   return (
-    <span className={`${base} ${phase === "actif" ? "bg-bottle text-bottle-text" : "bg-[#eaf0ea] text-bottle"}`} aria-hidden="true">
+    <span className={`${base} ${reussi ? "bg-bottle text-bottle-text" : "bg-[#eaf0ea] text-bottle"}`} aria-hidden="true">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round">
         <path d={chemin} />
       </svg>
@@ -128,7 +141,9 @@ export default function AbonnementRetour() {
   const { phase, compte } = etat;
   const nomFormule =
     catalogue?.offres.find((o) => o.cle === compte?.offre)?.nom ?? (compte?.offre ? compte.offre.charAt(0).toUpperCase() + compte.offre.slice(1) : "");
-  const identifiants = phraseIdentifiants(compte?.titulaire?.email);
+  // Adresse du compte lu, sinon celle de la session (403 MUST_FINALIZE : aucun compte lisible).
+  const identifiants = phraseIdentifiants(compte?.titulaire?.email || emailSession);
+  const succes = phase === "actif" || phase === "provisoire" || phase === "en_place";
 
   const lien = "inline-block border border-bottle text-bottle px-6 py-3 text-[15px] font-medium hover:bg-[#eaf0ea] transition-colors";
 
@@ -160,17 +175,37 @@ export default function AbonnementRetour() {
             )}
 
             {phase === "actif" && (
-              <p className="text-muted text-lg leading-relaxed">
-                Votre abonnement {nomFormule} est actif. {identifiants.avant}
-                {identifiants.email && <strong className="text-ink font-medium">{identifiants.email}</strong>}
-                {identifiants.apres}
-              </p>
+              <>
+                <p className="text-muted text-lg leading-relaxed">
+                  Votre abonnement {nomFormule} est actif. {identifiants.avant}
+                  {identifiants.email && <strong className="text-ink font-medium">{identifiants.email}</strong>}
+                  {identifiants.apres}
+                </p>
+                <RienRecu />
+              </>
             )}
 
             {phase === "provisoire" && (
-              <p className="text-muted text-lg leading-relaxed">
-                Votre prélèvement SEPA est en cours de validation, ce qui prend quelques jours ouvrés. Vous pouvez déjà utiliser l’application.
-              </p>
+              <>
+                <p className="text-muted text-lg leading-relaxed">
+                  Votre prélèvement SEPA est en cours de validation, ce qui prend quelques jours ouvrés. Vous pouvez déjà utiliser l’application.{" "}
+                  {identifiants.avant}
+                  {identifiants.email && <strong className="text-ink font-medium">{identifiants.email}</strong>}
+                  {identifiants.apres}
+                </p>
+                <RienRecu />
+              </>
+            )}
+
+            {phase === "en_place" && (
+              <>
+                <p className="text-muted text-lg leading-relaxed">
+                  {identifiants.avant}
+                  {identifiants.email && <strong className="text-ink font-medium">{identifiants.email}</strong>}
+                  {identifiants.apres} {TEXTE_EN_PLACE_SEPA}
+                </p>
+                <RienRecu />
+              </>
             )}
 
             {phase === "refus" && (
@@ -241,11 +276,15 @@ export default function AbonnementRetour() {
             )}
           </div>
 
-          {(APP_STORE_URL || PLAY_STORE_URL || URL_MON_COMPTE) && (
+          {/* Connexion à l'application : avec l'adresse e-mail et le mot de passe provisoire reçus, à changer à la première connexion. */}
+          {succes && (APP_STORE_URL || PLAY_STORE_URL || APP_WEB_URL) && (
             <>
           <hr className="rule my-12" />
 
-          <h2 className="text-ink text-[24px] mb-5">{APP_STORE_URL || PLAY_STORE_URL ? "Installez l’application" : "Votre espace client"}</h2>
+          <h2 className="text-ink text-[24px] mb-3">Connectez-vous à l’application</h2>
+          <p className="text-muted text-[15px] leading-relaxed mb-5">
+            Avec votre adresse e-mail et le mot de passe provisoire reçu par e-mail. À la première connexion, vous choisissez votre propre mot de passe.
+          </p>
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
             {APP_STORE_URL && (
               <a href={APP_STORE_URL} className={lien} target="_blank" rel="noopener noreferrer">
@@ -257,9 +296,9 @@ export default function AbonnementRetour() {
                 Télécharger pour Android (Google Play)
               </a>
             )}
-            {URL_MON_COMPTE && (
-              <a href={URL_MON_COMPTE} className="btn-primary text-center order-first sm:order-none">
-                Accéder à mon espace
+            {APP_WEB_URL && (
+              <a href={APP_WEB_URL} className="btn-primary text-center order-first sm:order-none">
+                Ouvrir l’application web
               </a>
             )}
           </div>

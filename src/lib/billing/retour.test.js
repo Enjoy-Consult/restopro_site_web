@@ -15,6 +15,8 @@ import {
   decisionDepart,
   decisionRetour,
   estRetourStripe,
+  TEXTE_EN_PLACE_SEPA,
+  TEXTE_RIEN_RECU,
   phraseIdentifiants,
   planifierRetour,
 } from "./retour.js";
@@ -180,15 +182,31 @@ test("actif et activation provisoire : fin immédiate, jeton effacé, compte tra
   assert.deepEqual(decisionRetour({ compte: provisoire }), { type: "fin", phase: "provisoire", compte: provisoire, effacerJeton: true });
 });
 
-test("phrase du succès : avec adresse, sans adresse, jamais de ZIP", () => {
+test("phrase du succès : les identifiants du titulaire par e-mail, ceux de l'équipe à part, jamais de ZIP", () => {
   const avec = phraseIdentifiants("marie@exemple.fr");
-  assert.equal(`${avec.avant}${avec.email}${avec.apres}`, "Les identifiants de votre équipe ont été envoyés à marie@exemple.fr par e-mail, avec un lien sécurisé valable 72 heures.");
+  assert.equal(
+    `${avec.avant}${avec.email}${avec.apres}`,
+    "Vos identifiants de connexion arrivent par e-mail à marie@exemple.fr, avec un lien sécurisé valable 72 heures. Ceux de votre équipe arrivent dans un autre e-mail."
+  );
   for (const manquant of [undefined, null, ""]) {
     const sans = phraseIdentifiants(manquant);
     assert.equal(sans.email, null);
-    assert.equal(`${sans.avant}${sans.apres}`, "Les identifiants de votre équipe ont été envoyés par e-mail, avec un lien sécurisé valable 72 heures.");
+    assert.equal(
+      `${sans.avant}${sans.apres}`,
+      "Vos identifiants de connexion arrivent par e-mail, avec un lien sécurisé valable 72 heures. Ceux de votre équipe arrivent dans un autre e-mail."
+    );
   }
   assert.ok(!JSON.stringify([avec, phraseIdentifiants(null)]).includes("ZIP"));
+  assert.match(TEXTE_RIEN_RECU, /courriers indésirables/);
+  assert.match(TEXTE_RIEN_RECU, /« Mot de passe oublié »/);
+});
+
+test("403 MUST_FINALIZE : les identifiants sont partis, issue réussie sans statut, jeton effacé", () => {
+  const d = decisionRetour({ erreur: new ApiError("MUST_FINALIZE", 403) });
+  assert.deepEqual(d, { type: "fin", phase: "en_place", effacerJeton: true });
+  // Un autre 403 reste un refus.
+  assert.equal(decisionRetour({ erreur: new ApiError("NON_TITULAIRE", 403) }).phase, "refus");
+  assert.match(TEXTE_EN_PLACE_SEPA, /SEPA/);
 });
 
 // --- e) : délai dépassé et 429 ---

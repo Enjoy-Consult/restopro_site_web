@@ -18,6 +18,7 @@ export const SCENARIOS = [
   "401",
   "429",
   "429_puis_actif",
+  "must_finalize",
   "avec_jeton",
   "sans_jeton",
 ];
