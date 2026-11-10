@@ -28,6 +28,12 @@ const dateLongue = (iso) => {
   return new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(date);
 };
 
+// Apirest compare la version comme une CHAÎNE EXACTE (« 1.0 », ni 1, ni « 1.00 ») : sinon 503 CGV_INDISPONIBLE.
+// Forme admise : un entier, un point, un chiffre, en chaîne de caractères.
+export function versionValide(version) {
+  return typeof version === "string" && /^(0|[1-9]\d*)\.\d$/.test(version);
+}
+
 const occurrences = (texte, morceau) => (morceau ? texte.split(morceau).length - 1 : 0);
 
 // Défauts d'un texte à publier (mêmes règles que scripts/legal.test.mjs, « hors statut projet »).
@@ -80,6 +86,9 @@ export function preparerTexte(source, { version, enVigueurLe, remplacements = []
 export function passerEnVersion({ choix, racine = RACINE_LEGALE, ecrire = false }) {
   const { version = "1.0", enVigueurLe, remplacements = [] } = choix;
   if (!enVigueurLe) throw new Error("enVigueurLe manque dans le fichier de choix");
+  if (!versionValide(version)) {
+    throw new Error(`version « ${JSON.stringify(version)} » refusée : écrire une chaîne exacte comme "1.0" (Apirest compare la chaîne)`);
+  }
   const documents = lireDocuments(racine);
   const inconnus = remplacements.filter((r) => !documents.some((d) => d.document === r.document)).map((r) => r.document);
   const resultats = documents.map((doc) => {
@@ -98,7 +107,15 @@ export function passerEnVersion({ choix, racine = RACINE_LEGALE, ecrire = false 
     return { ...doc, versionEnVigueur: version, versions: [...doc.versions, { version, enVigueurLe, statut: "publie", sha256: r.sha256 }] };
   });
   writeFileSync(join(racine, "documents.json"), `${JSON.stringify(misAJour, null, 2)}\n`, "utf8");
-  return { problemes: [], resultats, ecrit: true, index: construireIndex(racine) };
+  // Relecture de ce qui est écrit : la version doit ressortir en chaîne exacte, partout.
+  const index = construireIndex(racine);
+  const ecarts = [
+    ...lireDocuments(racine).filter((d) => d.versionEnVigueur !== version).map((d) => `${d.document} : versionEnVigueur ${JSON.stringify(d.versionEnVigueur)}`),
+    ...index.filter((e) => e.version !== version).map((e) => `${e.document} : version de l'index ${JSON.stringify(e.version)}`),
+    ...resultats.filter((r) => !lireTexte(r.doc.document, version, racine).includes(`\nVersion ${version} — `)).map((r) => `${r.doc.document} : ligne « Version ${version} — … » absente`),
+  ];
+  if (ecarts.length > 0) throw new Error(`version écrite différente de « ${version} » :\n  - ${ecarts.join("\n  - ")}`);
+  return { problemes: [], resultats, ecrit: true, index };
 }
 
 // Squelette du fichier de choix : chaque marque de chaque version en vigueur, avec la décision « garder » par défaut.

@@ -5,7 +5,7 @@ import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { empreinteTexteLegal, lireDocuments, lireTexte, RACINE_LEGALE } from "./legal.mjs";
-import { defautsDePublication, passerEnVersion, preparerTexte, squelette } from "./passer-en-1-0.mjs";
+import { defautsDePublication, passerEnVersion, preparerTexte, squelette, versionValide } from "./passer-en-1-0.mjs";
 
 const copie = () => {
   const dossier = mkdtempSync(join(tmpdir(), "legal-1-0-"));
@@ -41,6 +41,15 @@ test("préparation : marque oubliée, passage introuvable ou en double, renvoi v
   assert.ok(problemes.some((p) => /version de travail : « version 0\.2 »/.test(p)));
   assert.ok(problemes.some((p) => /lien vers une version de travail : « \/cgv\/0\.2 »/.test(p)));
   assert.throws(() => preparerTexte(source, { version: "1.0", enVigueurLe: "15/11/2026" }), /date invalide/);
+});
+
+test("version : une chaîne exacte comme \"1.0\", jamais un nombre ni « 1 » ni « 1.00 » (Apirest compare la chaîne)", () => {
+  assert.equal(versionValide("1.0"), true);
+  assert.equal(versionValide("2.1"), true);
+  for (const refusee of [1, 1.0, "1", "1.00", " 1.0", "1.0 ", "01.0", "v1.0", "", null, undefined]) assert.equal(versionValide(refusee), false, JSON.stringify(refusee));
+  for (const version of [1, "1", "1.00"]) {
+    assert.throws(() => passerEnVersion({ choix: { version, enVigueurLe: "2026-11-15", remplacements: [] } }), /chaîne exacte/, JSON.stringify(version));
+  }
 });
 
 test("squelette : une entrée par marque des versions en vigueur", () => {
@@ -81,7 +90,11 @@ test("écriture complète sur une copie : 1.0 publiées, empreintes enregistrée
       assert.match(texte, /Version 1\.0 — 15 novembre 2026/);
     }
     assert.equal(resultat.index.length, lireDocuments(racine).length);
-    assert.ok(resultat.index.every((e) => e.version === "1.0" && e.statut === "publie"));
+    assert.ok(resultat.index.every((e) => e.version === "1.0" && typeof e.version === "string" && e.statut === "publie"));
+    // Dans documents.json écrit, la version est bien la chaîne "1.0" (pas le nombre 1).
+    const brut = readFileSync(join(racine, "documents.json"), "utf8");
+    assert.equal((brut.match(/"versionEnVigueur": "1\.0"/g) ?? []).length, lireDocuments(racine).length);
+    assert.equal((brut.match(/"version": "1\.0"/g) ?? []).length, lireDocuments(racine).length);
     // Une seconde fois : la 1.0 existe déjà, rien n'est écrit.
     assert.ok(passerEnVersion({ racine, choix, ecrire: true }).problemes.some((p) => /existe déjà/.test(p)));
   } finally {
