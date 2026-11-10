@@ -9,7 +9,8 @@ import { STATUTS_ADMIS } from "./legal.mjs";
 // Les documents que le client accepte à l'inscription.
 export const DOCUMENTS_REQUIS = ["cgv", "accord-sous-traitance", "cgu-app"];
 export const ADRESSES_REQUISES = {
-  vitrine: ["VITE_API_URL", "VITE_APP_WEB_URL"],
+  // La vitrine renvoie vers l'espace abonnement de compte.restoclair.fr (inscription, retour de paiement, tarifs).
+  vitrine: ["VITE_API_URL", "VITE_APP_WEB_URL", "VITE_COMPTE_URL"],
   // Le compte appelle l'API et renvoie vers le site (documents juridiques, accueil) par des adresses complètes.
   compte: ["VITE_API_URL", "VITE_SITE_URL", "VITE_COMPTE_URL"],
 };

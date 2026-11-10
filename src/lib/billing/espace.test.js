@@ -31,10 +31,13 @@ test("seul le titulaire entre ; destinataire d'un transfert et gestionnaire sont
 
 test("échec de connexion : 401 uniforme, motifs de CONNEXION_NON_ADMISE, 429 avec délai, panne", () => {
   assert.match(issueConnexion(new ApiError("IDENTIFIANTS_INVALIDES", 401)).texte, /incorrect/);
-  assert.equal(issueConnexion(new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "mot_de_passe_a_definir" })).motDePasse, true);
-  assert.match(issueConnexion(new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "compte_desactive" })).texte, /désactivé/);
-  assert.match(issueConnexion(new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "role_non_admis" })).texte, /titulaire/);
-  assert.match(issueConnexion(new ApiError("CONNEXION_NON_ADMISE", 403)).texte, /titulaire/);
+  const motif = (m) => issueConnexion(new ApiError("CONNEXION_NON_ADMISE", 403, m === undefined ? null : { motif: m }));
+  assert.equal(motif("compte_temporaire").motDePasse, true);
+  assert.match(motif("desactive").texte, /désactivé/);
+  assert.match(motif("sursis").texte, /suspendu/);
+  assert.match(motif("role").texte, /titulaire/);
+  assert.match(motif("aucun_restaurant").texte, /Aucun établissement/);
+  for (const inconnu of ["autre", "", undefined, "__proto__", "constructor"]) assert.match(motif(inconnu).texte, /ne permet pas de gérer l’abonnement ici/, String(inconnu));
   assert.match(issueConnexion(new ApiError("X", 429, null, 30000)).texte, /30 secondes/);
   assert.equal(issueConnexion(new ApiError("RESEAU")).telephone, true);
 });
@@ -43,7 +46,9 @@ test("session : 401 finit la session ; PORTEE_INSUFFISANTE jamais ; mot de passe
   assert.equal(estSessionFinie(new ApiError("TOKEN_EXPIRED", 401)), true);
   assert.equal(estSessionFinie(new ApiError("PORTEE_INSUFFISANTE", 403)), false);
   assert.equal(messageRefusEspace(new ApiError("PORTEE_INSUFFISANTE", 403)), TEXTE_PORTEE_INSUFFISANTE);
-  assert.equal(estMotDePasseRefuse(new ApiError("MOT_DE_PASSE_INCORRECT", 403)), true);
+  assert.equal(estMotDePasseRefuse(new ApiError("MOT_DE_PASSE_INVALIDE", 403)), true);
+  assert.equal(estMotDePasseRefuse(new ApiError("MOT_DE_PASSE_REQUIS", 403)), true);
+  assert.equal(estMotDePasseRefuse(new ApiError("MOT_DE_PASSE_INCORRECT", 403)), false);
   assert.equal(estMotDePasseRefuse(new ApiError("IDENTIFIANTS_INVALIDES", 401)), false);
   assert.equal(sessionValable({ token: "t", expireLe: jours(1) }, MAINTENANT), true);
   assert.equal(sessionValable({ token: "t", expireLe: jours(-1) }, MAINTENANT), false);

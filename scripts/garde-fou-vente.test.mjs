@@ -13,7 +13,7 @@ const doc = (document, statut, autres = {}) => ({
 const documentsValides = () => DOCUMENTS_REQUIS.map((cle) => doc(cle, "publie"));
 const remplacer = (documents, remplacant) => documents.map((d) => (d.document === remplacant.document ? remplacant : d));
 
-const ENV_VENTE = { VITE_BILLING_ACTIF: "true", VITE_API_URL: "https://api.exemple.fr/v1", VITE_APP_WEB_URL: "https://app.exemple.fr" };
+const ENV_VENTE = { VITE_BILLING_ACTIF: "true", VITE_API_URL: "https://api.exemple.fr/v1", VITE_APP_WEB_URL: "https://app.exemple.fr", VITE_COMPTE_URL: "https://compte.exemple.fr" };
 const controle = (surcharge = {}) => problemesVente({ commande: "build", mode: "production", env: ENV_VENTE, documents: documentsValides(), ...surcharge });
 
 test("vente prête : documents validés et adresses renseignées, le build continue", () => {
@@ -36,7 +36,7 @@ test("développement non bloqué ; la maquette n'exempte plus un build (elle n'e
   assert.deepEqual(controle({ documents, env, commande: "serve" }), []);
   assert.deepEqual(controle({ documents, env, mode: "development" }), []);
   for (const VITE_BILLING_MOCK of ["true", " TRUE ", "false", undefined]) {
-    assert.equal(controle({ documents, env: { ...env, VITE_BILLING_MOCK } }).length, 5, String(VITE_BILLING_MOCK));
+    assert.equal(controle({ documents, env: { ...env, VITE_BILLING_MOCK } }).length, 6, String(VITE_BILLING_MOCK));
   }
 });
 
@@ -72,20 +72,20 @@ test("le doute bloque : document absent, version en vigueur inconnue, statut inc
 });
 
 test("adresses vides : même lecture que le site, espaces et / seuls comptent pour vide", () => {
-  for (const nom of ["VITE_API_URL", "VITE_APP_WEB_URL"]) {
+  for (const nom of ["VITE_API_URL", "VITE_APP_WEB_URL", "VITE_COMPTE_URL"]) {
     for (const valeur of [undefined, "", "   ", "/", " // "]) {
       const problemes = controle({ env: { ...ENV_VENTE, [nom]: valeur } });
       assert.deepEqual(problemes, [`${nom} est vide`], `${nom}=${String(valeur)}`);
     }
   }
   const sansRien = controle({ env: { VITE_BILLING_ACTIF: "true" } });
-  assert.deepEqual(sansRien, ["VITE_API_URL est vide", "VITE_APP_WEB_URL est vide"]);
+  assert.deepEqual(sansRien, ["VITE_API_URL est vide", "VITE_APP_WEB_URL est vide", "VITE_COMPTE_URL est vide"]);
   // Écriture de l'interrupteur tolérée par le site : le garde-fou la voit aussi.
-  assert.equal(controle({ env: { VITE_BILLING_ACTIF: " True " } }).length, 2);
+  assert.equal(controle({ env: { VITE_BILLING_ACTIF: " True " } }).length, 3);
 });
 
 test("le garde-fou lit les variables comme src/lib/billing/config.js", async () => {
-  const noms = ["VITE_BILLING_ACTIF", "VITE_BILLING_MOCK", "VITE_API_URL", "VITE_APP_WEB_URL"];
+  const noms = ["VITE_BILLING_ACTIF", "VITE_BILLING_MOCK", "VITE_API_URL", "VITE_APP_WEB_URL", "VITE_COMPTE_URL"];
   const sauvegarde = Object.fromEntries(noms.map((nom) => [nom, process.env[nom]]));
   const valeursInterrupteur = ["true", "TRUE", " true ", "false", "", "1", "oui"];
   const valeursAdresse = ["https://api.exemple.fr/v1", "https://api.exemple.fr/v1/", "", "   ", "/", " // "];
@@ -109,6 +109,7 @@ test("le garde-fou lit les variables comme src/lib/billing/config.js", async () 
     process.env.VITE_BILLING_ACTIF = "true";
     process.env.VITE_BILLING_MOCK = "false";
     process.env.VITE_APP_WEB_URL = "https://app.exemple.fr";
+    process.env.VITE_COMPTE_URL = "https://compte.exemple.fr";
     for (const valeur of valeursAdresse) {
       process.env.VITE_API_URL = valeur;
       const config = await import(`../src/lib/billing/config.js?adresse=${cas++}`);
@@ -158,7 +159,7 @@ test("vite.config.js branche le garde-fou : il arrête le build de production, p
 test("workflow de production : il transmet l'interrupteur et les adresses, jamais la maquette", () => {
   const workflow = readFileSync(".github/workflows/deploy-production.yml", "utf8");
   assert.match(workflow, /run: npm run build/);
-  for (const nom of ["VITE_BILLING_ACTIF", "VITE_API_URL", "VITE_APP_WEB_URL"]) {
+  for (const nom of ["VITE_BILLING_ACTIF", "VITE_API_URL", "VITE_APP_WEB_URL", "VITE_COMPTE_URL", "VITE_SITE_URL"]) {
     assert.ok(workflow.includes(`${nom}: \${{ vars.${nom} }}`), nom);
   }
   assert.ok(!workflow.includes("VITE_BILLING_MOCK"));

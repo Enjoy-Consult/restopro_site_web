@@ -6,6 +6,7 @@ import useSansReferent from "@/hooks/useSansReferent";
 import { BUSINESS } from "@/lib/business-info";
 import { definirMotDePasse, verifierLienMotDePasse } from "@/lib/billing/api";
 import { APP_WEB_URL } from "@/lib/billing/config";
+import LienEspace from "@/components/billing/LienEspace";
 import { gtmCharge } from "@/lib/consentement";
 import { LONGUEUR_MAX, TEXTE_REGLE, heureEcheance, issueDefinition, issueVerification, validerMotDePasse } from "@/lib/billing/motdepasse";
 import { CHEMIN_REPRISE, TEXTE_LIEN_INDISPONIBLE, lireJetonDuFragment } from "@/lib/billing/reprise";
@@ -262,9 +263,7 @@ export default function DefinirMotDePasse() {
                     Ouvrir l’application web
                   </a>
                 )}
-                <Link to="/mon-abonnement" className="link-underline text-[15px]">
-                  Gérer mon abonnement
-                </Link>
+                <LienEspace className="link-underline text-[15px]">Gérer mon abonnement</LienEspace>
               </div>
             </>
           )}

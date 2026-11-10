@@ -3,13 +3,14 @@
 //
 // Routes de la session minimale d'Apirest (validées le 10/11, relayées par la coordination), sous /api/billing, en
 // X-Client-Type: web et credentials « omit », depuis l'origine compte.restoclair.fr :
-//   POST /connexion { email, motDePasse } → { token (billing_session, 2 h), expireLe, compte, restaurants: [{ restaurantId,
-//        nom, estTitulaire, transfertRecu, statut }] } ; échec uniforme 401 IDENTIFIANTS_INVALIDES ; 403
+//   POST /connexion { email, motDePasse } → { token (billing_session, 2 h), expireLe, compte: { id, nom, email },
+//        restaurants: [{ restaurantId, nom, estTitulaire, transfertRecu, statut }] } ; échec uniforme 401 IDENTIFIANTS_INVALIDES ; 403
 //        CONNEXION_NON_ADMISE { motif } seulement après un mot de passe juste.
 //   Avec la session (Bearer), restaurantId explicite : POST /deconnexion → 204 ; GET /compte ; POST /portail ;
 //   POST et DELETE /resiliation, avec motDePasse dans le corps ; GET /export-sortie (ZIP).
 //   Hors liste : 403 PORTEE_INSUFFISANTE, jamais 401 : ce code ne déconnecte pas.
-// Pour une lecture (GET), restaurantId part en paramètre de l'adresse (à confirmer sur le texte complet d'Apirest).
+// restaurantId : paramètre de l'adresse pour GET /compte et /export-sortie, corps pour les POST et DELETE (confirmé).
+// Résiliation et annulation : 403 MOT_DE_PASSE_REQUIS ou MOT_DE_PASSE_INVALIDE (noms à confirmer par Apirest).
 import { ApiError } from "./errors.js";
 import { estTropDEssais, MESSAGE_INDISPONIBLE, messageTropDEssais } from "./erreurs.js";
 import { formatDate, formatHTParPeriode } from "./format.js";
@@ -134,19 +135,29 @@ export function issueConnexionReussie(connexion) {
   return { type: "refus", texte: TEXTE_NON_TITULAIRE };
 }
 
-// Échec de la connexion. 401 IDENTIFIANTS_INVALIDES pour tout échec ; 403 CONNEXION_NON_ADMISE { motif } seulement après
-// un mot de passe juste. Les motifs exacts restent à lire dans le texte complet d'Apirest : on les reconnaît par mot-clé,
-// et un motif inconnu reçoit le refus générique.
+// Échec de la connexion (codes figés par Apirest). 401 IDENTIFIANTS_INVALIDES pour tout échec, mot de passe jamais
+// choisi compris ; 403 CONNEXION_NON_ADMISE, seulement après un mot de passe juste, avec details.motif parmi role,
+// compte_temporaire, desactive, sursis, aucun_restaurant ; un motif inconnu reçoit le refus générique. Le refus du
+// non-titulaire n'est pas un motif : le site l'applique après la connexion (issueConnexionReussie).
+const REFUS_CONNEXION = {
+  role: { texte: "Ce compte ne permet pas de gérer l’abonnement : seul le titulaire peut le faire ici. Pour toute autre demande, contactez le support." },
+  compte_temporaire: {
+    texte: "Ce compte utilise encore un mot de passe temporaire. Choisissez votre mot de passe avec le lien reçu par e-mail, ou avec « Mot de passe oublié ».",
+    motDePasse: true,
+  },
+  desactive: { texte: "Ce compte est désactivé. Contactez le support.", telephone: true },
+  sursis: { texte: "Ce compte est suspendu pour le moment. Contactez le support.", telephone: true },
+  aucun_restaurant: { texte: "Aucun établissement n’est rattaché à ce compte. Contactez le support.", telephone: true },
+};
+const REFUS_CONNEXION_INCONNU = { texte: "Ce compte ne permet pas de gérer l’abonnement ici. Contactez le support.", telephone: true };
+
 export function issueConnexion(erreur) {
   if (estTropDEssais(erreur)) return { texte: messageTropDEssais(erreur) };
   const code = erreur?.code;
   if (erreur?.status === 401 || code === "IDENTIFIANTS_INVALIDES") return { texte: "Adresse e-mail ou mot de passe incorrect." };
   if (code === "CONNEXION_NON_ADMISE") {
-    const motif = String(erreur?.detail?.motif ?? "").toLowerCase();
-    if (/definir|temporaire|finali/.test(motif))
-      return { texte: "Choisissez d’abord votre mot de passe, avec le lien reçu par e-mail ou avec « Mot de passe oublié ».", motDePasse: true };
-    if (/desactiv|sursis|suspend/.test(motif)) return { texte: "Ce compte est désactivé. Contactez le support.", telephone: true };
-    return { texte: "Ce compte ne permet pas de gérer l’abonnement. Seul le titulaire peut le faire ici ; pour toute autre demande, contactez le support." };
+    const motif = String(erreur?.detail?.motif ?? "");
+    return Object.hasOwn(REFUS_CONNEXION, motif) ? REFUS_CONNEXION[motif] : REFUS_CONNEXION_INCONNU;
   }
   if (code === "VALIDATION_ERROR") return { texte: "Vérifiez votre adresse e-mail et votre mot de passe." };
   return { texte: MESSAGE_INDISPONIBLE, telephone: true };
@@ -165,9 +176,9 @@ export function messageRefusEspace(erreur) {
 // 403 PORTEE_INSUFFISANTE n'en est jamais une.
 export const estSessionFinie = (erreur) => erreur?.status === 401;
 
-// Mot de passe redemandé (résiliation, demande 5) : refus du mot de passe, jamais un 401 (qui finirait la session).
-export const estMotDePasseRefuse = (erreur) =>
-  ["MOT_DE_PASSE_INCORRECT", "MOT_DE_PASSE_INVALIDE", "INVALID_PASSWORD"].includes(erreur?.code);
+// Mot de passe redemandé (résiliation et annulation, demande 5) : 403 MOT_DE_PASSE_REQUIS (absent) ou
+// MOT_DE_PASSE_INVALIDE (faux), d'après la note d'Apirest ; jamais un 401, qui finirait la session.
+export const estMotDePasseRefuse = (erreur) => ["MOT_DE_PASSE_REQUIS", "MOT_DE_PASSE_INVALIDE"].includes(erreur?.code);
 
 // --- Présentation du compte (GET /compte, lu par lireCompte d'api.js) ---
 

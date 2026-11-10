@@ -84,7 +84,7 @@ export function prendreExplicationChoix() {
 const PROFESSIONNELS = "L’abonnement est réservé aux professionnels : en souscrivant, vous déclarez agir pour les besoins de votre activité professionnelle.";
 // Résiliation : sur le site, dans l'espace abonnement (CGV 0.2, article 2), ou depuis l'application web, jamais depuis les
 // applications iOS et Android (décision de Louis du 10/11, CGV 0.2 article 10.1).
-const DEPUIS_ESPACE = "depuis votre espace abonnement, sur le site restoclair.fr/mon-abonnement, ou depuis l’application web";
+const DEPUIS_ESPACE = "depuis votre espace abonnement, sur compte.restoclair.fr/mon-abonnement, ou depuis l’application web";
 const GARANTIE = "Garantie « satisfait ou remboursé » : pour le premier abonnement d’un établissement, vous pouvez demander le remboursement de la première période dans les 14 jours qui suivent la confirmation du paiement.";
 
 export function mentionsAbonnement(version) {

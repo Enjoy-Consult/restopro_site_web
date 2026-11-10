@@ -141,7 +141,7 @@ export function messageErreur(erreur) {
 }
 
 // Texte découpé autour des mots qui deviennent un lien dans la page : « reprendre votre inscription » (page de reprise)
-// ou « votre espace abonnement » (/mon-abonnement). Un seul lien par texte, le premier trouvé dans cet ordre.
+// ou « votre espace abonnement » (compte.restoclair.fr/mon-abonnement). Un seul lien par texte, le premier trouvé dans cet ordre.
 // Sans ces mots : tout est dans `avant`, et `lien` vaut null.
 const LIENS = [
   ["reprendre votre inscription", "reprise"],

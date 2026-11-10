@@ -9,7 +9,8 @@ import Message from "@/components/billing/Message";
 import Recapitulatif from "@/components/billing/Recapitulatif";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, inscrire, lancerCheckout } from "@/lib/billing/api";
-import { APP_WEB_URL, CHEMIN_ESPACE } from "@/lib/billing/config";
+import { APP_WEB_URL } from "@/lib/billing/config";
+import LienEspace from "@/components/billing/LienEspace";
 import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
 import { MESSAGE_CGV_A_REACCEPTER, MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperLien, erreursDeValidation, estActivationEnCoursRefus, messageCatalogue, messageErreur, traiterFinDeSession } from "@/lib/billing/erreurs";
 import { blocCgv, cgvAReaccepter, cheminCgv, cheminVersionne, corpsInscription, etatCgvDepart, garderCgv, lireSaisie, mentionsAbonnement, paiementBloqueParCgv, retenirExplicationChoix, retenirSaisie, suivreCgv, suivrePaiement } from "@/lib/billing/inscription";
@@ -63,14 +64,14 @@ function Champ({ label, name, valeur, erreur, onChange, aide, facultatif, type =
 }
 
 // Message général : « reprendre votre inscription » mène à la page de reprise, avec l'adresse connue ;
-// « votre espace abonnement » mène à /mon-abonnement ; une panne donne le téléphone.
+// « votre espace abonnement » mène à compte.restoclair.fr/mon-abonnement ; une panne donne le téléphone.
 function TexteErreur({ texte, email }) {
   const { avant, lien, apres } = decouperLien(texte);
   return (
     <>
       {avant}
       {lien?.type === "reprise" && <LienReprise email={email}>{lien.texte}</LienReprise>}
-      {lien?.type === "espace" && <Link to={CHEMIN_ESPACE} className="link-underline">{lien.texte}</Link>}
+      {lien?.type === "espace" && <LienEspace>{lien.texte}</LienEspace>}
       {apres}
       {texte === MESSAGE_INDISPONIBLE && (
         <>
@@ -413,7 +414,7 @@ export default function Inscription() {
                   {finSession.type === "error" ? (
                     <LienReprise email={finSession.email} className="btn-primary mt-6 w-full sm:w-auto text-center">Recevoir un lien de reprise</LienReprise>
                   ) : (
-                    <Link to={CHEMIN_ESPACE} className="btn-primary mt-6 w-full sm:w-auto text-center">Accéder à mon espace abonnement</Link>
+                    <LienEspace className="btn-primary mt-6 w-full sm:w-auto text-center">Accéder à mon espace abonnement</LienEspace>
                   )}
                 </div>
               ) : session ? (

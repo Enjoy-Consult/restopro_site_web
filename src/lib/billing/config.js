@@ -31,3 +31,7 @@ export const COMPTE_URL = url(env.VITE_COMPTE_URL);
 // Espace abonnement du site (CGV 0.2, article 2) : la gestion payante n'est plus dans l'application web, qui reçoit
 // 403 GESTION_SITE_SEULEMENT (contrat des routes d'Apirest, point 8). APP_WEB_URL ne sert plus qu'à se connecter à l'app.
 export const CHEMIN_ESPACE = "/mon-abonnement";
+// Depuis la vitrine, l'espace est sur une autre origine : adresse complète, ou null si VITE_COMPTE_URL manque
+// (développement mal réglé ; le garde-fou l'exige pour une vitrine de production qui vend).
+export const URL_ESPACE = COMPTE_URL ? `${COMPTE_URL}${CHEMIN_ESPACE}` : null;
+export const URL_MOT_DE_PASSE_COMPTE = COMPTE_URL ? `${COMPTE_URL}/mot-de-passe` : null;

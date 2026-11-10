@@ -6,7 +6,8 @@ import Etapes from "@/components/billing/Etapes";
 import LienReprise from "@/components/billing/LienReprise";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue, getCompte } from "@/lib/billing/api";
-import { APP_STORE_URL, APP_WEB_URL, BILLING_MOCK_DEV, CHEMIN_ESPACE, PLAY_STORE_URL } from "@/lib/billing/config";
+import { APP_STORE_URL, APP_WEB_URL, BILLING_MOCK_DEV, PLAY_STORE_URL } from "@/lib/billing/config";
+import LienEspace from "@/components/billing/LienEspace";
 import {
   TEXTE_ACTIVATION_EN_COURS,
   TEXTE_DELAI,
@@ -55,7 +56,7 @@ function Aide({ email }) {
   return (
     <p className="text-muted text-[15px] leading-relaxed mt-5">
       Paiement non abouti, et plus de bouton pour le reprendre ? <LienReprise email={email}>Recevez un lien pour reprendre votre inscription</LienReprise>.{" "}
-      Vous pouvez retrouver votre abonnement depuis <Link to={CHEMIN_ESPACE} className="link-underline">votre espace abonnement</Link>.{" "}
+      Vous pouvez retrouver votre abonnement depuis <LienEspace>votre espace abonnement</LienEspace>.{" "}
       Une question ? Appelez-nous au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
     </p>
   );

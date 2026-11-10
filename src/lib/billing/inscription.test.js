@@ -284,7 +284,7 @@ test("mentions : réservé aux professionnels, reconduction, date d'effet, absen
     const texte = mentionsAbonnement(version).join(" ");
     assert.match(texte, /réservé aux professionnels/, version.cle);
     assert.match(texte, /automatiquement/, version.cle);
-    assert.match(texte, /votre espace abonnement, sur le site restoclair\.fr\/mon-abonnement, ou depuis l’application web/, version.cle);
+    assert.match(texte, /votre espace abonnement, sur compte\.restoclair\.fr\/mon-abonnement, ou depuis l’application web/, version.cle);
     assert.doesNotMatch(texte, /Mon compte/, version.cle);
     assert.match(texte, /prend effet à la fin/, version.cle);
     assert.match(texte, /n’est pas remboursée, sauf garantie « satisfait ou remboursé »/, version.cle);

@@ -38,6 +38,7 @@ export default function MotDePasseOublie() {
       document.getElementById("champ-email")?.focus();
       return;
     }
+    // Le champ est désactivé pendant l'envoi : le focus après une erreur attend le rendu suivant.
     envoiEnCours.current = true;
     setEnvoi(true);
     setIssue(null);
@@ -47,10 +48,16 @@ export default function MotDePasseOublie() {
     } catch (erreur) {
       const resultat = issueOubli(erreur);
       setIssue(resultat);
-      if (resultat?.champ) document.getElementById("champ-email")?.focus();
+      if (resultat?.champ) requestAnimationFrame(() => document.getElementById("champ-email")?.focus());
+    } finally {
+      setEnvoi(false);
+      envoiEnCours.current = false;
     }
-    setEnvoi(false);
-    envoiEnCours.current = false;
+  };
+
+  const refaire = () => {
+    setEnvoye(null);
+    requestAnimationFrame(() => document.getElementById("champ-email")?.focus());
   };
 
   return (
@@ -70,7 +77,7 @@ export default function MotDePasseOublie() {
             </Message>
             <p className="text-muted text-[15px] leading-relaxed mt-6">
               Rien reçu ? Vérifiez l’adresse et{" "}
-              <button type="button" className="link-underline" onClick={() => setEnvoye(null)}>refaites une demande</button>, ou appelez-nous au{" "}
+              <button type="button" className="link-underline" onClick={refaire}>refaites une demande</button>, ou appelez-nous au{" "}
               <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
             </p>
           </>
@@ -95,7 +102,7 @@ export default function MotDePasseOublie() {
               aria-describedby={issue?.champ ? "champ-email-erreur" : undefined}
               className={`${CLASSE_CHAMP} ${issue?.champ ? "border-[#8a2424]" : "border-border"}`}
             />
-            {issue?.champ && <p id="champ-email-erreur" className="text-[#8a2424] text-[14px] mt-1.5">{issue.texte}</p>}
+            {issue?.champ && <p id="champ-email-erreur" role="alert" className="text-[#8a2424] text-[14px] mt-1.5">{issue.texte}</p>}
             {issue && !issue.champ && (
               <Message type="error" className="mt-6">
                 {issue.texte}

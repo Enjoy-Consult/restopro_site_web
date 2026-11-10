@@ -57,6 +57,8 @@ Settings > Secrets and variables > Actions > **Variables** (ce ne sont pas des s
 |---|---|---|
 | `VITE_BILLING_ACTIF` | `true` le jour de l'ouverture, absente ou `false` avant | Enregistre les pages Tarifs, Inscription et Retour de paiement, et ajoute « Tarifs » au menu |
 | `VITE_API_URL` | `https://api.restoclair.fr/v1` | API publique d'Apirest ; le site appelle `{VITE_API_URL}/api/billing/…` |
+| `VITE_COMPTE_URL` | `https://compte.restoclair.fr` | Espace abonnement (build compte) ; la vitrine y renvoie par l'adresse complète |
+| `VITE_SITE_URL` | `https://restoclair.fr` | Adresse du site, pour les liens du build compte vers la vitrine |
 | `VITE_APP_WEB_URL` | `https://app.restoclair.fr` | Version web de l'application, pour s'y connecter (« Ouvrir l'application web ») ; la gestion de l'abonnement se fait sur le site, dans `/mon-abonnement` |
 | `VITE_APP_STORE_URL` | vide jusqu'à la publication de l'app iOS | Bouton App Store de la page de retour (masqué si vide) |
 | `VITE_PLAY_STORE_URL` | vide jusqu'à la publication de l'app Android | Bouton Google Play de la page de retour (masqué si vide) |
@@ -67,7 +69,7 @@ Le workflow ne transmet jamais `VITE_BILLING_MOCK`. De toute façon, aucun build
 
 **Le piège : ne jamais activer `VITE_BILLING_ACTIF` sur `main` avant la fusion de `feature/abonnements`.** La variable appartient au dépôt, pas à une branche : déjà active, elle s'appliquerait au premier build de la fusion. Soit la fusion publie directement la vente, sans étape de vérification, soit le garde-fou refuse le build et plus rien ne se publie depuis `main`, même une correction sans rapport. Fusionner d'abord, activer ensuite.
 
-**Garde-fou.** Avec `VITE_BILLING_ACTIF=true`, le build de production échoue, en disant pourquoi, si `cgv`, `accord-sous-traitance` ou `cgu-app` ont le statut `projet` (ou un statut inconnu) dans leur version en vigueur, ou si `VITE_API_URL` ou `VITE_APP_WEB_URL` sont vides (`scripts/garde-fou-vente.mjs`). En cas d'échec, la branche `production` ne change pas. Ne sont pas concernés : `npm run dev`, un build `--mode test` et un build sans `VITE_BILLING_ACTIF`. `VITE_BILLING_MOCK` n'exempte plus : un build local avec le `.env.local` de la maquette (`VITE_BILLING_ACTIF=true`) est donc refusé tant que les documents sont en projet ; pour une livraison sans la vente, compiler avec `VITE_BILLING_ACTIF=false`. Tant que la variable reste active, chaque push sur `main` repasse ce contrôle.
+**Garde-fou.** Avec `VITE_BILLING_ACTIF=true`, le build de production échoue, en disant pourquoi, si `cgv`, `accord-sous-traitance` ou `cgu-app` ont le statut `projet` (ou un statut inconnu) dans leur version en vigueur, ou si `VITE_API_URL`, `VITE_APP_WEB_URL` ou `VITE_COMPTE_URL` sont vides (`scripts/garde-fou-vente.mjs`). En cas d'échec, la branche `production` ne change pas. Ne sont pas concernés : `npm run dev`, un build `--mode test` et un build sans `VITE_BILLING_ACTIF`. `VITE_BILLING_MOCK` n'exempte plus : un build local avec le `.env.local` de la maquette (`VITE_BILLING_ACTIF=true`) est donc refusé tant que les documents sont en projet ; pour une livraison sans la vente, compiler avec `VITE_BILLING_ACTIF=false`. Tant que la variable reste active, chaque push sur `main` repasse ce contrôle.
 
 À vérifier à la main :
 

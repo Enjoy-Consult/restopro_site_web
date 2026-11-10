@@ -80,7 +80,11 @@ export async function requete(methode, chemin, { corps, token, delaiMs = DELAI_M
 
   if (!reponse.ok) {
     const { code, detail } = lireErreur(data);
-    const attente = reponse.status === 429 ? lireRetryAfter(reponse.headers?.get?.("Retry-After"), sansEnveloppe(data)?.retryAfter) : null;
+    // 429 TROP_DE_TENTATIVES : en-tête Retry-After (lisible entre origines seulement s'il est exposé), sinon le corps
+    // (details.reessayerDansSecondes, ou retryAfter).
+    const corps429 = sansEnveloppe(data);
+    const secondes = corps429?.details?.reessayerDansSecondes ?? detail?.reessayerDansSecondes ?? corps429?.retryAfter;
+    const attente = reponse.status === 429 ? lireRetryAfter(reponse.headers?.get?.("Retry-After"), secondes) : null;
     throw new ApiError(code ?? (reponse.status === 429 ? "TROP_D_ESSAIS" : "ERREUR_INCONNUE"), reponse.status, detail, attente);
   }
   return data;
@@ -252,16 +256,18 @@ export const getCompte = (token) => requete("GET", "/api/billing/compte", { toke
 export const demanderLienReprise = (email) => requete("POST", "/api/billing/reprise", { corps: { email } }).then(() => undefined);
 export const consommerLienReprise = (jeton) => requete("POST", "/api/billing/reprise/consommer", { corps: { jeton } }).then(lireReprise);
 export const annulerInscription = (jeton) => requete("POST", "/api/billing/reprise/annuler", { corps: { jeton } }).then(() => undefined);
+// Routes du limiteur à délai croissant d'Apirest (mot de passe, connexion, résiliation) : la réponse peut tarder ; le
+// délai de 15 s couperait une demande que le serveur traite quand même (lien consommé, e-mail parti).
+const DELAI_LIMITEUR_MS = 45000;
 export const verifierLienMotDePasse = (jeton) =>
-  requete("POST", "/api/billing/mot-de-passe/verifier", { corps: { jeton } }).then(lireVerificationMotDePasse);
+  requete("POST", "/api/billing/mot-de-passe/verifier", { corps: { jeton }, delaiMs: DELAI_LIMITEUR_MS }).then(lireVerificationMotDePasse);
 export const definirMotDePasse = (jeton, motDePasse) =>
-  requete("POST", "/api/billing/mot-de-passe/definir", { corps: { jeton, motDePasse } }).then(lireDefinitionMotDePasse);
+  requete("POST", "/api/billing/mot-de-passe/definir", { corps: { jeton, motDePasse }, delaiMs: DELAI_LIMITEUR_MS }).then(lireDefinitionMotDePasse);
 // « Mot de passe oublié » (spécification de la connexion, demande 9) : même réponse quel que soit le compte.
 export const demanderLienMotDePasse = (email) =>
-  requete("POST", "/api/billing/mot-de-passe/oublie", { corps: { email } }).then(() => undefined);
+  requete("POST", "/api/billing/mot-de-passe/oublie", { corps: { email }, delaiMs: DELAI_LIMITEUR_MS }).then(() => undefined);
 
 // Espace abonnement (compte.restoclair.fr, session « site » de 2 h). Voir espace.js pour les formes et les refus.
-const DELAI_LIMITEUR_MS = 45000;
 const avecRestaurant = (chemin, restaurantId) => `${chemin}?restaurantId=${encodeURIComponent(restaurantId)}`;
 export const seConnecter = (email, motDePasse) =>
   requete("POST", "/api/billing/connexion", { corps: { email, motDePasse }, delaiMs: DELAI_LIMITEUR_MS }).then(lireConnexion);

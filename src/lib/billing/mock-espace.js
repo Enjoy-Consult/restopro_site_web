@@ -5,7 +5,9 @@
 //   impaye@          -> paiement en retard          sepa@     -> accès provisoire, prélèvement en cours
 //   resilie@         -> abonnement terminé, export   resiliation@ -> résiliation déjà programmée
 //   sans@            -> aucun abonnement payé        gestionnaire@ -> non titulaire (refus)
-//   transfert@       -> transfert du rôle reçu       adefinir@ / desactive@ / cuisinier@ -> 403 CONNEXION_NON_ADMISE
+//   transfert@       -> transfert du rôle reçu
+//   temporaire@ / desactive@ / sursis@ / cuisinier@ / orphelin@ -> 403 CONNEXION_NON_ADMISE (compte_temporaire,
+//                       desactive, sursis, role, aucun_restaurant)
 //   lent@            -> réponse lente (6 s, limiteur à délai croissant)   trop@ -> 429, Retry-After 30 s
 //   expire@          -> la session répond 401 dès la lecture du compte    indispo@ -> 503 à la connexion
 // Mot de passe « Refuse123 » : 401 IDENTIFIANTS_INVALIDES à la connexion, mot de passe refusé à la résiliation.
@@ -73,12 +75,14 @@ export async function mockEspace(methode, cheminComplet, { corps, token } = {}) 
     const email = String(corps?.email ?? "").trim().toLowerCase();
     const scenario = email.split("@")[0];
     if (scenario === "lent") await attendre(6000);
-    if (scenario === "trop") throw new ApiError("TROP_D_ESSAIS", 429, null, 30000);
+    if (scenario === "trop") throw new ApiError("TROP_DE_TENTATIVES", 429, { reessayerDansSecondes: 30 }, 30000);
     if (scenario === "indispo") throw new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503);
     if (!email.includes("@") || !corps?.motDePasse || corps.motDePasse === MOT_DE_PASSE_REFUSE) throw new ApiError("IDENTIFIANTS_INVALIDES", 401);
-    if (scenario === "adefinir") throw new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "mot_de_passe_a_definir" });
-    if (scenario === "desactive") throw new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "compte_desactive" });
-    if (scenario === "cuisinier") throw new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "role_non_admis" });
+    if (scenario === "temporaire") throw new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "compte_temporaire" });
+    if (scenario === "desactive") throw new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "desactive" });
+    if (scenario === "sursis") throw new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "sursis" });
+    if (scenario === "cuisinier") throw new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "role" });
+    if (scenario === "orphelin") throw new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "aucun_restaurant" });
     const restaurants = [{ restaurantId: "r-marie", nom: "Chez Marie", estTitulaire: true, transfertRecu: false, statut: "actif" }];
     if (scenario === "multi") restaurants.push({ restaurantId: "r-bistrot", nom: "Le Bistrot", estTitulaire: true, transfertRecu: false, statut: "impaye" });
     if (scenario === "gestionnaire") restaurants[0].estTitulaire = false;
@@ -105,7 +109,8 @@ export async function mockEspace(methode, cheminComplet, { corps, token } = {}) 
   if (route === "POST /api/billing/resiliation" || route === "DELETE /api/billing/resiliation") {
     const s = session(token);
     const compte = restaurant(s, corps?.restaurantId);
-    if (corps?.motDePasse === MOT_DE_PASSE_REFUSE || !corps?.motDePasse) throw new ApiError("MOT_DE_PASSE_INCORRECT", 403);
+    if (!corps?.motDePasse) throw new ApiError("MOT_DE_PASSE_REQUIS", 403);
+    if (corps.motDePasse === MOT_DE_PASSE_REFUSE) throw new ApiError("MOT_DE_PASSE_INVALIDE", 403);
     if (s.scenario === "lent") await attendre(6000);
     if (methode === "DELETE") {
       compte.resiliation = null;

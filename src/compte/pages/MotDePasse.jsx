@@ -58,8 +58,14 @@ export default function MotDePasse() {
   const navigate = useNavigate();
   const { pathname, search, hash } = useLocation();
   const [jeton, setJeton] = useState(() => lireJetonDuFragment(window.location.hash));
-  // etape : "verification", "formulaire", "defini", "indisponible", "erreur" (vérification impossible).
-  const [etat, setEtat] = useState(() => ({ etape: jeton ? "verification" : "indisponible" }));
+  // etape : "verification", "formulaire", "defini", "indisponible" (refus du serveur), "absent" (page rouverte sans
+  // le lien : rechargement, retour arrière), "peut_etre_defini" (réponse perdue, puis lien refusé), "erreur".
+  const [etat, setEtat] = useState(() => ({ etape: jeton ? "verification" : "absent" }));
+  // Jeton affiché maintenant : le résultat d'un envoi fait avec un lien précédent est ignoré.
+  const jetonCourant = useRef(jeton);
+  jetonCourant.current = jeton;
+  // Un enregistrement resté sans réponse (coupure) a peut-être abouti : un refus du lien ensuite ne dit pas « expiré ».
+  const reponsePerdue = useRef(false);
   const [relance, setRelance] = useState(0);
   const [valeurs, setValeurs] = useState({ motDePasse: "", confirmation: "" });
   const [erreurs, setErreurs] = useState({});
@@ -79,6 +85,7 @@ export default function MotDePasse() {
     if (lu && lu !== jeton) {
       // Nouveau lien dans la page déjà ouverte : rien du lien précédent ne reste à l'écran.
       setJeton(lu);
+      reponsePerdue.current = false;
       setEtat({ etape: "verification" });
       setValeurs({ motDePasse: "", confirmation: "" });
       setErreurs({});
@@ -109,7 +116,7 @@ export default function MotDePasse() {
   }, [jeton, relance]);
 
   useEffect(() => {
-    if (etat.etape === "defini" || etat.etape === "indisponible") titreRef.current?.focus();
+    if (["defini", "indisponible", "absent", "peut_etre_defini"].includes(etat.etape)) titreRef.current?.focus();
   }, [etat.etape]);
 
   const modifier = (champ) => (e) => {
@@ -130,17 +137,21 @@ export default function MotDePasse() {
     envoiEnCours.current = true;
     setEnvoi(true);
     setErreurEnvoi(null);
+    const envoye = jeton;
     try {
-      const { email } = await definirMotDePasse(jeton, valeurs.motDePasse);
+      const { email } = await definirMotDePasse(envoye, valeurs.motDePasse);
+      if (jetonCourant.current !== envoye) return;
       setJeton(null);
       setValeurs({ motDePasse: "", confirmation: "" });
       setEtat({ etape: "defini", email });
     } catch (erreur) {
+      if (jetonCourant.current !== envoye) return;
       const issue = issueDefinition(erreur);
+      if (erreur?.code === "RESEAU") reponsePerdue.current = true;
       if (issue.type === "lien_indisponible") {
         setJeton(null);
         setValeurs({ motDePasse: "", confirmation: "" });
-        setEtat({ etape: "indisponible" });
+        setEtat({ etape: reponsePerdue.current ? "peut_etre_defini" : "indisponible" });
       } else if (issue.type === "refuse") {
         // Le lien reste valable : on corrige et on réessaie. Le champ est encore désactivé : focus après le rendu.
         setErreurs({ motDePasse: issue.texte });
@@ -148,13 +159,20 @@ export default function MotDePasse() {
       } else {
         setErreurEnvoi(issue);
       }
+    } finally {
+      setEnvoi(false);
+      envoiEnCours.current = false;
     }
-    setEnvoi(false);
-    envoiEnCours.current = false;
   };
 
   const { etape } = etat;
-  const titre = etape === "defini" ? "Votre mot de passe est enregistré." : etape === "indisponible" ? "Lien indisponible." : "Choisissez votre mot de passe.";
+  const TITRES = {
+    defini: "Votre mot de passe est enregistré.",
+    indisponible: "Lien indisponible.",
+    absent: "Ouvrez le lien reçu par e-mail.",
+    peut_etre_defini: "Votre mot de passe est peut-être déjà enregistré.",
+  };
+  const titre = TITRES[etape] ?? "Choisissez votre mot de passe.";
 
   return (
     <section className="pt-12 pb-24 md:pt-20 md:pb-32">
@@ -185,6 +203,26 @@ export default function MotDePasse() {
               <Link to={CHEMINS_COMPTE.motDePasseOublie} className="link-underline">Demander un nouveau lien</Link>, ou appelez-nous au{" "}
               <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
             </p>
+          </>
+        )}
+
+        {etape === "absent" && (
+          <p className="text-muted text-lg leading-relaxed">
+            Pour choisir votre mot de passe, ouvrez le lien reçu par e-mail. S’il a expiré ou s’il a déjà servi,{" "}
+            <Link to={CHEMINS_COMPTE.motDePasseOublie} className="link-underline">demandez un nouveau lien</Link>.
+          </p>
+        )}
+
+        {etape === "peut_etre_defini" && (
+          <>
+            <Message type="info">
+              La réponse précédente ne nous est pas parvenue, mais votre mot de passe a peut-être été enregistré. Essayez de
+              vous connecter ; si cela ne marche pas, demandez un nouveau lien.
+            </Message>
+            <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
+              <Link to={CHEMINS_COMPTE.connexion} className="btn-primary text-center">Se connecter</Link>
+              <Link to={CHEMINS_COMPTE.motDePasseOublie} className="link-underline text-[15px]">Demander un nouveau lien</Link>
+            </div>
           </>
         )}
 
