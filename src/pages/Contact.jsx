@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import SEO from "@/components/SEO";
 import { submitContactForm } from "@/api/airtableService";
+import { TEXTE_ENVOI_COUPE, ecrituresProductionPermises } from "@/lib/environnement";
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -20,6 +21,11 @@ export default function Contact() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    // Hors du site de production, rien ne part vers le PHP de production (environnement.js).
+    if (!ecrituresProductionPermises()) {
+      setStatus("coupe");
+      return;
+    }
     setSubmitting(true);
     setStatus(null);
     try {
@@ -151,6 +157,9 @@ export default function Contact() {
                     <p className="text-bottle font-medium text-[15px]">
                       Message envoyé. Nous vous recontactons sous 2 h en semaine.
                     </p>
+                  )}
+                  {status === "coupe" && (
+                    <p className="text-red-700 text-[15px]">{TEXTE_ENVOI_COUPE}</p>
                   )}
                   {status === "error" && (
                     <p className="text-red-700 text-[15px]">

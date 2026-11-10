@@ -6,6 +6,7 @@ import {
   enregistrerConsentement,
   lireConsentement,
 } from "@/lib/consentement";
+import { traceursPermis } from "@/lib/environnement";
 
 // Trois boutons de même apparence : refuser est aussi simple et visible qu'accepter.
 const BOUTON =
@@ -14,18 +15,22 @@ const BOUTON =
 // Bandeau de consentement aux cookies : en bas de l'écran, sans bloquer la navigation, sans croix de fermeture
 // (ignorer le bandeau ne vaut pas acceptation : tant que rien n'est choisi, rien n'est chargé).
 export default function ConsentementCookies() {
-  // Les pages de l'application (/application/…) servent aux magasins et à l'app : ni bandeau ni Google.
-  const pageApplication = useLocation().pathname.startsWith("/application/");
+  // Ni bandeau ni Google hors du site de production, ni sur les pages exclues : documents de l'application,
+  // reprise d'une inscription, espace abonnement (voir environnement.js).
+  const permis = traceursPermis(useLocation().pathname);
+  const applique = useRef(false);
   const [ouvert, setOuvert] = useState(() => lireConsentement() === null);
   const [detail, setDetail] = useState(false);
   const [publicite, setPublicite] = useState(() => lireConsentement()?.publicite ?? false);
   const regionRef = useRef(null);
 
-  // Choix déjà enregistré : on l'applique au chargement du site.
+  // Choix déjà enregistré : on l'applique une fois, à la première page où Google est permis. C'est le chargement du site,
+  // ou une page suivante quand le site s'est ouvert sur une page exclue (le lien de reprise reçu par e-mail, par exemple).
   useEffect(() => {
-    if (!pageApplication) appliquerConsentement(lireConsentement());
-    // seulement au chargement du site
-  }, []);
+    if (!permis || applique.current) return;
+    applique.current = true;
+    appliquerConsentement(lireConsentement());
+  }, [permis]);
 
   // « Gérer mes cookies » : rouvre le bandeau, prérempli, sur le détail des finalités.
   useEffect(() => {
@@ -64,7 +69,7 @@ export default function ConsentementCookies() {
     setOuvert(false);
   };
 
-  if (!ouvert || pageApplication) return null;
+  if (!ouvert || !permis) return null;
 
   return (
     <section

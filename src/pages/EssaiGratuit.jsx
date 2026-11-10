@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import { BUSINESS } from "@/lib/business-info";
 import { BILLING_ACTIF } from "@/lib/billing/config";
+import { TEXTE_ENVOI_COUPE, ecrituresProductionPermises } from "@/lib/environnement";
 
 // Page d'essai gratuit de l'application RestOclair.
 // Formulaire : enregistrement Airtable (php-api/essai.php, table DemandesEssai) + notification email FormSubmit.
@@ -70,6 +71,11 @@ export default function EssaiGratuit() {
     setForm(data);
     if (!formEl.reportValidity()) return;
     if (data._honey) return;
+    // Hors du site de production, rien ne part vers le PHP de production ni vers la messagerie de l'équipe (environnement.js).
+    if (!ecrituresProductionPermises()) {
+      setStatus({ type: "error", text: TEXTE_ENVOI_COUPE });
+      return;
+    }
 
     setSending(true);
     setStatus(null);

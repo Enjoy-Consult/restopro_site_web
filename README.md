@@ -14,6 +14,8 @@ npm run build
 
 En mode maquette (`VITE_BILLING_MOCK=true`), l'API est simulée. L'adresse e-mail saisie à l'inscription choisit le scénario (voir `src/lib/billing/mock.js`) : `existant@`, `indispo@`, `ko@`, `role@`, `comptes@`, `expire@` (401), `refus@` (403), `bloque@` (403 sur la page de retour), `sepa@`, `lent@`, `validation@`, `validationautre@` (400 VALIDATION_ERROR), `cgvobsolete@`, `cgvpaiement@`, `dejaactif@`, `gere@`, ou un SIRET commençant par `000000`. Avec `npm run dev` seulement, `annule@` et le paramètre `?maquette=` (par exemple `/abonnement/retour?maquette=impaye`, liste dans le même fichier) simulent l'annulation, chaque statut de compte, le 401 et le 429.
 
+**Hors du site de production** (`src/lib/environnement.js`). Seul un build `vite build`, en mode `production`, charge Google et écrit vers `php-api/`. Sous `npm run dev` et dans un build `vite build --mode test` (site de test), le bandeau des cookies ne s'affiche pas, Google Tag Manager n'est jamais chargé, et le formulaire de contact comme la demande d'essai n'envoient rien : un message le dit à l'écran. Le blog et les avis restent lus depuis la production. Même en production, Google n'est jamais chargé sur `/application/…`, `/abonnement/reprendre` et `/mon-abonnement…`.
+
 ## Déploiement
 
 1. Un push sur `main` lance `.github/workflows/deploy-production.yml`, qui compile le site et publie le résultat dans la branche `production`. `php-api/config.php` n'est jamais publié.
