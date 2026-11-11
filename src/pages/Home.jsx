@@ -1,3 +1,4 @@
+import { BILLING_ACTIF } from "@/lib/billing/config";
 import React from "react";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
@@ -49,7 +50,7 @@ export default function Home() {
               <div className="md:col-span-5">
                 <figure>
                   <img
-                    src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=640&h=800&fit=crop"
+                    src="/images/cuisine-service-640x800.jpg"
                     alt="Cuisine professionnelle en activité"
                     className="w-full aspect-[4/5] object-cover"
                   />
@@ -122,9 +123,16 @@ export default function Home() {
                   Températures, traçabilité, plans de nettoyage, dossier d’inspection : votre suivi hygiène
                   au même endroit, sur le téléphone de l’équipe. L’essai est gratuit.
                 </p>
-                <Link to="/essai-gratuit" className="btn-primary">
-                  Tester l’application
-                </Link>
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                  <Link to="/essai-gratuit" className="btn-primary">
+                    Tester l’application
+                  </Link>
+                  {BILLING_ACTIF && (
+                    <Link to="/tarifs" className="link-underline text-[15px] py-3">
+                      Voir les tarifs et s’abonner
+                    </Link>
+                  )}
+                </div>
               </div>
               <div className="md:col-span-7">
                 <figure>

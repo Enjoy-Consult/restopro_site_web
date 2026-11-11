@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import { BUSINESS } from "@/lib/business-info";
+import { BILLING_ACTIF } from "@/lib/billing/config";
+import { TEXTE_ENVOI_COUPE, ecrituresProductionPermises } from "@/lib/environnement";
 
 // Page d'essai gratuit de l'application RestOclair.
 // Formulaire : enregistrement Airtable (php-api/essai.php, table DemandesEssai) + notification email FormSubmit.
@@ -69,6 +71,11 @@ export default function EssaiGratuit() {
     setForm(data);
     if (!formEl.reportValidity()) return;
     if (data._honey) return;
+    // Hors du site de production, rien ne part vers le PHP de production ni vers la messagerie de l'équipe (environnement.js).
+    if (!ecrituresProductionPermises()) {
+      setStatus({ type: "error", text: TEXTE_ENVOI_COUPE });
+      return;
+    }
 
     setSending(true);
     setStatus(null);
@@ -139,6 +146,9 @@ export default function EssaiGratuit() {
               </p>
               <div className="flex flex-col sm:flex-row items-start gap-4">
                 <a href="#essai" className="btn-primary">Demander un essai gratuit</a>
+                {BILLING_ACTIF && (
+                  <Link to="/tarifs" className="link-underline text-[15px] py-3">Voir les tarifs</Link>
+                )}
                 <a href={BUSINESS.phone.href} className="link-underline text-[15px] py-3">{BUSINESS.phone.display}</a>
               </div>
             </div>
@@ -337,7 +347,7 @@ export default function EssaiGratuit() {
               <p>Les informations du formulaire servent uniquement à traiter votre demande d’essai et à vous recontacter, sur la base de votre consentement.</p>
               <p>Elles sont enregistrées dans l’outil de gestion de RestOclair (Airtable). Une notification est aussi envoyée à l’équipe par FormSubmit, puis reçue dans sa messagerie Gmail (<a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer" className="underline">politique de confidentialité de FormSubmit</a>). Elles sont conservées le temps de traiter votre demande ; si un accompagnement commence, les conditions de conservation vous seront précisées.</p>
               <p>Vous pouvez retirer votre consentement et demander l’accès, la rectification, l’effacement ou la limitation de vos données, ainsi que leur portabilité, en écrivant à <a href="mailto:contact.restoclair@gmail.com" className="underline">contact.restoclair@gmail.com</a>. Vous pouvez aussi saisir la <a href="https://www.cnil.fr/fr/adresser-une-plainte" target="_blank" rel="noopener noreferrer" className="underline">CNIL</a>.</p>
-              <p>Voir aussi notre <Link to="/PolitiqueConfidentialite" className="underline">politique de confidentialité</Link>.</p>
+              <p>Voir aussi notre <Link to="/confidentialite" className="underline">politique de confidentialité</Link>.</p>
             </div>
           </details>
         </div>

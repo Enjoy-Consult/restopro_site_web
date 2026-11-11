@@ -1,0 +1,89 @@
+// Greffons Vite communs aux deux builds : la vitrine (vite.config.js, restoclair.fr) et le compte
+// (vite.compte.config.js, compte.restoclair.fr). Voir README, « Deux builds ».
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { avertissementMaquette, messageGardeFou, problemesVente } from './garde-fou-vente.mjs'
+import { construireHistorique, construireIndex, lireDocuments, RACINE_LEGALE, SITE_URL } from './legal.mjs'
+
+// Garde-fou de la vente (règles dans scripts/garde-fou-vente.mjs).
+// config.env contient les variables que verra le site : .env*, puis celles du processus, qui passent devant.
+export function gardeFouVente(build = 'vitrine') {
+  return {
+    name: 'garde-fou-vente',
+    configResolved({ command, mode, env }) {
+      const problemes = problemesVente({ commande: command, mode, env, documents: lireDocuments(), build })
+      if (problemes.length > 0) throw new Error(messageGardeFou(problemes, build))
+      const avertissement = avertissementMaquette({ commande: command, mode, env, build })
+      if (avertissement) console.warn(`\n${avertissement}\n`)
+    },
+  }
+}
+
+// Maquette de paiement : serveur de développement seulement. __MAQUETTE_POSSIBLE__ vaut true sous `vite` (serve) et
+// false dans tout build ; le code qui en dépend (src/lib/billing/config.js) disparaît du bundle, mock.js compris.
+export function maquetteDeveloppementSeulement() {
+  return {
+    name: 'maquette-developpement-seulement',
+    config: (_config, { command }) => ({ define: { __MAQUETTE_POSSIBLE__: JSON.stringify(command === 'serve') } }),
+  }
+}
+
+// Documents légaux : module virtuel « virtual:documents-legaux » (versions en vigueur et empreintes), dans les deux builds.
+// publier : la vitrine publie aussi l'index et les textes sous /legal/ (index.json, historique.json,
+// <document>/<version>.md). Le build compte ne les publie pas : aucun texte juridique n'y est servi.
+// Les adresses de l'index (url, markdown) suivent VITE_SITE_URL : http://localhost:4303 pour le site de test,
+// https://restoclair.fr en production (valeur par défaut si la variable est vide). En production, https exigé.
+export function adresseDuSite({ mode, env }) {
+  const variable = String(env?.VITE_SITE_URL ?? '').trim().replace(/\/+$/, '')
+  const adresse = variable || SITE_URL
+  if (mode === 'production' && !/^https:\/\/[^/]+$/.test(adresse)) {
+    throw new Error(`Build de production refusé : VITE_SITE_URL doit être une adresse https sans chemin (« ${adresse} »).`)
+  }
+  return adresse
+}
+
+export function documentsLegaux({ publier = true } = {}) {
+  const ID = 'virtual:documents-legaux'
+  const RESOLU = `\0${ID}`
+  let siteUrl = SITE_URL
+  const fichiers = () => [
+    ['legal/index.json', `${JSON.stringify(construireIndex(RACINE_LEGALE, siteUrl), null, 2)}\n`],
+    ['legal/historique.json', `${JSON.stringify(construireHistorique(RACINE_LEGALE, siteUrl), null, 2)}\n`],
+    ...lireDocuments().flatMap((doc) =>
+      doc.versions.map((v) => [
+        `legal/${doc.document}/${v.version}.md`,
+        readFileSync(path.join(RACINE_LEGALE, doc.document, `${v.version}.md`), 'utf8'),
+      ]),
+    ),
+  ]
+  const greffon = {
+    name: 'documents-legaux',
+    configResolved(config) {
+      siteUrl = adresseDuSite(config)
+    },
+    resolveId: (id) => (id === ID ? RESOLU : null),
+    load(id) {
+      if (id !== RESOLU) return null
+      this.addWatchFile(path.join(RACINE_LEGALE, 'documents.json'))
+      for (const doc of lireDocuments()) {
+        for (const v of doc.versions) this.addWatchFile(path.join(RACINE_LEGALE, doc.document, `${v.version}.md`))
+      }
+      return `export const INDEX_LEGAL = ${JSON.stringify(construireIndex(RACINE_LEGALE, siteUrl))};`
+    },
+  }
+  if (!publier) return greffon
+  return {
+    ...greffon,
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const trouve = fichiers().find(([nom]) => `/${nom}` === req.url?.split('?')[0])
+        if (!trouve) return next()
+        res.setHeader('Content-Type', trouve[0].endsWith('.json') ? 'application/json; charset=utf-8' : 'text/markdown; charset=utf-8')
+        res.end(trouve[1])
+      })
+    },
+    generateBundle() {
+      for (const [fileName, source] of fichiers()) this.emitFile({ type: 'asset', fileName, source })
+    },
+  }
+}

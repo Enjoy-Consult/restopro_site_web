@@ -5,9 +5,7 @@ define('AIRTABLE_API_URL', 'https://api.airtable.com/v0/' . AIRTABLE_BASE_ID);
 
 define('ALLOWED_ORIGINS', [
     'https://restoclair.fr',
-    'https://www.restoclair.fr',
-    'http://localhost:5173',
-    'http://localhost:3000'
+    'https://www.restoclair.fr'
 ]);
 
 function setCorsHeaders() {

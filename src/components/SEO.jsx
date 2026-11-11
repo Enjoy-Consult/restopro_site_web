@@ -15,7 +15,7 @@ export default function SEO({
 }) {
   useEffect(() => {
     const siteName = BUSINESS.name;
-    const defaultImage = "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&h=630&fit=crop";
+    const defaultImage = "https://restoclair.fr/images/cuisine-partage-1200x630.jpg";
     const baseUrl = BUSINESS.url;
 
     document.title = title

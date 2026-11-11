@@ -1,8 +1,11 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { BUSINESS } from "@/lib/business-info";
 import { BILLING_ACTIF } from "@/lib/billing/config";
+import { ouvrirGestionCookies } from "@/lib/consentement";
+import { lireSession } from "@/lib/billing/session";
+import { googlePermisDansCeDocument } from "@/lib/environnement";
 
 const navigation = [
   { name: "Services", page: "Services" },
@@ -15,6 +18,8 @@ const navigation = [
 
 export default function Layout({ children, currentPageName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // « Gérer mes cookies » seulement là où Google peut être chargé : ailleurs, il n'y a aucun choix à gérer.
+  const gestionCookies = googlePermisDansCeDocument(useLocation().pathname, Boolean(lireSession()));
 
   return (
     <div className="min-h-screen flex flex-col bg-paper">
@@ -185,8 +190,19 @@ export default function Layout({ children, currentPageName }) {
               &copy; {new Date().getFullYear()} {BUSINESS.name}
             </p>
             <nav className="flex flex-wrap gap-5 text-xs">
-              <Link to={createPageUrl("MentionsLegales")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Mentions legales</Link>
-              <Link to={createPageUrl("PolitiqueConfidentialite")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Confidentialite</Link>
+              <Link to={createPageUrl("MentionsLegales")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Mentions légales</Link>
+              <Link to="/confidentialite" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Confidentialité</Link>
+              <Link to="/cookies" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Cookies</Link>
+              {gestionCookies && (
+                <button type="button" onClick={ouvrirGestionCookies} className="hover:underline transition-colors text-left" style={{ color: '#6b7268' }}>Gérer mes cookies</button>
+              )}
+              {BILLING_ACTIF && (
+                <>
+                  <Link to="/cgv" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>CGV</Link>
+                  <Link to="/application/cgu" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>CGU</Link>
+                  <Link to="/accord-sous-traitance" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Sous-traitance des données</Link>
+                </>
+              )}
               <Link to={createPageUrl("Sitemap")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Plan du site</Link>
             </nav>
           </div>

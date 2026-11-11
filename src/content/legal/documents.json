@@ -1,0 +1,103 @@
+[
+  {
+    "document": "mentions-legales",
+    "chemin": "/MentionsLegales",
+    "titre": "Mentions légales",
+    "description": "Mentions légales du site restoclair.fr et de l’application RestOclair.",
+    "portee": "site",
+    "versionEnVigueur": "0.1",
+    "versions": [{ "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" }]
+  },
+  {
+    "document": "cgv",
+    "chemin": "/cgv",
+    "titre": "Conditions générales de vente de l’abonnement",
+    "description": "Conditions générales de vente de l’abonnement à l’application RestOclair.",
+    "portee": "site",
+    "versionEnVigueur": "0.2",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
+  },
+  {
+    "document": "accord-sous-traitance",
+    "chemin": "/accord-sous-traitance",
+    "titre": "Accord de sous-traitance des données",
+    "description": "Accord de sous-traitance (article 28 du RGPD), annexe aux conditions générales de vente.",
+    "portee": "site",
+    "versionEnVigueur": "0.2",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
+  },
+  {
+    "document": "conditions-acheteurs-publics",
+    "chemin": "/conditions-acheteurs-publics",
+    "titre": "Conditions particulières pour les acheteurs publics",
+    "description": "Conditions particulières de l’abonnement RestOclair pour les acheteurs publics (CCAS, syndicats intercommunaux, collectivités).",
+    "portee": "site",
+    "versionEnVigueur": "0.1",
+    "versions": [{ "version": "0.1", "enVigueurLe": "2026-11-10", "statut": "projet" }]
+  },
+  {
+    "document": "confidentialite-site",
+    "chemin": "/confidentialite",
+    "titre": "Politique de confidentialité du site",
+    "description": "Comment le site restoclair.fr traite vos données personnelles.",
+    "portee": "site",
+    "versionEnVigueur": "0.2",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
+  },
+  {
+    "document": "cookies",
+    "chemin": "/cookies",
+    "titre": "Politique de cookies",
+    "description": "Cookies et traceurs utilisés sur le site restoclair.fr.",
+    "portee": "site",
+    "versionEnVigueur": "0.2",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
+  },
+  {
+    "document": "cgu-app",
+    "chemin": "/application/cgu",
+    "titre": "Conditions générales d’utilisation de l’application",
+    "description": "Conditions générales d’utilisation de l’application RestOclair.",
+    "portee": "application",
+    "versionEnVigueur": "0.3",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" },
+      { "version": "0.3", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
+  },
+  {
+    "document": "confidentialite-app",
+    "chemin": "/application/confidentialite",
+    "titre": "Politique de confidentialité de l’application",
+    "description": "Comment l’application RestOclair traite les données personnelles.",
+    "portee": "application",
+    "versionEnVigueur": "0.3",
+    "versions": [
+      { "version": "0.1", "enVigueurLe": "2026-11-03", "statut": "projet" },
+      { "version": "0.2", "enVigueurLe": "2026-11-10", "statut": "projet" },
+      { "version": "0.3", "enVigueurLe": "2026-11-10", "statut": "projet" }
+    ]
+  },
+  {
+    "document": "mentions-legales-app",
+    "chemin": "/application/mentions-legales",
+    "titre": "Mentions légales de l’application",
+    "description": "Mentions légales de l’application RestOclair (iOS, Android et version web).",
+    "portee": "application",
+    "versionEnVigueur": "0.1",
+    "versions": [{ "version": "0.1", "enVigueurLe": "2026-11-10", "statut": "projet" }]
+  }
+]
