@@ -182,20 +182,22 @@ test("actif et activation provisoire : fin immédiate, jeton effacé, compte tra
   assert.deepEqual(decisionRetour({ compte: provisoire }), { type: "fin", phase: "provisoire", compte: provisoire, effacerJeton: true });
 });
 
-test("phrase du succès : les identifiants du titulaire par e-mail, ceux de l'équipe à part, jamais de ZIP", () => {
+test("phrase du succès : un lien pour choisir le mot de passe du titulaire, jamais d'identifiants, l'équipe à part, jamais de ZIP", () => {
   const avec = phraseIdentifiants("marie@exemple.fr");
   assert.equal(
     `${avec.avant}${avec.email}${avec.apres}`,
-    "Vos identifiants de connexion arrivent par e-mail à marie@exemple.fr, avec un lien sécurisé valable 72 heures. Ceux de votre équipe arrivent dans un autre e-mail."
+    "Vous allez recevoir à marie@exemple.fr un lien pour choisir votre mot de passe, valable 72 heures. Les identifiants de votre équipe arrivent dans un autre e-mail."
   );
   for (const manquant of [undefined, null, ""]) {
     const sans = phraseIdentifiants(manquant);
     assert.equal(sans.email, null);
     assert.equal(
       `${sans.avant}${sans.apres}`,
-      "Vos identifiants de connexion arrivent par e-mail, avec un lien sécurisé valable 72 heures. Ceux de votre équipe arrivent dans un autre e-mail."
+      "Vous allez recevoir par e-mail un lien pour choisir votre mot de passe, valable 72 heures. Les identifiants de votre équipe arrivent dans un autre e-mail."
     );
   }
+  // Le titulaire ne reçoit jamais d'identifiants ni de mot de passe (réponse de billing du 11/11).
+  for (const phrase of [avec, phraseIdentifiants(null)]) assert.ok(!/vos identifiants|mot de passe temporaire/i.test(`${phrase.avant}${phrase.apres}`));
   assert.ok(!JSON.stringify([avec, phraseIdentifiants(null)]).includes("ZIP"));
   assert.match(TEXTE_RIEN_RECU, /courriers indésirables/);
   // D'abord un nouveau lien (qui devient un lien dans la page), puis « Mot de passe oublié » dans l'application.

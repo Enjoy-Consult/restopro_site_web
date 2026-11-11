@@ -30,15 +30,17 @@ export const TEXTE_IMPAYE =
 export const TEXTE_NON_CONFIRME =
   "Votre paiement n’est pas confirmé à ce stade. S’il n’a pas abouti, vous pouvez le reprendre en choisissant de nouveau votre formule : votre compte est conservé.";
 
-// Le titulaire n'a pas choisi de mot de passe : ses identifiants partent par e-mail après le paiement, ou dès la signature
-// du mandat SEPA, dans un e-mail à part de celui de l'équipe (CGV 0.2, article 4.7 ; décisions de Louis, questions 39 et 40).
-const LIEN_IDENTIFIANTS = "avec un lien sécurisé valable 72 heures. Ceux de votre équipe arrivent dans un autre e-mail.";
+// Le titulaire n'a pas choisi de mot de passe et n'en reçoit jamais : l'e-mail d'Apirest (C13) lui envoie seulement un lien
+// pour le choisir, valable 72 heures, après le paiement ou dès la signature du mandat SEPA (réponse de billing du 11/11 ;
+// CGV 1.0, article 4.7). Les identifiants des comptes de l'équipe partent dans un autre e-mail (décisions de Louis,
+// questions 39 et 40).
+const LIEN_MOT_DE_PASSE = "un lien pour choisir votre mot de passe, valable 72 heures. Les identifiants de votre équipe arrivent dans un autre e-mail.";
 
 // Phrase du succès, découpée pour mettre l'adresse en avant. Sans adresse lisible : phrase sans adresse.
 export function phraseIdentifiants(email) {
   return email
-    ? { avant: "Vos identifiants de connexion arrivent par e-mail à ", email, apres: `, ${LIEN_IDENTIFIANTS}` }
-    : { avant: `Vos identifiants de connexion arrivent par e-mail, ${LIEN_IDENTIFIANTS}`, email: null, apres: "" };
+    ? { avant: "Vous allez recevoir à ", email, apres: ` ${LIEN_MOT_DE_PASSE}` }
+    : { avant: `Vous allez recevoir par e-mail ${LIEN_MOT_DE_PASSE}`, email: null, apres: "" };
 }
 
 // Rien reçu : courriers indésirables, puis un nouveau lien demandé sur la page de reprise (pour une inscription payée,

@@ -276,14 +276,15 @@ export default function AbonnementRetour() {
             )}
           </div>
 
-          {/* Connexion à l'application : avec l'adresse e-mail et le mot de passe provisoire reçus, à changer à la première connexion. */}
+          {/* Connexion à l'application : avec l'adresse e-mail et le mot de passe choisi grâce au lien reçu par e-mail (le titulaire
+              ne reçoit jamais de mot de passe ; réponse de billing du 11/11, CGV 1.0, article 4.7). */}
           {succes && (APP_STORE_URL || PLAY_STORE_URL || APP_WEB_URL) && (
             <>
           <hr className="rule my-12" />
 
           <h2 className="text-ink text-[24px] mb-3">Connectez-vous à l’application</h2>
           <p className="text-muted text-[15px] leading-relaxed mb-5">
-            Avec votre adresse e-mail et le mot de passe provisoire reçu par e-mail. À la première connexion, vous choisissez votre propre mot de passe.
+            Avec votre adresse e-mail et le mot de passe que vous aurez choisi grâce au lien reçu par e-mail.
           </p>
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
             {APP_STORE_URL && (
