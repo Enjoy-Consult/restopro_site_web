@@ -39,7 +39,7 @@ const TITRES = {
   non_confirme: "Paiement non confirmé.",
 };
 
-// Issues réussies : les identifiants arrivent par e-mail ; s'ils n'arrivent pas, la marche à suivre.
+// Issues réussies : le lien pour choisir le mot de passe arrive par e-mail ; s'ils n'arrivent pas, la marche à suivre.
 function RienRecu({ email }) {
   const [avant, apres] = TEXTE_RIEN_RECU.split("demandez un nouveau lien");
   return (

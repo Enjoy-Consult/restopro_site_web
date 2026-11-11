@@ -43,7 +43,7 @@
 //     actif, activation_provisoire, actif_sans_email        -> succès immédiat
 //     attente_puis_actif                                    -> « actif » à la 3e interrogation
 //     401 -> jeton refusé ; 429 -> Retry-After de 5 s, sans fin ; 429_puis_actif -> « actif » à la 3e
-//     must_finalize -> 403 MUST_FINALIZE (identifiants envoyés) : issue « en place »
+//     must_finalize -> 403 MUST_FINALIZE (lien du titulaire envoyé) : issue « en place »
 //     sans_jeton -> efface la session (aussi après un succès : c'est le rechargement)
 //   /tarifs?paiement=annule&maquette=avec_jeton (ou sans_jeton) -> annulation avec ou sans compte créé
 // Le scénario reste dans la session de l'onglet : maquette=sans_jeton, ou fermer l'onglet, pour en sortir.
@@ -215,7 +215,7 @@ export function reponseScenario(scenario, interrogation) {
       return compteScenario("actif");
     case "actif_sans_email":
       return compteScenario("actif", null);
-    // Les identifiants sont partis : Apirest a posé « mot de passe à changer », sa garde refuse alors le jeton du site.
+    // Le lien du titulaire est parti : Apirest a posé « mot de passe à choisir », sa garde refuse alors le jeton du site.
     case "must_finalize":
       throw new ApiError("MUST_FINALIZE", 403);
     case "attente_puis_actif":

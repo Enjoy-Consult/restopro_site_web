@@ -308,3 +308,10 @@ test("maquette : définition du mot de passe, un refus de saisie ne consomme pas
     assert.equal(issueVerification(erreur).type, type, suffixe);
   }
 });
+
+test("abonnement déjà actif : connexion avec le mot de passe choisi grâce au lien, jamais d'identifiants (billing, 11/11)", async () => {
+  const { TEXTE_DEJA_ACTIF } = await import("./reprise.js");
+  assert.match(TEXTE_DEJA_ACTIF, /mot de passe choisi grâce au lien reçu par e-mail/);
+  assert.match(TEXTE_DEJA_ACTIF, /« Mot de passe oublié » sur l’écran de connexion de l’application/);
+  assert.doesNotMatch(TEXTE_DEJA_ACTIF, /identifiants/);
+});

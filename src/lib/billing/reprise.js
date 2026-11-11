@@ -74,7 +74,7 @@ export function texteDemandeEnvoyee(email) {
 export const TEXTE_LIEN_INDISPONIBLE =
   "Ce lien n’est plus valable : il a expiré, a déjà servi ou a été remplacé. Demandez un nouveau lien sur restoclair.fr ou contactez le support.";
 export const TEXTE_DEJA_ACTIF =
-  "Votre abonnement est déjà actif. Connectez-vous à l’application avec les identifiants reçus par e-mail.";
+  "Votre abonnement est déjà actif. Connectez-vous à l’application avec votre adresse e-mail et le mot de passe choisi grâce au lien reçu par e-mail. Si vous ne l’avez pas encore choisi, utilisez « Mot de passe oublié » sur l’écran de connexion de l’application.";
 export const TEXTE_EMAIL_INVALIDE = "Vérifiez votre adresse e-mail.";
 
 export const TEXTE_ANNULATION_CONFIRMEE =

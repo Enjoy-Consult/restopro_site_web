@@ -27,7 +27,8 @@ const LIEN_CGV = cheminVersionne(INDEX_LEGAL, "cgv") ?? "/cgv";
 const LIEN_ACCORD = cheminVersionne(INDEX_LEGAL, "accord-sous-traitance") ?? "/accord-sous-traitance";
 const LIEN_CGU = cheminVersionne(INDEX_LEGAL, "cgu-app") ?? "/application/cgu";
 
-// Pas de mot de passe : le titulaire reçoit ses identifiants par e-mail après le paiement (CGV 0.2, article 4.7).
+// Pas de mot de passe : le titulaire reçoit par e-mail un lien pour le choisir (72 h), après le paiement ou dès la signature
+// du mandat SEPA ; aucun mot de passe ne lui est envoyé (réponse de billing du 11/11 ; CGV 1.0, article 4.7).
 const VIDE = {
   prenom: "", nom: "", email: "", confirmationEmail: "",
   nomCommercial: "", raisonSociale: "", siret: "",
@@ -368,7 +369,7 @@ export default function Inscription() {
           <h1 className="text-ink mb-5">Créez votre compte.</h1>
           <p className="text-muted text-[17px] md:text-lg leading-relaxed mb-7 max-w-[560px]">
             Quelques informations sur vous et sur votre établissement, puis vous passez au paiement sécurisé.
-            Vous n’avez pas de mot de passe à choisir : vos identifiants de connexion vous sont envoyés par e-mail dès la signature du mandat SEPA ou le paiement par carte.
+            Vous choisirez votre mot de passe plus tard : un lien pour le faire vous est envoyé par e-mail dès la signature du mandat SEPA ou le paiement par carte.
           </p>
           <div className="mb-12 md:mb-14"><Etapes courant={2} /></div>
 
@@ -422,10 +423,10 @@ export default function Inscription() {
                   <Message type="info">
                     {/* Texte du contrat d'Apirest (identifiants: "par_email"). Après une reprise, l'adresse n'est pas renvoyée : le nom de l'établissement la remplace. */}
                     {session.email ? (
-                      <>Votre compte est créé. Vos identifiants de connexion vous seront envoyés à <strong>{session.email}</strong> dès la signature du mandat SEPA ou le paiement par carte.</>
+                      <>Votre compte est créé. Un lien pour choisir votre mot de passe vous sera envoyé à <strong>{session.email}</strong> dès la signature du mandat SEPA ou le paiement par carte.</>
                     ) : (
                       <>
-                        Votre compte est créé{session.restaurant && <> pour <strong>{session.restaurant}</strong></>}. Vos identifiants de connexion vous seront envoyés à
+                        Votre compte est créé{session.restaurant && <> pour <strong>{session.restaurant}</strong></>}. Un lien pour choisir votre mot de passe vous sera envoyé à
                         l’adresse e-mail du compte dès la signature du mandat SEPA ou le paiement par carte.
                       </>
                     )} Si votre abonnement n’est pas encore réglé, passez au paiement. Si vous venez de payer, ne recommencez pas : vous recevrez un e-mail dès que votre abonnement sera actif.
@@ -489,7 +490,7 @@ export default function Inscription() {
                       <Champ label="Prénom" name="prenom" valeur={valeurs.prenom} erreur={erreurs.prenom} onChange={modifier} autoComplete="given-name" maxLength={BORNES.prenom} />
                       <Champ label="Nom" name="nom" valeur={valeurs.nom} erreur={erreurs.nom} onChange={modifier} autoComplete="family-name" maxLength={BORNES.nom} />
                       <div className="sm:col-span-2">
-                        <Champ label="Adresse e-mail" name="email" type="email" valeur={valeurs.email} erreur={erreurs.email} onChange={modifier} autoComplete="email" maxLength={BORNES.email} aide="Vos identifiants de connexion seront envoyés à cette adresse." />
+                        <Champ label="Adresse e-mail" name="email" type="email" valeur={valeurs.email} erreur={erreurs.email} onChange={modifier} autoComplete="email" maxLength={BORNES.email} aide="Le lien pour choisir votre mot de passe sera envoyé à cette adresse." />
                       </div>
                       <div className="sm:col-span-2">
                         <Champ label="Confirmez votre adresse e-mail" name="confirmationEmail" type="email" valeur={valeurs.confirmationEmail} erreur={erreurs.confirmationEmail} onChange={modifier} autoComplete="email" maxLength={BORNES.email} />

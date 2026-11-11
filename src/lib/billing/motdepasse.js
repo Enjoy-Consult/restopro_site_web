@@ -1,6 +1,6 @@
 // Définition du mot de passe par un lien reçu par e-mail (/compte/mot-de-passe#jeton=…) : décisions pures, testées sous node.
 //
-// Liens d'Apirest : celui de l'e-mail des identifiants du titulaire, valable 72 h (retour.js, CGV 0.2, CGU 0.3), et
+// Liens d'Apirest : celui de l'e-mail du titulaire pour choisir son mot de passe, valable 72 h (retour.js, CGV 1.0 4.7), et
 // celui de « Mot de passe oublié » ou d'une demande de reprise sur une inscription déjà payée, valable 60 minutes.
 // À l'ouverture, la page vérifie le lien (POST …/mot-de-passe/verifier), ce qui ne le consomme pas, pour afficher
 // l'adresse masquée et l'échéance. Le lien n'est consommé qu'au clic sur « Enregistrer », par POST …/mot-de-passe/definir.

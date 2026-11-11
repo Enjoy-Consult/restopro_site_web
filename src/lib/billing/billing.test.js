@@ -301,7 +301,9 @@ test("fin de session : 403 MUST_FINALIZE au paiement, abonnement en place, jeton
   assert.deepEqual(traiterFinDeSession(new ApiError("MUST_FINALIZE", 403)), { type: "info", texte: MESSAGE_ABONNEMENT_EN_PLACE });
   assert.equal(stockage.size, 0);
   assert.equal(lireSession(), null);
-  assert.match(MESSAGE_ABONNEMENT_EN_PLACE, /identifiants de connexion vous ont été envoyés par e-mail/);
+  assert.match(MESSAGE_ABONNEMENT_EN_PLACE, /un lien pour choisir votre mot de passe vous a été envoyé par e-mail/);
+  // Le titulaire ne reçoit jamais d'identifiants (réponse de billing du 11/11).
+  assert.doesNotMatch(MESSAGE_ABONNEMENT_EN_PLACE, /identifiants/);
 });
 
 test("403 OPERATION_NON_DISPONIBLE : établissement résilié ou fermé, message dédié ; autre motif, message neutre", async () => {

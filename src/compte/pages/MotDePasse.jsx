@@ -56,7 +56,7 @@ function ChampMotDePasse({ id, name, label, valeur, onChange, erreur, aide, visi
   );
 }
 
-// Choix (lien de l'e-mail des identifiants) ou réinitialisation (lien de « Mot de passe oublié ») du mot de passe, sur
+// Choix (lien de l'e-mail du titulaire, 72 h) ou réinitialisation (lien de « Mot de passe oublié ») du mot de passe, sur
 // compte.restoclair.fr/mot-de-passe#jeton=… : mêmes routes d'Apirest (…/mot-de-passe/verifier et /definir).
 // Vérification à l'ouverture, qui ne consomme pas le lien ; il n'est consommé qu'au clic sur « Enregistrer ».
 // Le code quitte la barre d'adresse dès l'arrivée et n'est jamais stocké. Pas de referrer (balise de compte/index.html).

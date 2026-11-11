@@ -45,12 +45,12 @@ export function phraseIdentifiants(email) {
 
 // Rien reçu : courriers indésirables, puis un nouveau lien demandé sur la page de reprise (pour une inscription payée,
 // Apirest y envoie un lien de définition du mot de passe), puis « Mot de passe oublié » dans l'application, ouvert au
-// titulaire dès l'envoi de ses identifiants, mandat SEPA compris (décision de Louis du 10/11), puis le téléphone. Les mots « demandez un nouveau
+// titulaire dès l'envoi de son lien, mandat SEPA compris, même sans mot de passe choisi (réponse d'Apirest du 11/11) (décision de Louis du 10/11), puis le téléphone. Les mots « demandez un nouveau
 // lien » deviennent un lien dans la page.
 export const TEXTE_RIEN_RECU =
   "Rien reçu d’ici quelques minutes ? Regardez dans vos courriers indésirables. Si le lien a expiré, demandez un nouveau lien avec cette adresse : vous pourrez y définir votre mot de passe. Vous pouvez aussi utiliser « Mot de passe oublié » sur l’écran de connexion de l’application.";
 
-// MUST_FINALIZE : Apirest pose « mot de passe à changer » quand il envoie les identifiants, c'est-à-dire à l'activation
+// MUST_FINALIZE : Apirest pose « mot de passe à choisir » quand il envoie le lien du titulaire, c'est-à-dire à l'activation
 // (paiement confirmé ou mandat SEPA signé). Tant que sa garde vise aussi le jeton du site, GET /compte répond alors 403
 // MUST_FINALIZE : c'est une issue réussie, sans statut lisible.
 export const TEXTE_EN_PLACE_SEPA =

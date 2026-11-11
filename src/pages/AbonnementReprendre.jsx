@@ -47,7 +47,7 @@ function DejaAbonne() {
       ) : (
         "Connectez-vous à l’application"
       )}
-      . Vous n’avez pas reçu vos identifiants ? Demandez un lien ci-dessus : si votre inscription est déjà payée, il vous permettra de définir
+      . Vous n’avez pas reçu le lien pour choisir votre mot de passe ? Demandez un lien ci-dessus : si votre inscription est déjà payée, il vous permettra de définir
       votre mot de passe. Vous pouvez aussi utiliser « Mot de passe oublié » sur l’écran de connexion de l’application, ou nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
     </p>
   );

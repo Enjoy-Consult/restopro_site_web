@@ -86,7 +86,7 @@ const NOMS = {
 };
 
 // Renvoie { champ: message } ; objet vide si tout est valide.
-// Pas de mot de passe : le titulaire reçoit ses identifiants par e-mail après le paiement (CGV 0.2, article 4.7),
+// Pas de mot de passe : le titulaire reçoit par e-mail un lien pour le choisir après le paiement (CGV 1.0, article 4.7),
 // d'où la seconde saisie de l'adresse, qui évite de les envoyer à une adresse mal tapée.
 export function validerInscription(v) {
   const erreurs = {};

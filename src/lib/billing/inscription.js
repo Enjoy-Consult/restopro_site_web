@@ -7,7 +7,7 @@ import { nettoyerSiret } from "./validation.js";
 
 // POST /api/billing/inscription. cgv : le bloc de blocCgv, le même qu'au checkout.
 // Ni mot de passe ni confirmation de l'adresse : Apirest crée le compte sans mot de passe connu, et le titulaire
-// reçoit ses identifiants par e-mail après le paiement, ou dès la signature du mandat SEPA (CGV 0.2, articles 4.7 et 5).
+// reçoit par e-mail un lien pour choisir son mot de passe après le paiement, ou dès la signature du mandat SEPA (CGV 1.0, articles 4.7 et 5).
 export function corpsInscription(valeurs, cgv) {
   const adresse = {
     ligne1: valeurs.ligne1.trim(),
