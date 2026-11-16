@@ -6,10 +6,10 @@ import { BILLING_ACTIF } from "@/lib/billing/config";
 import { TEXTE_ENVOI_COUPE, ecrituresProductionPermises } from "@/lib/environnement";
 
 // Page d'essai gratuit de l'application RestOclair.
-// Formulaire : enregistrement Airtable (php-api/essai.php, table DemandesEssai) + notification email FormSubmit.
+// Formulaire : enregistrement Airtable par le PHP du site (php-api/essai.php, table DemandesEssai). Plus aucun envoi à
+// FormSubmit depuis le navigateur (décision de Louis du 16/11 ; politique de confidentialité 1.0, section 3.2).
 
 const API_URL = "https://restoclair.fr/php-api/essai.php";
-const FORMSUBMIT_URL = "https://formsubmit.co/ajax/contact.restoclair@gmail.com";
 const IMG = "/essai";
 
 const EMPTY = { nom: "", prenom: "", entreprise: "", poste: "", telephone: "", email: "", consentement: false, _honey: "" };
@@ -91,24 +91,6 @@ export default function EssaiGratuit() {
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok || result.success !== true) throw new Error("Envoi non confirmé");
-
-      // Notification email, non bloquante : la demande est déjà enregistrée dans Airtable
-      fetch(FORMSUBMIT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          _subject: "RestOclair — Nouvelle demande d’essai gratuit",
-          _template: "table",
-          _captcha: "false",
-          Nom: data.nom,
-          Prénom: data.prenom,
-          Entreprise: data.entreprise,
-          "Poste occupé": data.poste,
-          Téléphone: data.telephone,
-          email: data.email,
-          _url: window.location.origin + "/essai-gratuit",
-        }),
-      }).catch(() => {});
 
       setStatus({ type: "ok", text: "C’est noté. Nous vous rappelons sous 24 à 48 h pour préparer votre essai." });
       setForm(EMPTY);
@@ -281,7 +263,7 @@ export default function EssaiGratuit() {
                 <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>
                 <br />
                 Par email :{" "}
-                <a href="mailto:contact.restoclair@gmail.com" className="link-underline">contact.restoclair@gmail.com</a>
+                <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>
               </p>
             </div>
 
@@ -344,9 +326,9 @@ export default function EssaiGratuit() {
           <details ref={privacyRef} className="border-t border-border pt-6 text-sm text-faint">
             <summary className="cursor-pointer text-muted">Vos données personnelles</summary>
             <div className="max-w-[820px] pt-4 space-y-3 leading-relaxed">
-              <p>Les informations du formulaire servent uniquement à traiter votre demande d’essai et à vous recontacter, sur la base de votre consentement.</p>
-              <p>Elles sont enregistrées dans l’outil de gestion de RestOclair (Airtable). Une notification est aussi envoyée à l’équipe par FormSubmit, puis reçue dans sa messagerie Gmail (<a href="https://formsubmit.co/privacy.pdf" target="_blank" rel="noopener noreferrer" className="underline">politique de confidentialité de FormSubmit</a>). Elles sont conservées le temps de traiter votre demande ; si un accompagnement commence, les conditions de conservation vous seront précisées.</p>
-              <p>Vous pouvez retirer votre consentement et demander l’accès, la rectification, l’effacement ou la limitation de vos données, ainsi que leur portabilité, en écrivant à <a href="mailto:contact.restoclair@gmail.com" className="underline">contact.restoclair@gmail.com</a>. Vous pouvez aussi saisir la <a href="https://www.cnil.fr/fr/adresser-une-plainte" target="_blank" rel="noopener noreferrer" className="underline">CNIL</a>.</p>
+              <p>Les informations du formulaire servent uniquement à traiter votre demande d’essai et à vous recontacter à ce sujet, sur la base de votre consentement, puis, si vous donnez suite, à organiser l’essai (mesures précontractuelles prises à votre demande). Elles ne servent pas à vous adresser d’autres offres.</p>
+              <p>Elles sont envoyées au serveur du site, qui les enregistre dans l’outil de gestion de RestOclair (Airtable). Elles sont conservées 3 ans après le dernier contact, puis supprimées ; si vous devenez client, elles suivent ensuite les durées applicables aux clients.</p>
+              <p>Vous pouvez retirer votre consentement et demander l’accès, la rectification, l’effacement ou la limitation de vos données, ainsi que leur portabilité, et définir des directives sur leur sort après votre décès, en écrivant à <a href="mailto:contact@restoclair.fr" className="underline">contact@restoclair.fr</a>. Vous pouvez aussi saisir la <a href="https://www.cnil.fr/fr/adresser-une-plainte" target="_blank" rel="noopener noreferrer" className="underline">CNIL</a>.</p>
               <p>Voir aussi notre <Link to="/confidentialite" className="underline">politique de confidentialité</Link>.</p>
             </div>
           </details>
