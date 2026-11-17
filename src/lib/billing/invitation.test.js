@@ -38,6 +38,26 @@ test("lecture du paramètre : demo ouvre, fin ferme, le reste ne dit rien", () =
   }
 });
 
+test("lien recopié avec la ponctuation ou l'espace qui le suivait : toujours reconnu", () => {
+  for (const valeur of ["demo.", "demo,", "demo;", "demo)", "demo!", "demo%20", "demo+", "%C2%ABdemo%C2%BB", "DEMO.", "demo...", "'demo'"]) {
+    assert.equal(decisionInvitation(`?invitation-vente=${valeur}`), "ouvrir", valeur);
+  }
+  for (const valeur of ["fin.", "fin)", "FIN,"]) {
+    assert.equal(decisionInvitation(`?invitation-vente=${valeur}`), "fermer", valeur);
+  }
+  // Seuls les bords sont nettoyés : un autre mot ne passe pas.
+  for (const valeur of ["demonstration", "de.mo", "demo2", "xdemo", "demo-fin", "fini"]) {
+    assert.equal(decisionInvitation(`?invitation-vente=${valeur}`), null, valeur);
+  }
+});
+
+test("lien d'invitation suivi d'un point : visible, et le paramètre est retiré de l'adresse", () => {
+  const f = fenetre("https://restoclair.fr/tarifs?invitation-vente=demo.");
+  assert.equal(venteVisible({ ...INVITATION, fenetre: f }), true);
+  assert.equal(f.localStorage.getItem(CLE_INVITATION), "1");
+  assert.deepEqual(f.remplacements.map((r) => r.cible), ["/tarifs"]);
+});
+
 test("sans BILLING_ACTIF : jamais visible, même avec l'invitation, et rien n'est écrit ni retiré", () => {
   const f = fenetre("https://restoclair.fr/tarifs?invitation-vente=demo");
   assert.equal(venteVisible({ billingActif: false, surInvitation: true, fenetre: f }), false);

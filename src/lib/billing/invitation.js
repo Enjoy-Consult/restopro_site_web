@@ -23,6 +23,8 @@ const OUVRIR = "demo";
 const FERMER = "fin";
 
 // « ouvrir », « fermer » ou null, d'après la partie « ?… » de l'adresse.
+// Tolérant : un lien recopié d'un message emporte souvent la ponctuation qui le suit (« …=demo. », « …=demo) ») ou un
+// espace. Tout ce qui n'est ni lettre ni chiffre, au début ou à la fin de la valeur, est donc ignoré.
 export function decisionInvitation(search) {
   let valeur = null;
   try {
@@ -30,7 +32,7 @@ export function decisionInvitation(search) {
   } catch {
     return null;
   }
-  const choix = String(valeur ?? "").trim().toLowerCase();
+  const choix = String(valeur ?? "").toLowerCase().replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, "");
   if (choix === OUVRIR) return "ouvrir";
   if (choix === FERMER) return "fermer";
   return null;
