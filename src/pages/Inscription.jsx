@@ -13,7 +13,7 @@ import { APP_WEB_URL } from "@/lib/billing/config";
 import LienEspace from "@/components/billing/LienEspace";
 import { calculer, nombreAjouts, selectionDepuisQuery, selectionVersCheckout, selectionVersQuery } from "@/lib/billing/pricing";
 import { MESSAGE_CGV_A_REACCEPTER, MESSAGE_INDISPONIBLE, PHRASE_ESSAI_INTERROMPU, decouperLien, erreursDeValidation, estActivationEnCoursRefus, messageCatalogue, messageErreur, traiterFinDeSession } from "@/lib/billing/erreurs";
-import { blocCgv, cgvAReaccepter, cheminCgv, cheminVersionne, corpsInscription, etatCgvDepart, garderCgv, lireSaisie, mentionsAbonnement, paiementBloqueParCgv, retenirExplicationChoix, retenirSaisie, suivreCgv, suivrePaiement } from "@/lib/billing/inscription";
+import { blocCgv, cgvAReaccepter, cheminCgv, cheminVersionne, corpsInscription, etatCgvDepart, garderCgv, lireSaisie, mentionsAbonnement, paiementBloqueParCgv, retenirExplicationChoix, retenirSaisie, suivreCgv, suivrePaiement, texteFormuleIndisponible } from "@/lib/billing/inscription";
 import { ADRESSE_ACTIVATION_EN_COURS } from "@/lib/billing/retour";
 import { ecrireSession, effacerSession, lireSession } from "@/lib/billing/session";
 import { BORNES, validerInscription } from "@/lib/billing/validation";
@@ -174,7 +174,7 @@ export default function Inscription() {
 
   const selection = selectionDepuisQuery(search, catalogue);
   if (!selection) {
-    retenirExplicationChoix(search);
+    retenirExplicationChoix(search, catalogue);
     return <Navigate to="/tarifs" replace />;
   }
   const calcul = calculer(catalogue, selection);
@@ -215,6 +215,8 @@ export default function Inscription() {
           .join(", ");
         return `Les comptes de votre choix ne suffisent pas${requis ? ` : il en faut au moins ${requis}` : ""}. Ajoutez-les ci-dessus pour continuer.`;
       }
+      case "FORMULE_INDISPONIBLE":
+        return texteFormuleIndisponible(calcul.offre.nom);
       case "OFFRE_INVALIDE":
       case "VERSION_INDISPONIBLE":
         return "Cette formule n’est plus disponible telle quelle. Choisissez-la de nouveau depuis la page des tarifs.";

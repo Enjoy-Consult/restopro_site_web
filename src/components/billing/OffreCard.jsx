@@ -10,6 +10,7 @@ import {
 import {
   categoriesSupplementaires,
   modulesAffichage,
+  offreVerrouillee,
   pmsDeVersion,
   remiseAnnuelle,
   selectionParDefaut,
@@ -60,6 +61,8 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
   const periode = libellePeriode(version.periode);
   const id = `offre-${offre.cle}`;
   const aVersions = versions.length > 1;
+  // Formule montrée mais pas encore vendue (offres-verrouillees.js) : prix et détail restent, pas de bouton actif.
+  const verrou = offreVerrouillee(offre);
 
   const inclus = catalogue.categories
     .filter((c) => (offre.comptesInclus[c.cle] ?? 0) > 0)
@@ -165,7 +168,7 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
             <dl>
               {supplements.length > 0 && (
                 <Ligne label="Comptes supplémentaires">
-                  dès {formatHTParPeriode(prixMiniSupplement, version.periode)}, à ajouter à l’étape suivante
+                  dès {formatHTParPeriode(prixMiniSupplement, version.periode)}{verrou ? "" : ", à ajouter à l’étape suivante"}
                 </Ligne>
               )}
               {/* CGV 0.2, article 3.1 : toutes les formules comprennent l'accès depuis un ordinateur.
@@ -195,15 +198,31 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
       </div>
 
       {/* 4. Choix */}
-      <footer className="mt-auto border-t border-[#ece8d9] px-5 lg:px-7 py-4 bg-[#fbfaf5]">
-        <Link
-          to={lien}
-          className={`block w-full text-center py-2.5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bottle ${
-            miseEnAvant ? "bg-bottle text-bottle-text hover:bg-bottle-hover" : "bg-white text-bottle ring-1 ring-bottle hover:bg-bottle hover:text-bottle-text"
-          }`}
-        >
-          Choisir {offre.nom}
-        </Link>
+      {/* En grille (700 px et plus), le pied remplit sa rangée commune : les pieds des trois cartes restent alignés même si
+          celui d'une formule verrouillée est plus haut. */}
+      <footer className="mt-auto min-[700px]:mt-0 border-t border-[#ece8d9] px-5 lg:px-7 py-4 bg-[#fbfaf5]">
+        {verrou ? (
+          <>
+            <button
+              type="button"
+              disabled
+              aria-describedby={`${id}-verrou`}
+              className="block w-full text-center py-2.5 text-[15px] font-medium bg-white text-muted ring-1 ring-border cursor-not-allowed"
+            >
+              Bientôt disponible<span className="sr-only"> : formule {offre.nom}</span>
+            </button>
+            <p id={`${id}-verrou`} className="text-muted text-[13px] leading-snug mt-2 text-center">{verrou}</p>
+          </>
+        ) : (
+          <Link
+            to={lien}
+            className={`block w-full text-center py-2.5 text-[15px] font-medium transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bottle ${
+              miseEnAvant ? "bg-bottle text-bottle-text hover:bg-bottle-hover" : "bg-white text-bottle ring-1 ring-bottle hover:bg-bottle hover:text-bottle-text"
+            }`}
+          >
+            Choisir {offre.nom}
+          </Link>
+        )}
       </footer>
     </article>
   );

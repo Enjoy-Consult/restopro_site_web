@@ -177,6 +177,9 @@ function lireOffre(brut, pmsDisponible, modules) {
     modules: brut.modules.filter((m) => modules.some((connu) => connu.cle === m)),
     fonctions: { accesOrdinateur, ddpp: fonctions.ddpp, superviseur: fonctions.superviseur === true },
     versions,
+    // Vente ouverte ou non (billing, commit 0a05904) : true, false, ou null si le champ manque (billing pas encore à
+    // jour). Voir offreVerrouillee (pricing.js) : quand il manque, le garde-fou du code décide.
+    ...(typeof brut.disponible === "boolean" ? { disponible: brut.disponible } : {}),
   };
 }
 

@@ -175,9 +175,11 @@ test("modules : s'il en manque un de la formule précédente, liste complète pl
 });
 
 test("sélection <-> URL d'inscription", () => {
+  // Lecture de l'adresse seule, sans verrou ({}) : Expert est la seule formule avec l'option DDPP. Le verrou est testé à
+  // part (offres-verrouillees.test.js).
   const sel = { offre: "expert", version: "mensuel", comptesSupplementaires: { cuisinier: 2, responsable: 0 }, options: { ddpp: true } };
   const query = selectionVersQuery(sel);
-  const relue = selectionDepuisQuery(query, catalogue);
+  const relue = selectionDepuisQuery(query, catalogue, {});
   assert.deepEqual(relue.comptesSupplementaires, { cuisinier: 2 });
   assert.equal(relue.options.ddpp, true);
   const cgv = { version: "0.1", sha256: "a".repeat(64) };

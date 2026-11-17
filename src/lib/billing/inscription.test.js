@@ -263,13 +263,14 @@ test("redirection impossible : on reste sur la page, la saisie reste en mémoire
 test("renvoi vers /tarifs : l'explication dit ce qui manque, et ne se lit qu'une fois", () => {
   assert.equal(prendreExplicationChoix(), null);
 
+  // Sans formule verrouillée ({}) : le verrou d'Expert est testé à part (offres-verrouillees.test.js).
   for (const search of ["", "?offre=expert", "?version=mensuel"]) {
-    retenirExplicationChoix(search);
+    retenirExplicationChoix(search, null, {});
     assert.equal(prendreExplicationChoix(), TEXTE_CHOIX_ABSENT, search);
     assert.equal(prendreExplicationChoix(), null, search);
   }
   for (const search of ["?offre=inconnue&version=mensuel", "?offre=serenite&version=mensuel_engage", "?offre=expert&version=mensuel&comptes=x"]) {
-    retenirExplicationChoix(search);
+    retenirExplicationChoix(search, null, {});
     assert.equal(prendreExplicationChoix(), TEXTE_CHOIX_INVALIDE, search);
     assert.equal(prendreExplicationChoix(), null, search);
   }

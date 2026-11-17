@@ -1,6 +1,8 @@
 // Formulaire d'inscription : décisions pures et mémoire de module, sans React, testées sous node.
 // Rien n'est écrit dans le navigateur : cette mémoire disparaît au rechargement de la page.
 import { urlDePaiement } from "./api.js";
+import { OFFRES_VERROUILLEES } from "./offres-verrouillees.js";
+import { offreVerrouillee } from "./pricing.js";
 import { nettoyerSiret } from "./validation.js";
 
 // --- Corps de l'inscription ---
@@ -62,11 +64,29 @@ export function suivrePaiement(url) {
 export const TEXTE_CHOIX_ABSENT = "Choisissez d’abord votre formule : l’inscription vient ensuite.";
 export const TEXTE_CHOIX_INVALIDE = "Le choix indiqué dans cette adresse n’est pas ou plus disponible. Choisissez votre formule ci-dessous.";
 
+// Formule verrouillée demandée (offres-verrouillees.js) : on dit pourquoi elle ne se choisit pas encore.
+export function texteOffreVerrouillee(nom, phrase) {
+  return `La formule ${nom} n’est pas encore disponible. ${phrase} Choisissez une autre formule ci-dessous.`;
+}
+
+// 409 FORMULE_INDISPONIBLE de billing au moment du paiement (relayé par Apirest) : même texte que billing pour Expert.
+export function texteFormuleIndisponible(nom) {
+  return `La formule ${nom} n’est pas encore disponible à la souscription. Choisissez une autre formule depuis la page des tarifs.`;
+}
+
 let explicationChoix = null;
 
-export function retenirExplicationChoix(search) {
+export function retenirExplicationChoix(search, catalogue = null, verrous = OFFRES_VERROUILLEES) {
   const params = new URLSearchParams(search);
-  explicationChoix = params.get("offre") && params.get("version") ? TEXTE_CHOIX_INVALIDE : TEXTE_CHOIX_ABSENT;
+  const offre = params.get("offre");
+  const offreCatalogue = catalogue?.offres?.find((o) => o.cle === offre) ?? null;
+  const phrase = offreVerrouillee(offreCatalogue ?? offre, verrous);
+  if (phrase) {
+    const nom = offreCatalogue?.nom ?? "demandée";
+    explicationChoix = texteOffreVerrouillee(nom, phrase);
+    return;
+  }
+  explicationChoix = offre && params.get("version") ? TEXTE_CHOIX_INVALIDE : TEXTE_CHOIX_ABSENT;
 }
 
 // Lue une seule fois : revenir plus tard sur /tarifs ne la montre plus.

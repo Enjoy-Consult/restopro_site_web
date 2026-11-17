@@ -17,6 +17,9 @@ export const MESSAGE_INSCRIPTION_SANS_JETON =
 
 // Refus (403) au code inconnu : message neutre, l'indisponibilité est réservée au réseau et aux 5xx.
 export const MESSAGE_REFUS_GENERIQUE = "Cette action n’est pas possible pour le moment. Contactez-nous si le problème persiste.";
+// 409 FORMULE_INDISPONIBLE (billing) : formule pas encore ouverte à la souscription (Expert, tant que les sondes ne sont
+// pas prêtes). Texte commun du site et de l'espace ; l'inscription nomme la formule (texteFormuleIndisponible).
+export const MESSAGE_FORMULE_INDISPONIBLE = "Cette formule n’est pas encore disponible à la souscription.";
 
 // Jeton restreint expiré (2 h) : le compte existe déjà, on ne propose jamais de le recréer
 // (l'API répondrait EMAIL_DEJA_UTILISE) ; on propose un lien de reprise, reçu par e-mail.
@@ -132,6 +135,7 @@ export function messageErreur(erreur) {
   if (erreur?.code === "INSCRIPTION_SANS_JETON") return MESSAGE_INSCRIPTION_SANS_JETON;
   if (erreur?.code === "VALIDATION_ERROR") return MESSAGE_VALIDATION;
   if (erreur?.code === "CGV_VERSION_OBSOLETE") return MESSAGE_CGV_OBSOLETE_PAIEMENT;
+  if (erreur?.code === "FORMULE_INDISPONIBLE") return MESSAGE_FORMULE_INDISPONIBLE;
   if (VERS_ESPACE.includes(erreur?.code)) return REFUS[erreur.code];
   const refus = messageRefus(erreur);
   if (refus) return refus;

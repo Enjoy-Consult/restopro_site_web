@@ -1,7 +1,23 @@
 // Calcul des totaux à partir du catalogue de l'API. Aucun prix n'est écrit ici.
+import { OFFRES_VERROUILLEES } from "./offres-verrouillees.js";
 import { calculerTTC } from "./format.js";
 
 export const MAX_COMPTES_SUPPLEMENTAIRES = 50;
+
+// Formule montrée mais pas encore vendue : sa phrase d'explication, sinon null.
+// `offre` : l'offre du catalogue, ou à défaut sa clé. Le champ « disponible » du catalogue (billing) décide quand il est
+// là : true ouvre la vente, false la ferme. S'il manque, le garde-fou du code (offres-verrouillees.js) décide.
+// hasOwnProperty.call et non Object.hasOwn : absent de Safari avant 15.4 (comme DocumentLegal.jsx).
+export const PHRASE_INDISPONIBLE_PAR_DEFAUT = "Cette formule sera bientôt disponible.";
+
+export function offreVerrouillee(offre, verrous = OFFRES_VERROUILLEES) {
+  const cle = typeof offre === "string" ? offre : offre?.cle;
+  const disponible = offre && typeof offre === "object" ? offre.disponible : null;
+  if (disponible === true) return null;
+  const phrase = typeof cle === "string" && Object.prototype.hasOwnProperty.call(verrous, cle) ? verrous[cle] : null;
+  if (disponible === false) return phrase ?? PHRASE_INDISPONIBLE_PAR_DEFAUT;
+  return phrase;
+}
 
 // Versions proposées : « mensuel_engage » n'existe que si le PMS est disponible.
 export function versionsDisponibles(catalogue, offre) {
@@ -126,12 +142,14 @@ export function selectionVersQuery(selection) {
   return params.toString();
 }
 
-// Renvoie la sélection si les paramètres sont valides pour ce catalogue, sinon null.
-export function selectionDepuisQuery(search, catalogue) {
+// Renvoie la sélection si les paramètres sont valides pour ce catalogue, sinon null. Une formule verrouillée n'est
+// jamais une sélection valable : /inscription renvoie alors vers /tarifs, quel que soit le reste de l'adresse.
+export function selectionDepuisQuery(search, catalogue, verrous = OFFRES_VERROUILLEES) {
   const params = new URLSearchParams(search);
   const offre = params.get("offre");
   const version = params.get("version");
   if (!offre || !version) return null;
+  if (offreVerrouillee(catalogue?.offres?.find((o) => o.cle === offre) ?? offre, verrous)) return null;
 
   const comptesSupplementaires = {};
   const brut = params.get("comptes");
