@@ -57,6 +57,16 @@ export function avertissementMaquette({ commande, env }) {
   return "Attention : VITE_BILLING_MOCK=true n'a aucun effet dans un build. La maquette ne fonctionne qu'avec le serveur de développement (npm run dev, npm run dev:compte) ; ce build appelle la vraie API (VITE_API_URL).";
 }
 
+// VITE_VENTE_SUR_INVITATION dans un build de la vitrine (src/lib/billing/invitation.js) : la vente est compilée mais
+// cachée. Rappel, pour qu'un build de démonstration ne soit pas pris pour celui de l'ouverture. Sans effet sur le compte.
+export function avertissementInvitation({ commande, env, build = "vitrine" }) {
+  if (commande !== "build" || build !== "vitrine" || !vrai(env.VITE_VENTE_SUR_INVITATION)) return null;
+  if (!vrai(env.VITE_BILLING_ACTIF)) {
+    return "Attention : VITE_VENTE_SUR_INVITATION=true n'a d'effet qu'avec VITE_BILLING_ACTIF=true ; ce build est sans la vente.";
+  }
+  return "Attention : vente sur invitation (VITE_VENTE_SUR_INVITATION=true). Les pages de vente et leurs liens n'apparaissent que dans un navigateur qui a ouvert une fois une adresse du site avec ?invitation-vente=demo (?invitation-vente=fin les retire). Ce build n'est pas celui de l'ouverture.";
+}
+
 export function messageGardeFou(problemes, build = "vitrine") {
   if (build === "compte") {
     return [

@@ -163,6 +163,20 @@ test("workflow de production : il transmet l'interrupteur et les adresses, jamai
     assert.ok(workflow.includes(`${nom}: \${{ vars.${nom} }}`), nom);
   }
   assert.ok(!workflow.includes("VITE_BILLING_MOCK"));
+  // La vente sur invitation ne sert qu'aux builds de démonstration, faits à la main : jamais par le workflow.
+  assert.ok(!workflow.includes("VITE_VENTE_SUR_INVITATION"));
+});
+
+test("VITE_VENTE_SUR_INVITATION dans un build de la vitrine : avertissement (vente cachée, pas le build de l'ouverture)", async () => {
+  const { avertissementInvitation } = await import("./garde-fou-vente.mjs");
+  const invitation = { VITE_BILLING_ACTIF: "true", VITE_VENTE_SUR_INVITATION: "true" };
+  assert.match(avertissementInvitation({ commande: "build", env: invitation }), /vente sur invitation[\s\S]*\?invitation-vente=demo[\s\S]*pas celui de l'ouverture/);
+  assert.match(avertissementInvitation({ commande: "build", env: { VITE_BILLING_ACTIF: " True ", VITE_VENTE_SUR_INVITATION: " TRUE " } }), /vente sur invitation/);
+  assert.match(avertissementInvitation({ commande: "build", env: { VITE_VENTE_SUR_INVITATION: "true" } }), /n'a d'effet qu'avec VITE_BILLING_ACTIF=true/);
+  assert.equal(avertissementInvitation({ commande: "serve", env: invitation }), null);
+  assert.equal(avertissementInvitation({ commande: "build", env: invitation, build: "compte" }), null);
+  assert.equal(avertissementInvitation({ commande: "build", env: { VITE_BILLING_ACTIF: "true" } }), null);
+  assert.equal(avertissementInvitation({ commande: "build", env: { VITE_BILLING_ACTIF: "true", VITE_VENTE_SUR_INVITATION: "false" } }), null);
 });
 
 test("VITE_BILLING_MOCK dans un build : avertissement (sans effet, le build appelle la vraie API)", async () => {

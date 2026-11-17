@@ -8,6 +8,10 @@ const vrai = (valeur) => String(valeur ?? "").trim().toLowerCase() === "true";
 const url = (valeur) => String(valeur ?? "").trim().replace(/\/+$/, "");
 
 export const BILLING_ACTIF = vrai(env.VITE_BILLING_ACTIF);
+// Vente sur invitation (démonstration sur le site de production, Stripe en mode test) : la vente est compilée
+// (BILLING_ACTIF), mais ses pages et ses liens n'apparaissent que dans un navigateur qui a ouvert une fois le lien
+// d'invitation (invitation.js). Sans effet sans BILLING_ACTIF. Absente le jour de l'ouverture.
+export const VENTE_SUR_INVITATION = BILLING_ACTIF && vrai(env.VITE_VENTE_SUR_INVITATION);
 // Maquette (réponses simulées de l'API) : serveur de développement seulement. Vite remplace __MAQUETTE_POSSIBLE__ par
 // true sous `vite` et par false dans tout build (production ou test) : BILLING_MOCK vaut alors false et mock.js n'entre
 // pas dans le bundle (garde de la livraison A, commit 8a846c7, alerte CodeQL n° 1). VITE_BILLING_MOCK n'a donc aucun

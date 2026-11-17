@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { BUSINESS } from "@/lib/business-info";
-import { BILLING_ACTIF } from "@/lib/billing/config";
+import { VENTE_VISIBLE } from "@/lib/billing/invitation";
 import { ouvrirGestionCookies } from "@/lib/consentement";
 import { lireSession } from "@/lib/billing/session";
 import { googlePermisDansCeDocument } from "@/lib/environnement";
 
 const navigation = [
   { name: "Services", page: "Services" },
-  ...(BILLING_ACTIF ? [{ name: "Tarifs", page: "tarifs" }] : []),
+  ...(VENTE_VISIBLE ? [{ name: "Tarifs", page: "tarifs" }] : []),
   { name: "Blog", page: "Blog" },
   { name: "À propos", page: "About" },
   { name: "Contact", page: "Contact" },
@@ -196,7 +196,7 @@ export default function Layout({ children, currentPageName }) {
               {gestionCookies && (
                 <button type="button" onClick={ouvrirGestionCookies} className="hover:underline transition-colors text-left" style={{ color: '#6b7268' }}>Gérer mes cookies</button>
               )}
-              {BILLING_ACTIF && (
+              {VENTE_VISIBLE && (
                 <>
                   <Link to="/cgv" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>CGV</Link>
                   <Link to="/application/cgu" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>CGU</Link>

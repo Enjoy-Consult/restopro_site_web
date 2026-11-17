@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import SEO from "@/components/SEO";
 import { BUSINESS } from "@/lib/business-info";
-import { BILLING_ACTIF } from "@/lib/billing/config";
+import { VENTE_VISIBLE } from "@/lib/billing/invitation";
 import { TEXTE_ENVOI_COUPE, ecrituresProductionPermises } from "@/lib/environnement";
 
 // Page d'essai gratuit de l'application RestOclair.
@@ -128,7 +128,7 @@ export default function EssaiGratuit() {
               </p>
               <div className="flex flex-col sm:flex-row items-start gap-4">
                 <a href="#essai" className="btn-primary">Demander un essai gratuit</a>
-                {BILLING_ACTIF && (
+                {VENTE_VISIBLE && (
                   <Link to="/tarifs" className="link-underline text-[15px] py-3">Voir les tarifs</Link>
                 )}
                 <a href={BUSINESS.phone.href} className="link-underline text-[15px] py-3">{BUSINESS.phone.display}</a>

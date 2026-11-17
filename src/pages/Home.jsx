@@ -1,4 +1,4 @@
-import { BILLING_ACTIF } from "@/lib/billing/config";
+import { VENTE_VISIBLE } from "@/lib/billing/invitation";
 import React from "react";
 import SEO from "@/components/SEO";
 import { Link } from "react-router-dom";
@@ -127,7 +127,7 @@ export default function Home() {
                   <Link to="/essai-gratuit" className="btn-primary">
                     Tester l’application
                   </Link>
-                  {BILLING_ACTIF && (
+                  {VENTE_VISIBLE && (
                     <Link to="/tarifs" className="link-underline text-[15px] py-3">
                       Voir les tarifs et s’abonner
                     </Link>

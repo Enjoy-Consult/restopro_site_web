@@ -8,7 +8,7 @@ import Message from "@/components/billing/Message";
 import OffreCard from "@/components/billing/OffreCard";
 import { BUSINESS } from "@/lib/business-info";
 import { getCatalogue } from "@/lib/billing/api";
-import { BILLING_MOCK_DEV } from "@/lib/billing/config";
+import { BILLING_MOCK_DEV, VENTE_SUR_INVITATION } from "@/lib/billing/config";
 import LienEspace from "@/components/billing/LienEspace";
 import { messageCatalogue } from "@/lib/billing/erreurs";
 import { prendreExplicationChoix } from "@/lib/billing/inscription";
@@ -101,6 +101,7 @@ export default function Tarifs() {
         title="Tarifs de l’application RestOclair"
         description="Formules Essentiel, Sérénité et Expert : prix HT et TTC, comptes inclus et modules. Comptes supplémentaires au choix à l’inscription."
         canonicalUrl="https://restoclair.fr/tarifs"
+        noindex={VENTE_SUR_INVITATION}
       />
 
       <section className="pt-7 pb-3 md:pt-9 md:pb-4">

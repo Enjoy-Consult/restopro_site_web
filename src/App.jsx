@@ -17,7 +17,7 @@ import RedirectionMotDePasse from './pages/RedirectionMotDePasse';
 import DocumentLegal from './pages/DocumentLegal';
 import ErrorBoundary from '@/components/billing/ErrorBoundary';
 import { DOCUMENTS_LEGAUX } from '@/content/legal';
-import { BILLING_ACTIF } from '@/lib/billing/config';
+import { VENTE_VISIBLE } from '@/lib/billing/invitation';
 import { SITE_DE_PRODUCTION } from '@/lib/environnement';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -106,9 +106,9 @@ const AuthenticatedApp = () => {
       <Route path="/cgu" element={<Navigate to="/application/cgu" replace />} />
       {/* Ancienne URL déclarée aux magasins : 301 côté serveur (.htaccess), et repli ici */}
       <Route path="/PolitiqueConfidentialite" element={<Navigate to="/application/confidentialite" replace />} />
-      {/* Vente d'abonnements : routes enregistrées seulement si BILLING_ACTIF.
+      {/* Vente d'abonnements : routes enregistrées seulement si la vente est visible (BILLING_ACTIF, et l'invitation si elle est exigée).
           La clé de chaque filet le remet à zéro quand on passe d'une de ces pages à l'autre. */}
-      {BILLING_ACTIF && (
+      {VENTE_VISIBLE && (
         <>
           <Route path="/tarifs" element={<LayoutWrapper currentPageName="tarifs"><ErrorBoundary key="tarifs"><Tarifs /></ErrorBoundary></LayoutWrapper>} />
           <Route path="/inscription" element={<LayoutWrapper currentPageName="inscription"><ErrorBoundary key="inscription"><Inscription /></ErrorBoundary></LayoutWrapper>} />

@@ -2,7 +2,7 @@
 // (vite.compte.config.js, compte.restoclair.fr). Voir README, « Deux builds ».
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { avertissementMaquette, messageGardeFou, problemesVente } from './garde-fou-vente.mjs'
+import { avertissementInvitation, avertissementMaquette, messageGardeFou, problemesVente } from './garde-fou-vente.mjs'
 import { construireHistorique, construireIndex, lireDocuments, RACINE_LEGALE, SITE_URL } from './legal.mjs'
 
 // Garde-fou de la vente (règles dans scripts/garde-fou-vente.mjs).
@@ -13,8 +13,9 @@ export function gardeFouVente(build = 'vitrine') {
     configResolved({ command, mode, env }) {
       const problemes = problemesVente({ commande: command, mode, env, documents: lireDocuments(), build })
       if (problemes.length > 0) throw new Error(messageGardeFou(problemes, build))
-      const avertissement = avertissementMaquette({ commande: command, mode, env, build })
-      if (avertissement) console.warn(`\n${avertissement}\n`)
+      for (const avertissement of [avertissementMaquette({ commande: command, mode, env, build }), avertissementInvitation({ commande: command, env, build })]) {
+        if (avertissement) console.warn(`\n${avertissement}\n`)
+      }
     },
   }
 }
