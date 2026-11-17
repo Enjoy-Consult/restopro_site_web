@@ -1,5 +1,6 @@
 // Textes de la page Tarifs et des cartes qui dépendent du catalogue : sans React, testés sous node.
 // Sans catalogue (chargement, API en panne), on n'affirme rien sur l'engagement.
+import { BUSINESS } from "../business-info.js";
 import { versionsDisponibles } from "./pricing.js";
 
 // Ce que le catalogue propose réellement, toutes formules confondues.
@@ -67,8 +68,8 @@ export function questionsTarifs(catalogue) {
     },
     {
       question: "Puis-je ajouter des comptes supplémentaires ?",
-      reponse:
-        "Oui : vous les choisissez lors de l’inscription, puis vous pouvez en ajouter à tout moment depuis votre espace abonnement, sur le site. Leur prix figure dans le détail de chaque formule.",
+      // CGV 1.0, article 4.2 : le titulaire les demande au support ; l'ajout depuis l'espace abonnement viendra plus tard.
+      reponse: `Oui : vous les choisissez lors de l’inscription. Ensuite, le titulaire de l’abonnement peut en ajouter à tout moment en écrivant à ${BUSINESS.email}, depuis l’adresse e-mail de son compte. Leur prix figure dans le détail de chaque formule.`,
     },
     {
       question: "Que sont les équipiers ?",

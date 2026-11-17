@@ -118,3 +118,18 @@ test("intitulé des modules sur le catalogue : les textes de la mission", () => 
   // Sérénité absent du catalogue : l'Expert se compare à l'Essentiel, sans parler d'une formule disparue.
   assert.equal(intitule(expert, essentiel), "Tous les modules de l’Essentiel, plus :");
 });
+
+test("comptes supplémentaires : ajout par écrit au support, comme le disent les CGV en vigueur (article 4.2)", async () => {
+  const { readFileSync } = await import("node:fs");
+  const faq = questionsTarifs(lireCatalogue(mockCatalogue())).find((q) => q.question === "Puis-je ajouter des comptes supplémentaires ?");
+  assert.match(faq.reponse, /le titulaire de l’abonnement peut en ajouter à tout moment en écrivant à contact@restoclair\.fr/);
+  assert.doesNotMatch(faq.reponse, /espace abonnement/);
+  const inscription = readFileSync("src/components/billing/AjoutComptes.jsx", "utf8");
+  assert.match(inscription, /en ajouter plus tard en écrivant à \{BUSINESS\.email\}/);
+  assert.doesNotMatch(inscription, /ajouter plus tard depuis votre espace abonnement/);
+  // Tant que les CGV en vigueur renvoient l'ajout au support, la vitrine ne promet pas l'espace abonnement.
+  const documents = JSON.parse(readFileSync("src/content/legal/documents.json", "utf8"));
+  const cgv = documents.find((d) => d.document === "cgv");
+  const texte = readFileSync(`src/content/legal/cgv/${cgv.versionEnVigueur}.md`, "utf8");
+  assert.match(texte, /Seul le titulaire ajoute des comptes supplémentaires\. Il le demande au support RestOclair/);
+});

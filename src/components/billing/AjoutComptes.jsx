@@ -1,5 +1,6 @@
 import React from "react";
 import Compteur from "@/components/billing/Compteur";
+import { BUSINESS } from "@/lib/business-info";
 import { formatHT, formatHTParPeriode, libellePeriode } from "@/lib/billing/format";
 import { categoriesSupplementaires, nombreAjouts } from "@/lib/billing/pricing";
 
@@ -72,7 +73,8 @@ export default function AjoutComptes({ catalogue, calcul, selection, onChange, o
               </label>
             )}
           </div>
-          <p className="text-faint text-[13px] leading-snug mt-4">Vous pourrez aussi en ajouter plus tard depuis votre espace abonnement.</p>
+          {/* CGV 1.0, article 4.2 : ajout par le support, sur demande du titulaire. */}
+          <p className="text-faint text-[13px] leading-snug mt-4">Vous pourrez aussi en ajouter plus tard en écrivant à {BUSINESS.email}.</p>
         </fieldset>
       )}
     </div>
