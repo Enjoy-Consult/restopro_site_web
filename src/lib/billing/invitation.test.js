@@ -1,7 +1,7 @@
 // Vente sur invitation (invitation.js) : sans l'invitation, le public voit le site sans la vente.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CLE_INVITATION, PARAMETRE_INVITATION, arriveeParLienDeVente, decisionInvitation, venteVisible } from "./invitation.js";
+import { CLE_INVITATION, PARAMETRE_INVITATION, accorderInvitation, arriveeParLienDeVente, decisionInvitation, marqueInvitation, venteVisible } from "./invitation.js";
 
 function stockageEnMemoire() {
   const valeurs = new Map();
@@ -231,7 +231,71 @@ test("les routes et les liens de la vente lisent VENTE_VISIBLE, plus BILLING_ACT
   for (const fichier of ["src/App.jsx", "src/Layout.jsx", "src/pages/Home.jsx", "src/pages/EssaiGratuit.jsx"]) {
     const source = readFileSync(fichier, "utf8");
     assert.ok(!/\bBILLING_ACTIF\b/.test(source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "")), `${fichier} lit encore BILLING_ACTIF`);
-    assert.match(source, /import \{ VENTE_VISIBLE \} from ["']@\/lib\/billing\/invitation["'];/, fichier);
+    assert.match(source, /import \{ (?:[A-Z_]+, )*VENTE_VISIBLE(?:, [A-Z_]+)* \} from ["']@\/lib\/billing\/invitation["'];/, fichier);
   }
   assert.match(readFileSync("src/pages/Tarifs.jsx", "utf8"), /noindex=\{VENTE_SUR_INVITATION\}/);
+});
+
+// --- Vente sur invitation protégée par un mot de passe (empreinte VITE_VENTE_MOT_DE_PASSE) ---
+const EMPREINTE = "pbkdf2-sha256:1000:AAAAAAAAAAAAAAAAAAAAAA:" + "B".repeat(43);
+const PROTEGEE = { billingActif: true, surInvitation: true, empreinte: EMPREINTE };
+
+test("mot de passe : le lien ?invitation-vente=demo seul n'ouvre plus rien (et il est retiré de l'adresse)", () => {
+  const f = fenetre("https://restoclair.fr/tarifs?invitation-vente=demo");
+  assert.equal(venteVisible({ ...PROTEGEE, fenetre: f }), false);
+  assert.equal(f.localStorage.getItem(CLE_INVITATION), null);
+  assert.deepEqual(f.remplacements.map((r) => r.cible), ["/tarifs"]);
+});
+
+test("mot de passe : une invitation donnée avant (« 1 ») ou avec un autre mot de passe ne vaut plus", () => {
+  const local = stockageEnMemoire();
+  local.setItem(CLE_INVITATION, "1");
+  assert.equal(venteVisible({ ...PROTEGEE, fenetre: fenetre("https://restoclair.fr/tarifs", { local }) }), false);
+  local.setItem(CLE_INVITATION, marqueInvitation("pbkdf2-sha256:1000:AAAAAAAAAAAAAAAAAAAAAA:" + "C".repeat(43)));
+  assert.equal(venteVisible({ ...PROTEGEE, fenetre: fenetre("https://restoclair.fr/tarifs", { local }) }), false);
+  assert.notEqual(marqueInvitation(EMPREINTE), "1");
+  assert.equal(marqueInvitation(""), "1");
+});
+
+test("mot de passe accepté : la vente s'ouvre dans ce navigateur, jusqu'à ?invitation-vente=fin", () => {
+  const local = stockageEnMemoire();
+  assert.equal(accorderInvitation({ empreinte: EMPREINTE, fenetre: fenetre("https://restoclair.fr/tarifs", { local }) }), true);
+  assert.equal(local.getItem(CLE_INVITATION), marqueInvitation(EMPREINTE));
+  for (const adresse of ["https://restoclair.fr/tarifs", "https://restoclair.fr/inscription?offre=expert&version=mensuel", "https://restoclair.fr/tarifs?invitation-vente=demo"]) {
+    assert.equal(venteVisible({ ...PROTEGEE, fenetre: fenetre(adresse, { local }) }), true, adresse);
+  }
+  assert.equal(venteVisible({ ...PROTEGEE, fenetre: fenetre("https://restoclair.fr/?invitation-vente=fin", { local }) }), false);
+  assert.equal(local.getItem(CLE_INVITATION), null);
+  // Sans fenêtre (node) : rien à écrire, pas d'erreur.
+  assert.equal(accorderInvitation({ empreinte: EMPREINTE, fenetre: undefined }), false);
+});
+
+test("mot de passe accepté mais stockage bloqué : accorderInvitation le dit (false), la page l'affiche au lieu de recharger", async () => {
+  const casse = { getItem: () => { throw new Error("x"); }, setItem: () => { throw new Error("x"); }, removeItem: () => { throw new Error("x"); } };
+  assert.equal(accorderInvitation({ empreinte: EMPREINTE, fenetre: fenetre("https://restoclair.fr/tarifs", { local: casse, session: casse }) }), false);
+  const { readFileSync } = await import("node:fs");
+  const page = readFileSync("src/pages/AccesReserve.jsx", "utf8");
+  assert.match(page, /if \(!accorderInvitation\(\)\) \{\s*setEtat\("stockage"\);/);
+  assert.match(page, /window\.location\.reload\(\);/);
+});
+
+test("mot de passe : les liens reçus après une inscription valent toujours invitation", () => {
+  for (const adresse of [`https://restoclair.fr/abonnement/reprendre#jeton=${JETON}`, "https://restoclair.fr/abonnement/retour?session_id=cs_test_a1"]) {
+    const f = fenetre(adresse);
+    assert.equal(venteVisible({ ...PROTEGEE, fenetre: f }), true, adresse);
+    assert.equal(f.localStorage.getItem(CLE_INVITATION), marqueInvitation(EMPREINTE));
+  }
+});
+
+test("App.jsx : sans la vente visible, /tarifs et /inscription montrent « Accès réservé » si le mot de passe est exigé", async () => {
+  const { readFileSync } = await import("node:fs");
+  const app = readFileSync("src/App.jsx", "utf8");
+  assert.match(app, /\{!VENTE_VISIBLE && ACCES_PAR_MOT_DE_PASSE && \(/);
+  for (const chemin of ["/tarifs", "/inscription"]) {
+    assert.ok(app.includes(`<Route path="${chemin}" element={<LayoutWrapper currentPageName="acces-reserve"><AccesReserve /></LayoutWrapper>} />`), chemin);
+  }
+  const page = readFileSync("src/pages/AccesReserve.jsx", "utf8");
+  assert.match(page, /noindex/);
+  assert.match(page, /verifierMotDePasse\(motDePasse, VENTE_MOT_DE_PASSE\)/);
+  assert.match(page, /accorderInvitation\(\)/);
 });

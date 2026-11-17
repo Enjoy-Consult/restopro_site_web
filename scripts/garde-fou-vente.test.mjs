@@ -235,3 +235,24 @@ test("compte de production : adresses en https seulement (une adresse de test ne
   // La vitrine garde sa règle : adresse non vide.
   assert.deepEqual(controle({ env: { ...ENV_VENTE, VITE_API_URL: "http://localhost:3000" } }), []);
 });
+
+test("vente sur invitation avec mot de passe : une empreinte illisible bloque le build, une empreinte valable passe", async () => {
+  const { calculerEmpreinte } = await import("../src/lib/billing/motdepasse-vente.js");
+  const valable = await calculerEmpreinte("une phrase de passe", { iterations: 1000 });
+  const invitation = { ...ENV_VENTE, VITE_VENTE_SUR_INVITATION: "true" };
+  assert.deepEqual(controle({ env: { ...invitation, VITE_VENTE_MOT_DE_PASSE: valable } }), []);
+  assert.deepEqual(controle({ env: { ...invitation, VITE_VENTE_MOT_DE_PASSE: "" } }), []);
+  for (const faux of ["mot de passe en clair", "pbkdf2-sha256:600000:court:court", "pbkdf2-sha256$600000$AAAAAAAAAAAAAAAAAAAAAA$" + "B".repeat(43)]) {
+    assert.deepEqual(controle({ env: { ...invitation, VITE_VENTE_MOT_DE_PASSE: faux } }), [
+      "VITE_VENTE_MOT_DE_PASSE n'est pas une empreinte valable (la produire avec node scripts/empreinte-mot-de-passe-vente.mjs)",
+    ]);
+  }
+  // Sans la vente sur invitation, la variable ne joue pas (le site l'ignore).
+  assert.deepEqual(controle({ env: { ...ENV_VENTE, VITE_VENTE_MOT_DE_PASSE: "n'importe quoi" } }), []);
+});
+
+test("vente sur invitation avec mot de passe : le rappel du build le dit", async () => {
+  const { avertissementInvitation } = await import("./garde-fou-vente.mjs");
+  const env = { VITE_BILLING_ACTIF: "true", VITE_VENTE_SUR_INVITATION: "true", VITE_VENTE_MOT_DE_PASSE: "pbkdf2-sha256:x" };
+  assert.match(avertissementInvitation({ commande: "build", env }), /protégée par un mot de passe[\s\S]*pas celui de l'ouverture/);
+});

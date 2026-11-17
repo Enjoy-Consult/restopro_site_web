@@ -5,6 +5,7 @@
 // - compte (compte.restoclair.fr) : il ne sert qu'à la vente (connexion, espace abonnement, mot de passe), donc
 //   toujours contrôlé, quel que soit VITE_BILLING_ACTIF.
 import { STATUTS_ADMIS } from "./legal.mjs";
+import { lireEmpreinte } from "../src/lib/billing/motdepasse-vente.js";
 
 // Les documents que le client accepte à l'inscription.
 export const DOCUMENTS_REQUIS = ["cgv", "accord-sous-traitance", "cgu-app"];
@@ -45,6 +46,10 @@ export function problemesVente({ commande, mode, env, documents, build = "vitrin
     ...DOCUMENTS_REQUIS.map((cle) => problemeDocument(documents, cle)).filter(Boolean),
     ...ADRESSES_REQUISES[build].filter((nom) => !url(env[nom])).map((nom) => `${nom} est vide`),
     // Le compte de production ne parle qu'à des adresses chiffrées : une adresse de test (http, localhost) ne passe pas.
+    // Vente sur invitation avec mot de passe : une empreinte illisible fermerait la vente à tous, même avec le bon mot de passe.
+    ...(build === "vitrine" && vrai(env.VITE_VENTE_SUR_INVITATION) && String(env.VITE_VENTE_MOT_DE_PASSE ?? "").trim() && !lireEmpreinte(env.VITE_VENTE_MOT_DE_PASSE)
+      ? ["VITE_VENTE_MOT_DE_PASSE n'est pas une empreinte valable (la produire avec node scripts/empreinte-mot-de-passe-vente.mjs)"]
+      : []),
     ...(build === "compte"
       ? ADRESSES_REQUISES.compte.filter((nom) => url(env[nom]) && !/^https:\/\/[^/]+/i.test(url(env[nom]))).map((nom) => `${nom} doit commencer par https:// (« ${url(env[nom])} »)`)
       : []),
@@ -63,6 +68,9 @@ export function avertissementInvitation({ commande, env, build = "vitrine" }) {
   if (commande !== "build" || build !== "vitrine" || !vrai(env.VITE_VENTE_SUR_INVITATION)) return null;
   if (!vrai(env.VITE_BILLING_ACTIF)) {
     return "Attention : VITE_VENTE_SUR_INVITATION=true n'a d'effet qu'avec VITE_BILLING_ACTIF=true ; ce build est sans la vente.";
+  }
+  if (String(env.VITE_VENTE_MOT_DE_PASSE ?? "").trim()) {
+    return "Attention : vente sur invitation protégée par un mot de passe (VITE_VENTE_SUR_INVITATION=true, VITE_VENTE_MOT_DE_PASSE). /tarifs et /inscription demandent le mot de passe ; une fois saisi, la vente apparaît dans ce navigateur (?invitation-vente=fin l'en retire). Ce build n'est pas celui de l'ouverture.";
   }
   return "Attention : vente sur invitation (VITE_VENTE_SUR_INVITATION=true). Les pages de vente et leurs liens n'apparaissent que dans un navigateur qui a ouvert une fois une adresse du site avec ?invitation-vente=demo (?invitation-vente=fin les retire). Ce build n'est pas celui de l'ouverture.";
 }

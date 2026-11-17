@@ -12,6 +12,10 @@ export const BILLING_ACTIF = vrai(env.VITE_BILLING_ACTIF);
 // (BILLING_ACTIF), mais ses pages et ses liens n'apparaissent que dans un navigateur qui a ouvert une fois le lien
 // d'invitation (invitation.js). Sans effet sans BILLING_ACTIF. Absente le jour de l'ouverture.
 export const VENTE_SUR_INVITATION = BILLING_ACTIF && vrai(env.VITE_VENTE_SUR_INVITATION);
+// Mot de passe de la vente sur invitation : son EMPREINTE seulement (PBKDF2, motdepasse-vente.js), jamais le mot de
+// passe. Avec elle, /tarifs et /inscription demandent le mot de passe au lieu du lien d'invitation. Sans effet hors
+// de la vente sur invitation.
+export const VENTE_MOT_DE_PASSE = VENTE_SUR_INVITATION ? String(env.VITE_VENTE_MOT_DE_PASSE ?? "").trim() : "";
 // Maquette (réponses simulées de l'API) : serveur de développement seulement. Vite remplace __MAQUETTE_POSSIBLE__ par
 // true sous `vite` et par false dans tout build (production ou test) : BILLING_MOCK vaut alors false et mock.js n'entre
 // pas dans le bundle (garde de la livraison A, commit 8a846c7, alerte CodeQL n° 1). VITE_BILLING_MOCK n'a donc aucun

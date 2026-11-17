@@ -14,10 +14,11 @@ import Inscription from './pages/Inscription';
 import AbonnementRetour from './pages/AbonnementRetour';
 import AbonnementReprendre from './pages/AbonnementReprendre';
 import RedirectionMotDePasse from './pages/RedirectionMotDePasse';
+import AccesReserve from './pages/AccesReserve';
 import DocumentLegal from './pages/DocumentLegal';
 import ErrorBoundary from '@/components/billing/ErrorBoundary';
 import { DOCUMENTS_LEGAUX } from '@/content/legal';
-import { VENTE_VISIBLE } from '@/lib/billing/invitation';
+import { ACCES_PAR_MOT_DE_PASSE, VENTE_VISIBLE } from '@/lib/billing/invitation';
 import { SITE_DE_PRODUCTION } from '@/lib/environnement';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
@@ -115,6 +116,14 @@ const AuthenticatedApp = () => {
           <Route path="/abonnement/retour" element={<LayoutWrapper currentPageName="abonnement-retour"><ErrorBoundary key="abonnement-retour"><AbonnementRetour /></ErrorBoundary></LayoutWrapper>} />
           <Route path="/abonnement/reprendre" element={<LayoutWrapper currentPageName="abonnement-reprendre"><ErrorBoundary key="abonnement-reprendre"><AbonnementReprendre /></ErrorBoundary></LayoutWrapper>} />
           <Route path="/compte/mot-de-passe" element={<LayoutWrapper currentPageName="compte-mot-de-passe"><ErrorBoundary key="compte-mot-de-passe"><RedirectionMotDePasse /></ErrorBoundary></LayoutWrapper>} />
+        </>
+      )}
+      {/* Vente sur invitation protégée par un mot de passe : tant qu'il n'a pas été saisi dans ce navigateur, /tarifs et
+          /inscription demandent le mot de passe (les autres pages de la vente restent introuvables). */}
+      {!VENTE_VISIBLE && ACCES_PAR_MOT_DE_PASSE && (
+        <>
+          <Route path="/tarifs" element={<LayoutWrapper currentPageName="acces-reserve"><AccesReserve /></LayoutWrapper>} />
+          <Route path="/inscription" element={<LayoutWrapper currentPageName="acces-reserve"><AccesReserve /></LayoutWrapper>} />
         </>
       )}
       <Route path="*" element={<PageNotFound />} />

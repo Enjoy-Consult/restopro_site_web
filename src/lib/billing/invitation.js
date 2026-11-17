@@ -10,7 +10,13 @@
 // Une arrivée par un lien qui n'existe qu'après une inscription vaut aussi invitation, et elle est gardée de même : lien
 // reçu par e-mail (reprise, mot de passe : #jeton=…) ou retour de Stripe après paiement (?session_id=…). Ainsi, l'e-mail
 // ouvert sur un autre appareil (le téléphone) ou un navigateur sans stockage n'aboutit pas à « page introuvable ».
-import { BILLING_ACTIF, VENTE_SUR_INVITATION } from "./config.js";
+//
+// Avec un mot de passe (VITE_VENTE_MOT_DE_PASSE, empreinte seulement : motdepasse-vente.js), le lien ?invitation-vente=demo
+// ne suffit plus : /tarifs et /inscription affichent « Accès réservé » (AccesReserve.jsx), et c'est le bon mot de passe,
+// saisi une fois, qui ouvre la vente dans ce navigateur. La marque gardée dépend de l'empreinte : une invitation donnée
+// avant le mot de passe, ou avec un autre mot de passe, ne vaut plus. Les liens reçus après une inscription valent
+// toujours invitation (ils n'existent qu'après une inscription faite avec le mot de passe).
+import { BILLING_ACTIF, VENTE_MOT_DE_PASSE, VENTE_SUR_INVITATION } from "./config.js";
 import { CHEMIN_REPRISE, lireJetonDuFragment } from "./reprise.js";
 import { estRetourStripe } from "./retour.js";
 
@@ -63,20 +69,27 @@ function stockages(fenetre) {
   return liste;
 }
 
-function memorise(fenetre) {
+// Valeur gardée : « 1 » sans mot de passe ; avec, une marque tirée de l'empreinte (changer le mot de passe retire donc
+// les invitations déjà données).
+export function marqueInvitation(empreinte) {
+  const texte = String(empreinte ?? "").trim();
+  return texte ? `mdp-${texte.slice(-16)}` : "1";
+}
+
+function memorise(fenetre, marque) {
   return stockages(fenetre).some((stockage) => {
     try {
-      return stockage.getItem(CLE_INVITATION) === "1";
+      return stockage.getItem(CLE_INVITATION) === marque;
     } catch {
       return false;
     }
   });
 }
 
-function memoriser(fenetre) {
+function memoriser(fenetre, marque) {
   for (const stockage of stockages(fenetre)) {
     try {
-      stockage.setItem(CLE_INVITATION, "1");
+      stockage.setItem(CLE_INVITATION, marque);
       return;
     } catch {
       // stockage plein ou refusé : on essaie le suivant
@@ -107,10 +120,16 @@ function retirerParametre(fenetre) {
 }
 
 // La vente est-elle visible dans ce navigateur ? Sans invitation (cas normal), c'est BILLING_ACTIF.
-export function venteVisible({ billingActif = BILLING_ACTIF, surInvitation = VENTE_SUR_INVITATION, fenetre = globalThis.window } = {}) {
+export function venteVisible({
+  billingActif = BILLING_ACTIF,
+  surInvitation = VENTE_SUR_INVITATION,
+  empreinte = VENTE_MOT_DE_PASSE,
+  fenetre = globalThis.window,
+} = {}) {
   if (!billingActif) return false;
   if (!surInvitation) return true;
   if (!fenetre) return false;
+  const marque = marqueInvitation(empreinte);
   let adresse = { pathname: "", search: "", hash: "" };
   try {
     const { pathname = "", search = "", hash = "" } = fenetre.location ?? {};
@@ -125,16 +144,31 @@ export function venteVisible({ billingActif = BILLING_ACTIF, surInvitation = VEN
     return false;
   }
   if (decision === "ouvrir") {
-    memoriser(fenetre);
     retirerParametre(fenetre);
+    // Avec un mot de passe, le lien seul n'ouvre rien : /tarifs demandera le mot de passe.
+    if (empreinte) return memorise(fenetre, marque);
+    memoriser(fenetre, marque);
     return true;
   }
   if (arriveeParLienDeVente(adresse.pathname, adresse.search, adresse.hash)) {
-    memoriser(fenetre);
+    memoriser(fenetre, marque);
     return true;
   }
-  return memorise(fenetre);
+  return memorise(fenetre, marque);
 }
+
+// Bon mot de passe saisi (AccesReserve.jsx) : la vente est ouverte dans ce navigateur, au prochain chargement.
+// Renvoie false si rien n'a pu être gardé (navigateur qui bloque les données du site) : la page le dit au lieu de
+// recharger en vain.
+export function accorderInvitation({ empreinte = VENTE_MOT_DE_PASSE, fenetre = globalThis.window } = {}) {
+  if (!fenetre) return false;
+  const marque = marqueInvitation(empreinte);
+  memoriser(fenetre, marque);
+  return memorise(fenetre, marque);
+}
+
+// /tarifs et /inscription affichent-elles « Accès réservé » quand la vente n'est pas visible ?
+export const ACCES_PAR_MOT_DE_PASSE = BILLING_ACTIF && VENTE_SUR_INVITATION && VENTE_MOT_DE_PASSE !== "";
 
 // Décidé une fois, au chargement de la page, avant le routeur : les routes de la vente et les liens qui y mènent lisent
 // cette valeur à la place de BILLING_ACTIF.
