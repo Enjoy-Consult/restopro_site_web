@@ -54,7 +54,7 @@ export const MENTION_PMS = "PMS offert";
 // rien en mensuel sans engagement, ni en Essentiel. La précision courte de la carte ; le renvoi dit tout.
 export const PMS_OFFERT = Object.freeze({
   serenite: "en annuel, dès le 1er paiement",
-  expert: "en mensuel avec engagement, dès le 3ᵉ paiement",
+  expert: "en mensuel avec engagement, dès le 3e paiement",
 });
 
 const aPms = (offre) => Object.prototype.hasOwnProperty.call(PMS_OFFERT, offre?.cle ?? "");
@@ -77,7 +77,7 @@ export function renvoiPms(catalogue) {
   const disponible = catalogue.pmsDisponible === true;
   return [
     disponible ? null : "Lancement prévu à la mi-décembre 2026, sans date garantie.",
-    `Le PMS (plan de maîtrise sanitaire) est offert en Sérénité annuel dès le 1er paiement, et en Sérénité ou Expert en mensuel avec engagement dès le 3ᵉ paiement${disponible ? "" : ", quand cette version sera proposée"}.`,
+    `Le PMS (plan de maîtrise sanitaire) est offert en Sérénité annuel dès le 1er paiement, et en Sérénité ou Expert en mensuel avec engagement dès le 3e paiement${disponible ? "" : ", quand cette version sera proposée"}.`,
     "Pas de PMS offert en mensuel sans engagement.",
     "Mises à jour illimitées tant que le droit est ouvert.",
   ].filter(Boolean).join(" ");

@@ -30,7 +30,7 @@ import {
 // « Offert », comme le point « PMS offert** » de l'en-tête (article 14.2 des CGV).
 const PMS_TEXTE = {
   premier_paiement: "Offert** dès le 1er paiement, mises à jour illimitées",
-  troisieme_paiement: "Offert** dès le 3ᵉ paiement, mises à jour illimitées",
+  troisieme_paiement: "Offert** dès le 3e paiement, mises à jour illimitées",
 };
 
 // Intitulés courts du sélecteur ; le libellé complet du catalogue s'affiche dessous.

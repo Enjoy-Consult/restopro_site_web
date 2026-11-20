@@ -182,7 +182,7 @@ test("ce que la formule apporte (Louis, 19/11) : suivi, PMS offert**, courrier �
     { cle: "ddpp", texte: TEXTE_COURRIER_DDPP },
   ]);
   assert.deepEqual(pointsFormule(expert).map((p) => p.cle), ["suivi", "pms", "ddpp"]);
-  assert.equal(pointsFormule(expert)[1].precision, "en mensuel avec engagement, dès le 3ᵉ paiement");
+  assert.equal(pointsFormule(expert)[1].precision, "en mensuel avec engagement, dès le 3e paiement");
   assert.equal(pointsFormule(expert)[2].texte, "Aide à la rédaction de votre réponse à la DDPP en cas de mise en demeure, avec l’assistance DDPP en option : un courrier qui présente vos mesures correctives, signé et envoyé par vous.");
   for (const p of [...pointsFormule(serenite), ...pointsFormule(expert)]) assert.ok((p.texte.match(/ : /g) ?? []).length <= 1, p.texte);
   // Suivi lu sur le catalogue : sans le champ (billing pas à jour), ni point ni ligne ; false : « Non » au détail.
@@ -199,7 +199,7 @@ test("ce que la formule apporte (Louis, 19/11) : suivi, PMS offert**, courrier �
   // Renvoi « ** » : les règles de l'article 14.2, la date prévue tant que le PMS n'est pas disponible.
   assert.equal(
     renvoiPms(SANS_PMS),
-    "Lancement prévu à la mi-décembre 2026, sans date garantie. Le PMS (plan de maîtrise sanitaire) est offert en Sérénité annuel dès le 1er paiement, et en Sérénité ou Expert en mensuel avec engagement dès le 3ᵉ paiement, quand cette version sera proposée. Pas de PMS offert en mensuel sans engagement. Mises à jour illimitées tant que le droit est ouvert.",
+    "Lancement prévu à la mi-décembre 2026, sans date garantie. Le PMS (plan de maîtrise sanitaire) est offert en Sérénité annuel dès le 1er paiement, et en Sérénité ou Expert en mensuel avec engagement dès le 3e paiement, quand cette version sera proposée. Pas de PMS offert en mensuel sans engagement. Mises à jour illimitées tant que le droit est ouvert.",
   );
   assert.doesNotMatch(renvoiPms(AVEC_PMS), /mi-décembre|quand cette version/);
   assert.equal(renvoiPms({ ...SANS_PMS, offres: [essentiel] }), null);
@@ -225,7 +225,7 @@ test("carte et page : les trois points avant « Inclus », renvois * et ** sous 
   assert.doesNotMatch(carte, /Inclus dès le/);
   // « Offert** » dans les deux cas de la ligne PMS : version avec PMS (catalogue) et règles de l'article 14.2.
   assert.match(carte, /premier_paiement: "Offert\*\* dès le 1er paiement, mises à jour illimitées"/);
-  assert.match(carte, /troisieme_paiement: "Offert\*\* dès le 3ᵉ paiement, mises à jour illimitées"/);
+  assert.match(carte, /troisieme_paiement: "Offert\*\* dès le 3e paiement, mises à jour illimitées"/);
   assert.match(carte, /`Offert\*\* \$\{pmsOffert\}`/);
   assert.notEqual((await import("./textes-tarifs.js")).renvoiPms(AVEC_PMS), null);
   // Catégories que la formule ne propose pas (CGV 4.1) : dites au détail.

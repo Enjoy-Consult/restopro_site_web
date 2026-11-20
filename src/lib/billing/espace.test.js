@@ -300,6 +300,13 @@ test("accès offert : ligne de l'app, fin annoncée par la phrase permise ; avan
   assert.equal(ligne(aVieBeta, "Accès offert"), "Expert, sans fin");
   assert.equal(aVieBeta.bandeaux.find((b) => b.cle === "fin_acces_offert"), undefined);
   assert.doesNotMatch(texteComplet(aVieBeta), /2027|se termine/);
+  // Sans abonnement : le bandeau de la bêta à la place de « pas encore d'abonnement », et pas de contact pour souscrire.
+  assert.deepEqual(aVieBeta.bandeaux.find((b) => b.cle === "beta"), { cle: "beta", type: "info", texte: "Votre restaurant fait partie de la bêta : il garde la formule Expert à vie, sans abonnement à souscrire." });
+  assert.equal(aVieBeta.bandeaux.find((b) => b.cle === "sans"), undefined);
+  assert.equal(aVieBeta.actions.souscrire, false);
+  // Paiement en cours (en_attente_paiement) : le cas ordinaire, sans le bandeau de la bêta.
+  const betaQuiPaie = offert({ offre: "expert", jusquau: null, motif: "beta" }, "en_attente_paiement");
+  assert.equal(betaQuiPaie.bandeaux.find((b) => b.cle === "beta"), undefined);
   // Accès offert daté (transition) : la fin est annoncée.
   const beta = offert({ offre: "serenite", jusquau: "2027-03-01T00:00:00Z", motif: "transition" });
   assert.equal(ligne(beta, "Accès offert"), "Sérénité, jusqu’au 1er mars 2027");

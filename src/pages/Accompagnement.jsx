@@ -19,7 +19,7 @@ const services = [
       "Aide à la rédaction de votre réponse. Vous la signez et l’envoyez : la relation avec l’administration reste la vôtre.",
       "Suivi des actions jusqu’à leur mise en place dans votre cuisine.",
     ],
-    result: "Comprise dans la formule Sérénité pour la réponse à une mise en demeure ; sur devis dans les autres cas.",
+    result: "Comprise dans la formule Sérénité, et en Expert avec l’option assistance DDPP, pour la réponse à une mise en demeure ; sur devis dans les autres cas.",
     image: "/images/cuisine-service-640x400.jpg",
     imageCaption: "En cuisine, pendant le service",
   },

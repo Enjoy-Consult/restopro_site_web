@@ -138,6 +138,9 @@ export const TEXTE_SUPPORT = "Pour toute autre demande, contactez le support.";
 // de /tarifs refuserait son adresse (EMAIL_DEJA_UTILISE). D'ici le paiement depuis l'espace (autre branche), un
 // établissement qui existe déjà souscrit auprès du support (CGV 1.0, article 1, point P001 de la liste de Louis).
 export const TEXTE_SANS_ABONNEMENT = "Votre restaurant n’a pas encore d’abonnement.";
+// Bêta (décision de Louis du 19/11) : accès Expert offert à vie, sans abonnement à souscrire. À la place du bandeau
+// « sans » et du contact pour souscrire, tant que l'établissement n'a pas d'abonnement.
+export const TEXTE_BETA_A_VIE_ESPACE = "Votre restaurant fait partie de la bêta : il garde la formule Expert à vie, sans abonnement à souscrire.";
 export const DEBUT_CONTACT_SOUSCRIRE = "Pour souscrire un abonnement, contactez-nous : ";
 export const TEXTE_CONTACT_SOUSCRIRE = `${DEBUT_CONTACT_SOUSCRIRE}${BUSINESS.email}.`;
 // Formule et comptes : pas dans l'espace (périmètre du 15/11), par contact. Texte de l'app (siteAbonnement.ts,
@@ -355,6 +358,7 @@ export function resumeCompte(compte, maintenant = Date.now()) {
   const statut = compte?.statut;
   const enCours = EN_COURS.includes(statut);
   const avantPremierPaiement = statut === "sans_abonnement" || statut === "en_attente_paiement";
+  const beta = statut === "sans_abonnement" && estObjet(compte?.accesOffert) && texte(compte.accesOffert.motif) === "beta";
   const offre = valeurDe(NOMS_OFFRES, texte(compte?.offre)) ?? (texte(compte?.offre) || null);
   const version = valeurDe(NOMS_VERSIONS, texte(compte?.version));
   const montant = Number.isFinite(compte?.montantPeriodiqueHTCentimes) && compte.montantPeriodiqueHTCentimes > 0
@@ -431,7 +435,8 @@ export function resumeCompte(compte, maintenant = Date.now()) {
   // Fin prochaine d'un accès offert, sans abonnement en cours (phrase permise par les magasins, mot pour mot).
   if ((offert?.fin ?? 0) > maintenant && !enCours)
     bandeaux.push({ cle: "fin_acces_offert", type: "info", texte: `L’accès offert se termine le ${date(compte.accesOffert.jusquau)}.` });
-  if (avantPremierPaiement) bandeaux.push({ cle: "sans", type: "info", texte: TEXTE_SANS_ABONNEMENT });
+  if (beta) bandeaux.push({ cle: "beta", type: "info", texte: TEXTE_BETA_A_VIE_ESPACE });
+  else if (avantPremierPaiement) bandeaux.push({ cle: "sans", type: "info", texte: TEXTE_SANS_ABONNEMENT });
   if (suppression) {
     bandeaux.push({
       cle: "suppression",
@@ -462,7 +467,7 @@ export function resumeCompte(compte, maintenant = Date.now()) {
       // ce cas, aucun abonnement n'est conclu et il n'y aura ni export ni consultation (CGV 11.3). Rien n'est promis.
       exportALaFin: !exportDisponible && statut === "actif",
       // TEXTE_CONTACT_SOUSCRIRE avant le premier paiement : la souscription d'un établissement existant passe par le support.
-      souscrire: avantPremierPaiement,
+      souscrire: avantPremierPaiement && !beta,
       // TEXTE_CONTACT_FORMULE : formule et comptes, après le premier paiement (siteAbonnementView de l'app).
       contactFormule: Boolean(statut) && !avantPremierPaiement,
     },
