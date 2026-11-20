@@ -43,9 +43,7 @@ const ID_CHAMP_MDP = "champ-confirmation-mdp";
 function Support() {
   return (
     <p className="text-muted text-[15px] leading-relaxed mt-12 pt-6 border-t border-border">
-      {TEXTE_SUPPORT} <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>
-      {" · "}
-      <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>
+      {TEXTE_SUPPORT} <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>
     </p>
   );
 }
@@ -438,9 +436,7 @@ export default function MonAbonnement() {
                       <h2 className="text-ink text-[22px] mb-2">Souscrire un abonnement</h2>
                       <p className="text-muted text-[15px] leading-relaxed">
                         {DEBUT_CONTACT_SOUSCRIRE}
-                        <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>
-                        {" ou "}
-                        <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+                        <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
                       </p>
                     </div>
                   )}
@@ -462,9 +458,7 @@ export default function MonAbonnement() {
                       <h2 className="text-ink text-[22px] mb-2">Formule et comptes</h2>
                       <p className="text-muted text-[15px] leading-relaxed">
                         {DEBUT_CONTACT_FORMULE}
-                        <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>
-                        {" ou "}
-                        <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+                        <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
                       </p>
                     </div>
                   )}

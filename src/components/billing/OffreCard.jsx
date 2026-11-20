@@ -18,11 +18,19 @@ import {
   selectionVersQuery,
   versionsDisponibles,
 } from "@/lib/billing/pricing";
-import { intituleModules } from "@/lib/billing/textes-tarifs";
+import {
+  MENTION_EQUIPIERS,
+  PMS_OFFERT,
+  PRECISION_COURRIER_DDPP,
+  intituleModules,
+  ligneSuivi,
+  pointsFormule,
+} from "@/lib/billing/textes-tarifs";
 
+// « Offert », comme le point « PMS offert** » de l'en-tête (article 14.2 des CGV).
 const PMS_TEXTE = {
-  premier_paiement: "Inclus dès le 1er paiement, mises à jour illimitées",
-  troisieme_paiement: "Inclus dès le 3ᵉ paiement, mises à jour illimitées",
+  premier_paiement: "Offert** dès le 1er paiement, mises à jour illimitées",
+  troisieme_paiement: "Offert** dès le 3ᵉ paiement, mises à jour illimitées",
 };
 
 // Intitulés courts du sélecteur ; le libellé complet du catalogue s'affiche dessous.
@@ -57,6 +65,9 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
       ? offre.modules.map((cle) => catalogue.modules.find((m) => m.cle === cle)?.libelle ?? cle)
       : modules.modules;
   const pms = pmsDeVersion(catalogue, version);
+  const points = pointsFormule(offre);
+  const suivi = ligneSuivi(offre);
+  const pmsOffert = PMS_OFFERT[offre.cle] ?? null;
   const optionDdpp = version.options.find((o) => o.cle === "ddpp");
   const periode = libellePeriode(version.periode);
   const id = `offre-${offre.cle}`;
@@ -68,6 +79,8 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
     .filter((c) => (offre.comptesInclus[c.cle] ?? 0) > 0)
     .map((c) => libelleComptes(c.libelle, offre.comptesInclus[c.cle]));
   const supplements = categoriesSupplementaires(catalogue, offre, version);
+  // Catégories du catalogue que la formule ne propose pas (CGV 1.0, article 4.1 : « la page Tarifs l'indique »).
+  const nonProposees = catalogue.categories.filter((c) => !offre.categoriesAutorisees.includes(c.cle));
   const prixMiniSupplement = Math.min(...supplements.map((c) => version.prixCompteSupplementaireCentimes[c.cle]));
   // Les comptes et l'option se choisissent à l'inscription ; ceux d'un aller-retour depuis
   // l'inscription (« Modifier mon choix ») sont transmis tant que la version choisie les propose.
@@ -101,9 +114,32 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
           <span className="text-muted text-[14px]">HT/{periode}</span>
         </p>
         <p className="text-faint text-[13px] mt-1 tabular-nums">soit {prixTTC} TTC/{periode}</p>
+        {/* Ce que la formule apporte, avant les comptes (textes-tarifs.js, pointsFormule). */}
+        {points.length > 0 && (
+          <ul className="mt-3 flex flex-col gap-1.5 text-[13.5px] text-ink leading-snug">
+            {points.map((p) => (
+              <li key={p.cle} className="flex gap-2">
+                <svg aria-hidden="true" width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="#1c4b38" strokeWidth="1.8" className="shrink-0 mt-[3px]">
+                  <path d="M2.5 7.5l3 3 6-6.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                {p.cle === "pms" ? (
+                  <span>
+                    <strong className="font-semibold">{p.texte}**</strong> — {p.precision}
+                  </span>
+                ) : (
+                  <span>{p.texte}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
         <p className="text-muted text-[13px] leading-snug mt-2.5">
           <span className="text-ink font-medium">Inclus : </span>
           {inclus.join(", ")}
+        </p>
+        {/* Toutes les formules, visible sans ouvrir le détail ; l'astérisque renvoie à la note sous les cartes (Tarifs.jsx). */}
+        <p className="text-ink text-[14px] leading-snug mt-1.5">
+          <strong className="font-semibold">{MENTION_EQUIPIERS}*</strong>
         </p>
       </header>
 
@@ -175,12 +211,24 @@ export default function OffreCard({ catalogue, offre, precedente, miseEnAvant, i
                   La carte ne lit donc plus fonctions.accesOrdinateur et n'affiche jamais « Non inclus ». */}
               <Ligne label="Accès sur ordinateur">Inclus</Ligne>
               <Ligne label="Assistance DDPP niveau 1">
-                {offre.fonctions.ddpp === "incluse" && "Incluse"}
-                {offre.fonctions.ddpp === "option" && (optionDdpp ? `En option, ${formatHTParPeriode(optionDdpp.prixCentimes, version.periode)}` : "Non proposée avec cette version")}
+                {offre.fonctions.ddpp === "incluse" && `Incluse, ${PRECISION_COURRIER_DDPP}`}
+                {offre.fonctions.ddpp === "option" &&
+                  (optionDdpp ? `En option, ${formatHTParPeriode(optionDdpp.prixCentimes, version.periode)}, ${PRECISION_COURRIER_DDPP}` : "Non proposée avec cette version")}
                 {offre.fonctions.ddpp === "non" && "Non"}
               </Ligne>
-              {pms && <Ligne label="PMS">{PMS_TEXTE[pms]}</Ligne>}
-              <Ligne label="Équipiers">Illimités, sans supplément</Ligne>
+              {suivi && <Ligne label="Suivi du score hygiène">{suivi}</Ligne>}
+              {/* Version avec PMS (catalogue, une fois le PMS disponible) ; sinon les règles de l'article 14.2. */}
+              {(pms || pmsOffert) && (
+                <Ligne label="PMS">
+                  {pms ? PMS_TEXTE[pms] : `Offert** ${pmsOffert}`}
+                </Ligne>
+              )}
+              <Ligne label="Équipiers">Illimités et gratuits*</Ligne>
+              {nonProposees.length > 0 && (
+                <Ligne label="Non proposés">
+                  {nonProposees.map((c) => `Comptes ${c.libelle.toLowerCase()}`).join(", ")}
+                </Ligne>
+              )}
               <Ligne label="Modules">{intituleModules(modules.mode, precedente)}</Ligne>
             </dl>
             <ul className="mt-1 text-[13px] text-muted flex flex-col gap-1.5">

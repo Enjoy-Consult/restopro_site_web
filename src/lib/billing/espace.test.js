@@ -48,7 +48,7 @@ test("échec de connexion : 401 uniforme, motifs de CONNEXION_NON_ADMISE, 429 av
   assert.match(motif("aucun_restaurant").texte, /Aucun établissement/);
   for (const inconnu of ["autre", "", undefined, "__proto__", "constructor"]) assert.match(motif(inconnu).texte, /ne permet pas de gérer l’abonnement ici/, String(inconnu));
   assert.match(issueConnexion(new ApiError("X", 429, null, 30000)).texte, /30 secondes/);
-  assert.equal(issueConnexion(new ApiError("RESEAU")).telephone, true);
+  assert.equal(issueConnexion(new ApiError("RESEAU")).contact, true);
 });
 
 test("session : 401 finit la session ; PORTEE_INSUFFISANTE jamais ; mot de passe refusé n'est pas une fin de session", () => {
@@ -295,7 +295,13 @@ test("impayé : bouton « Résilier » gardé, mais aucune promesse d'accès com
 
 test("accès offert : ligne de l'app, fin annoncée par la phrase permise ; avant le premier paiement, souscription par le support", () => {
   const offert = (accesOffert, statut = "sans_abonnement") => resumeCompte({ statut, accesOffert }, MAINTENANT);
-  const beta = offert({ offre: "serenite", jusquau: "2027-03-01T00:00:00Z", motif: "beta" });
+  // Bêta : accès Expert offert à vie (décision de Louis du 19/11) ; une date servie quand même n'est ni affichée ni annoncée.
+  const aVieBeta = offert({ offre: "expert", jusquau: "2027-06-30T00:00:00Z", motif: "beta" });
+  assert.equal(ligne(aVieBeta, "Accès offert"), "Expert, sans fin");
+  assert.equal(aVieBeta.bandeaux.find((b) => b.cle === "fin_acces_offert"), undefined);
+  assert.doesNotMatch(texteComplet(aVieBeta), /2027|se termine/);
+  // Accès offert daté (transition) : la fin est annoncée.
+  const beta = offert({ offre: "serenite", jusquau: "2027-03-01T00:00:00Z", motif: "transition" });
   assert.equal(ligne(beta, "Accès offert"), "Sérénité, jusqu’au 1er mars 2027");
   assert.equal(ligne(beta, "Statut"), "Sans abonnement");
   const fin = beta.bandeaux.find((b) => b.cle === "fin_acces_offert");
@@ -322,7 +328,7 @@ test("accès offert : ligne de l'app, fin annoncée par la phrase permise ; avan
   // Textes et lien.
   assert.equal(TEXTE_SANS_ABONNEMENT, "Votre restaurant n’a pas encore d’abonnement.");
   // Qui se connecte ici a déjà un établissement : pas de lien vers l'inscription de /tarifs (EMAIL_DEJA_UTILISE).
-  assert.equal(TEXTE_CONTACT_SOUSCRIRE, "Pour souscrire un abonnement, contactez-nous : contact@restoclair.fr ou 07 77 75 26 05.");
+  assert.equal(TEXTE_CONTACT_SOUSCRIRE, "Pour souscrire un abonnement, contactez-nous : contact@restoclair.fr.");
   assert.ok(TEXTE_CONTACT_SOUSCRIRE.startsWith(DEBUT_CONTACT_SOUSCRIRE));
   for (const statut of ["sans_abonnement", "en_attente_paiement"]) assert.equal(resumeCompte({ statut }, MAINTENANT).actions.souscrire, true, statut);
   for (const statut of ["actif", "impaye", "activation_provisoire", "resilie"]) assert.equal(resumeCompte({ statut }, MAINTENANT).actions.souscrire, false, statut);
@@ -342,7 +348,7 @@ test("suppression des données : ligne et date dites quel que soit le statut (fi
 });
 
 test("formule et comptes : texte de l'app (CONTACT_FORMULE_TEXT) avec le contact du site, après le premier paiement", () => {
-  assert.equal(TEXTE_CONTACT_FORMULE, "Pour changer de formule ou ajouter des comptes, contactez-nous : contact@restoclair.fr ou 07 77 75 26 05.");
+  assert.equal(TEXTE_CONTACT_FORMULE, "Pour changer de formule ou ajouter des comptes, contactez-nous : contact@restoclair.fr.");
   assert.ok(TEXTE_CONTACT_FORMULE.startsWith(DEBUT_CONTACT_FORMULE));
   for (const statut of ["actif", "impaye", "activation_provisoire", "resilie"]) assert.equal(resumeCompte({ statut }, MAINTENANT).actions.contactFormule, true, statut);
   for (const statut of ["sans_abonnement", "en_attente_paiement"]) assert.equal(resumeCompte({ statut }, MAINTENANT).actions.contactFormule, false, statut);
@@ -380,13 +386,13 @@ test("refus de la résiliation (issueResiliation) : réponse perdue et 409 relis
 
 test("échec de connexion : un autre 4xx est un refus, pas une panne ; réseau et 5xx restent « indisponible »", () => {
   for (const erreur of [new ApiError("FORBIDDEN", 403), new ApiError("ERREUR_INCONNUE", 404), new ApiError("CONFLIT", 409), new ApiError("ERREUR_INCONNUE", 400)]) {
-    assert.deepEqual(issueConnexion(erreur), { texte: MESSAGE_REFUS_GENERIQUE, telephone: true }, `${erreur.code} ${erreur.status}`);
+    assert.deepEqual(issueConnexion(erreur), { texte: MESSAGE_REFUS_GENERIQUE, contact: true }, `${erreur.code} ${erreur.status}`);
   }
   assert.deepEqual(issueConnexion(new ApiError("VALIDATION_ERROR", 400)), { texte: "Vérifiez votre adresse e-mail et votre mot de passe." });
   assert.deepEqual(issueConnexion(new ApiError("IDENTIFIANTS_INVALIDES", 401)), { texte: "Adresse e-mail ou mot de passe incorrect." });
   assert.match(issueConnexion(new ApiError("CONNEXION_NON_ADMISE", 403, { motif: "desactive" })).texte, /désactivé/);
   for (const erreur of [new ApiError("RESEAU"), new ApiError("X", 500), new ApiError("X", 503)]) {
-    assert.deepEqual(issueConnexion(erreur), { texte: MESSAGE_INDISPONIBLE, telephone: true }, `${erreur.code} ${erreur.status}`);
+    assert.deepEqual(issueConnexion(erreur), { texte: MESSAGE_INDISPONIBLE, contact: true }, `${erreur.code} ${erreur.status}`);
   }
 });
 

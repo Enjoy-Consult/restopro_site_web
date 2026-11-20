@@ -100,8 +100,8 @@ export default function AccesReserve() {
 
           <p className="text-muted text-[15px] leading-relaxed mt-10">
             Pour découvrir l’application RestOclair, demandez un{" "}
-            <Link to="/essai-gratuit" className="link-underline">essai gratuit</Link>, ou appelez-nous au{" "}
-            <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+            <Link to="/essai-gratuit" className="link-underline">essai gratuit</Link>, ou écrivez-nous à{" "}
+            <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
           </p>
         </div>
       </section>

@@ -139,11 +139,11 @@ export const TEXTE_SUPPORT = "Pour toute autre demande, contactez le support.";
 // établissement qui existe déjà souscrit auprès du support (CGV 1.0, article 1, point P001 de la liste de Louis).
 export const TEXTE_SANS_ABONNEMENT = "Votre restaurant n’a pas encore d’abonnement.";
 export const DEBUT_CONTACT_SOUSCRIRE = "Pour souscrire un abonnement, contactez-nous : ";
-export const TEXTE_CONTACT_SOUSCRIRE = `${DEBUT_CONTACT_SOUSCRIRE}${BUSINESS.email} ou ${BUSINESS.phone.display}.`;
+export const TEXTE_CONTACT_SOUSCRIRE = `${DEBUT_CONTACT_SOUSCRIRE}${BUSINESS.email}.`;
 // Formule et comptes : pas dans l'espace (périmètre du 15/11), par contact. Texte de l'app (siteAbonnement.ts,
-// CONTACT_FORMULE_TEXT) avec le contact du site ; la page fait des deux coordonnées des liens mailto et tel.
+// CONTACT_FORMULE_TEXT) avec le contact du site ; la page fait de l'adresse un lien mailto.
 export const DEBUT_CONTACT_FORMULE = "Pour changer de formule ou ajouter des comptes, contactez-nous : ";
-export const TEXTE_CONTACT_FORMULE = `${DEBUT_CONTACT_FORMULE}${BUSINESS.email} ou ${BUSINESS.phone.display}.`;
+export const TEXTE_CONTACT_FORMULE = `${DEBUT_CONTACT_FORMULE}${BUSINESS.email}.`;
 export const TEXTE_PORTEE_INSUFFISANTE = "Cette action n’est pas disponible depuis cet espace. Contactez le support.";
 // Abonnement en cours : billing ne sert l'export de sortie qu'après la fin de l'accès (exportSortieDisponible).
 export const TEXTE_EXPORT_A_LA_FIN =
@@ -167,11 +167,12 @@ const REFUS_CONNEXION = {
     texte: "Ce compte utilise encore un mot de passe temporaire. Choisissez votre mot de passe avec le lien reçu par e-mail, ou avec « Mot de passe oublié ».",
     motDePasse: true,
   },
-  desactive: { texte: "Ce compte est désactivé. Contactez le support.", telephone: true },
-  sursis: { texte: "Ce compte est suspendu pour le moment. Contactez le support.", telephone: true },
-  aucun_restaurant: { texte: "Aucun établissement n’est rattaché à ce compte. Contactez le support.", telephone: true },
+  // La page ajoute « Écrivez-nous à contact@restoclair.fr. » (contact) : pas de « Contactez le support. » en double.
+  desactive: { texte: "Ce compte est désactivé.", contact: true },
+  sursis: { texte: "Ce compte est suspendu pour le moment.", contact: true },
+  aucun_restaurant: { texte: "Aucun établissement n’est rattaché à ce compte.", contact: true },
 };
-const REFUS_CONNEXION_INCONNU = { texte: "Ce compte ne permet pas de gérer l’abonnement ici. Contactez le support.", telephone: true };
+const REFUS_CONNEXION_INCONNU = { texte: "Ce compte ne permet pas de gérer l’abonnement ici.", contact: true };
 
 export function issueConnexion(erreur) {
   if (estTropDEssais(erreur)) return { texte: messageTropDEssais(erreur) };
@@ -184,8 +185,8 @@ export function issueConnexion(erreur) {
   if (code === "VALIDATION_ERROR") return { texte: "Vérifiez votre adresse e-mail et votre mot de passe." };
   // Autre 4xx (403 de garde, 404, 409…) : un refus, pas une panne ; « réessayez dans quelques minutes » ferait
   // réessayer en boucle. L'indisponibilité reste réservée au réseau et aux 5xx, comme messageRefusEspace.
-  if (erreur?.status >= 400 && erreur?.status < 500) return { texte: MESSAGE_REFUS_GENERIQUE, telephone: true };
-  return { texte: MESSAGE_INDISPONIBLE, telephone: true };
+  if (erreur?.status >= 400 && erreur?.status < 500) return { texte: MESSAGE_REFUS_GENERIQUE, contact: true };
+  return { texte: MESSAGE_INDISPONIBLE, contact: true };
 }
 
 // Refus d'une action de l'espace (hors session finie et mot de passe refusé) : texte à afficher. L'indisponibilité est
@@ -339,10 +340,12 @@ export function texteResiliationEnregistree(effetLe) {
 // Accès offert (accesOffert de GET /compte : { offre, version?, jusquau, motif }), ligne de l'app
 // (SubscriptionSummary.tsx) : « Sérénité, jusqu’au 1er mars 2027 », ou « Sérénité, sans fin » (jusquau null). Formule
 // inconnue : rien, comme la lecture de l'app. Date présente mais illisible : la formule seule, sans rien promettre.
+// Bêta (motif « beta ») : accès Expert offert à vie (décision de Louis du 19/11, qui remplace la fin au 30/06/2027) ;
+// une date servie quand même n'est ni affichée ni annoncée.
 function lireAccesOffert(brut) {
   const nom = estObjet(brut) ? valeurDe(NOMS_OFFRES, texte(brut.offre)) : null;
   if (!nom) return null;
-  if (brut.jusquau === null || brut.jusquau === undefined) return { texte: `${nom}, sans fin`, fin: null };
+  if (brut.jusquau === null || brut.jusquau === undefined || texte(brut.motif) === "beta") return { texte: `${nom}, sans fin`, fin: null };
   const jour = date(brut.jusquau);
   return jour ? { texte: `${nom}, jusqu’au ${jour}`, fin: instant(brut.jusquau) } : { texte: nom, fin: null };
 }

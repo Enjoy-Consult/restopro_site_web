@@ -107,7 +107,9 @@ test("demande envoyée : texte du contrat, le même pour toute adresse, sans dir
   assert.equal(b.email, "marie@exemple.fr");
   assert.equal(a.avant, b.avant);
   assert.equal(a.apres, b.apres);
-  assert.equal(`${a.avant}X${a.apres}`, `Si une inscription en attente correspond à l’adresse X, un lien valable ${DUREE_LIEN_MINUTES} minutes vient d’y être envoyé. Pensez à regarder dans vos courriers indésirables.`);
+  // Adresse unique (coordination du 20/11) : la phrase de « Mot de passe oublié », sans rien dire du compte.
+  assert.equal(`${a.avant}X${a.apres}`, "Si l’adresse X correspond à un compte, vous recevrez un e-mail dans quelques minutes. Pensez à vérifier vos courriers indésirables.");
+  assert.ok(DUREE_LIEN_MINUTES > 0);
   assert.doesNotMatch(`${a.avant}${a.apres}`, /n’existe pas|inconnu|introuvable/);
   assert.equal(TEXTE_LIEN_INDISPONIBLE, "Ce lien n’est plus valable : il a expiré, a déjà servi ou a été remplacé. Demandez un nouveau lien sur restoclair.fr ou contactez le support.");
 });
@@ -117,7 +119,7 @@ test("demande : partie, trop d'essais, adresse refusée, panne", () => {
   assert.deepEqual(issueDemande(new ApiError("TROP_D_ESSAIS", 429)), { texte: MESSAGE_TROP_D_ESSAIS });
   assert.deepEqual(issueDemande(new ApiError("VALIDATION_ERROR", 400)), { champ: "email", texte: "Vérifiez votre adresse e-mail." });
   for (const panne of [new ApiError("RESEAU"), new ApiError("ERREUR_INCONNUE", 503)]) {
-    assert.deepEqual(issueDemande(panne), { texte: MESSAGE_INDISPONIBLE, telephone: true });
+    assert.deepEqual(issueDemande(panne), { texte: MESSAGE_INDISPONIBLE, contact: true });
   }
 });
 
@@ -134,7 +136,7 @@ test("reprise : lien périmé, déjà actif ou payé, activation en cours, essai
   // 429 et panne : le même code peut resservir, le bouton reste.
   assert.deepEqual(issueEchange(new ApiError("TROP_D_ESSAIS", 429)), { type: "erreur", texte: MESSAGE_TROP_D_ESSAIS, garderBouton: true });
   for (const panne of [new ApiError("RESEAU"), new ApiError("ERREUR_INCONNUE", 502)]) {
-    assert.deepEqual(issueEchange(panne), { type: "erreur", texte: MESSAGE_INDISPONIBLE, garderBouton: true, telephone: true });
+    assert.deepEqual(issueEchange(panne), { type: "erreur", texte: MESSAGE_INDISPONIBLE, garderBouton: true, contact: true });
   }
 });
 
@@ -144,7 +146,7 @@ test("annulation : effacée, déjà payée (409 INSCRIPTION_PAYEE), lien périm�
   assert.deepEqual(issueAnnulation(new ApiError("LIEN_INDISPONIBLE", 410)), { type: "lien_indisponible" });
   assert.deepEqual(issueAnnulation(new ApiError("VALIDATION_ERROR", 400)), { type: "lien_indisponible" });
   assert.deepEqual(issueAnnulation(new ApiError("TROP_D_ESSAIS", 429)), { type: "erreur", texte: MESSAGE_TROP_D_ESSAIS, garderBouton: true });
-  assert.deepEqual(issueAnnulation(new ApiError("RESEAU")), { type: "erreur", texte: MESSAGE_INDISPONIBLE, garderBouton: true, telephone: true });
+  assert.deepEqual(issueAnnulation(new ApiError("RESEAU")), { type: "erreur", texte: MESSAGE_INDISPONIBLE, garderBouton: true, contact: true });
 });
 
 // --- Mot de passe ---
@@ -177,13 +179,13 @@ test("mot de passe : heure d'échéance du lien, en heure de Paris", () => {
 test("mot de passe : vérification et enregistrement, le lien survit à un refus de saisie", () => {
   assert.deepEqual(issueVerification(new ApiError("LIEN_INDISPONIBLE", 410)), { type: "lien_indisponible" });
   assert.deepEqual(issueVerification(new ApiError("TROP_D_ESSAIS", 429)), { type: "erreur", texte: MESSAGE_TROP_D_ESSAIS, reessayer: true });
-  assert.deepEqual(issueVerification(new ApiError("RESEAU")), { type: "erreur", texte: MESSAGE_INDISPONIBLE, telephone: true, reessayer: true });
+  assert.deepEqual(issueVerification(new ApiError("RESEAU")), { type: "erreur", texte: MESSAGE_INDISPONIBLE, contact: true, reessayer: true });
   assert.deepEqual(issueDefinition(new ApiError("LIEN_INDISPONIBLE", 410)), { type: "lien_indisponible" });
   const refuse = issueDefinition(new ApiError("VALIDATION_ERROR", 400));
   assert.equal(refuse.type, "refuse");
   assert.ok(refuse.texte.includes(TEXTE_REGLE));
   assert.deepEqual(issueDefinition(new ApiError("TROP_D_ESSAIS", 429)), { type: "erreur", texte: MESSAGE_TROP_D_ESSAIS });
-  assert.deepEqual(issueDefinition(new ApiError("ERREUR_INCONNUE", 500)), { type: "erreur", texte: MESSAGE_INDISPONIBLE, telephone: true });
+  assert.deepEqual(issueDefinition(new ApiError("ERREUR_INCONNUE", 500)), { type: "erreur", texte: MESSAGE_INDISPONIBLE, contact: true });
 });
 
 // --- Appels ---

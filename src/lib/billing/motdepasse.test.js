@@ -19,10 +19,14 @@ test("mot de passe oublié : la demande partie ne dit rien du compte ; erreurs l
   assert.equal(issueOubli(null), null);
   assert.match(issueOubli(new ApiError("X", 429, null, 120000)).texte, /2 minutes/);
   assert.deepEqual(issueOubli(new ApiError("VALIDATION_ERROR", 400)), { champ: "email", texte: "Vérifiez votre adresse e-mail." });
-  assert.equal(issueOubli(new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503)).telephone, true);
+  assert.equal(issueOubli(new ApiError("SERVICE_PAIEMENT_INDISPONIBLE", 503)).contact, true);
   const texte = texteLienEnvoye("  marie@exemple.fr ");
   assert.equal(texte.email, "marie@exemple.fr");
-  assert.match(`${texte.avant}${texte.email}${texte.apres}`, /^Si un compte .* 60 minutes/);
+  // Adresse unique (coordination du 20/11) : même phrase que le compte existe ou non.
+  assert.equal(
+    `${texte.avant}${texte.email}${texte.apres}`,
+    "Si l’adresse marie@exemple.fr correspond à un compte, vous recevrez un e-mail dans quelques minutes. Pensez à vérifier vos courriers indésirables.",
+  );
 });
 
 test("choix du mot de passe : 429 avec délai, lien indisponible, refus du serveur", () => {
@@ -53,7 +57,7 @@ test("réponse perdue : 2xx sans « defini », réseau et 5xx ; le lien refusé 
   assert.deepEqual(issueDefinitionCompte(new ApiError("DEFINITION_NON_CONFIRMEE")), { type: "peut_etre_defini", reponsePerdue: true });
   for (const erreur of [new ApiError("RESEAU"), new ApiError("ERREUR_INCONNUE", 502), new ApiError("ERREUR_INCONNUE", 504), new ApiError("X", 503)]) {
     const issue = issueDefinitionCompte(erreur);
-    assert.deepEqual(issue, { type: "erreur", texte: MESSAGE_INDISPONIBLE, telephone: true, reponsePerdue: true }, `${erreur.code} ${erreur.status}`);
+    assert.deepEqual(issue, { type: "erreur", texte: MESSAGE_INDISPONIBLE, contact: true, reponsePerdue: true }, `${erreur.code} ${erreur.status}`);
     // Nouvel essai : 410, le lien a servi au premier envoi.
     assert.deepEqual(issueDefinitionCompte(new ApiError("LIEN_INDISPONIBLE", 410), issue.reponsePerdue), { type: "peut_etre_defini", reponsePerdue: true });
   }

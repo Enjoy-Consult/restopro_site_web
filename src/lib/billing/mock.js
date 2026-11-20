@@ -114,13 +114,14 @@ const DDPP = { cle: "ddpp", libelle: "Assistance DDPP niveau 1", prixCentimes: 1
 // Catalogue conforme à la section « Catalogue des formules » du cahier des charges.
 export function mockCatalogue(pmsDisponible = false) {
   const communs = MODULES_COMMUNS.map(([cle]) => cle);
-  const sereniteExtras = { responsable: 990, superviseur: 990, cuisinier: 490, services_techniques: 490 };
+  // Sérénité sans superviseur (décision de Louis du 19/11 : la supervision sera une plateforme vendue à part, aux réseaux
+  // et aux chaînes) : ni compte inclus, ni compte supplémentaire.
+  const sereniteExtras = { responsable: 990, cuisinier: 490, services_techniques: 490 };
   const sereniteVersions = [
     version("mensuel", "mois", "non", 4999, sereniteExtras),
     ...(pmsDisponible ? [version("mensuel_engage", "mois", "troisieme_paiement", 4999, sereniteExtras)] : []),
     version("annuel", "an", pmsDisponible ? "premier_paiement" : "non", 54900, {
       responsable: 11880,
-      superviseur: 11880,
       cuisinier: 5880,
       services_techniques: 5880,
     }),
@@ -143,16 +144,16 @@ export function mockCatalogue(pmsDisponible = false) {
         comptesInclus: { responsable: 1, superviseur: 0, cuisinier: 2, services_techniques: 0 },
         categoriesAutorisees: ["responsable", "cuisinier", "services_techniques"],
         modules: communs,
-        fonctions: { accesOrdinateur: true, ddpp: "non", superviseur: false },
+        fonctions: { accesOrdinateur: true, ddpp: "non", superviseur: false, suivi: false },
         versions: [version("mensuel", "mois", "non", 1999, { responsable: 990, cuisinier: 490, services_techniques: 490 })],
       },
       {
         cle: "serenite",
         nom: "Sérénité",
-        comptesInclus: { responsable: 1, superviseur: 1, cuisinier: 3, services_techniques: 1 },
-        categoriesAutorisees: ["responsable", "superviseur", "cuisinier", "services_techniques"],
+        comptesInclus: { responsable: 1, superviseur: 0, cuisinier: 3, services_techniques: 1 },
+        categoriesAutorisees: ["responsable", "cuisinier", "services_techniques"],
         modules: communs,
-        fonctions: { accesOrdinateur: true, ddpp: "incluse", superviseur: true },
+        fonctions: { accesOrdinateur: true, ddpp: "incluse", superviseur: false, suivi: true },
         versions: sereniteVersions,
       },
       {
@@ -161,7 +162,7 @@ export function mockCatalogue(pmsDisponible = false) {
         comptesInclus: { responsable: 1, superviseur: 2, cuisinier: 5, services_techniques: 2 },
         categoriesAutorisees: ["responsable", "superviseur", "cuisinier", "services_techniques"],
         modules: [...communs, ...MODULES_EXPERT.map(([cle]) => cle)],
-        fonctions: { accesOrdinateur: true, ddpp: "option", superviseur: true },
+        fonctions: { accesOrdinateur: true, ddpp: "option", superviseur: true, suivi: true },
         versions: expertVersions,
       },
     ],

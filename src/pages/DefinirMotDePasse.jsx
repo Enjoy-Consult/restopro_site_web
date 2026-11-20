@@ -14,10 +14,10 @@ import { CHEMIN_REPRISE, TEXTE_LIEN_INDISPONIBLE, lireJetonDuFragment } from "@/
 const CLASSE_CHAMP =
   "w-full border bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
 
-function Telephone() {
+function EcrireNous() {
   return (
     <>
-      {" "}Vous pouvez aussi nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+      {" "}Vous pouvez aussi nous écrire à <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
     </>
   );
 }
@@ -173,7 +173,7 @@ export default function DefinirMotDePasse() {
             <>
               <Message type="error">
                 {etat.issue.texte}
-                {etat.issue.telephone && <Telephone />}
+                {etat.issue.contact && <EcrireNous />}
               </Message>
               <button type="button" className="link-underline text-[15px] mt-4" onClick={() => setRelance((n) => n + 1)}>
                 Réessayer
@@ -185,8 +185,8 @@ export default function DefinirMotDePasse() {
             <>
               <Message type="info">{TEXTE_LIEN_INDISPONIBLE}</Message>
               <p className="text-muted text-[15px] leading-relaxed mt-6">
-                <Link to={CHEMIN_REPRISE} className="link-underline">Demander un nouveau lien</Link>, ou appelez-nous au{" "}
-                <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+                <Link to={CHEMIN_REPRISE} className="link-underline">Demander un nouveau lien</Link>, ou écrivez-nous à{" "}
+                <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
               </p>
             </>
           )}
@@ -232,7 +232,7 @@ export default function DefinirMotDePasse() {
               {erreurEnvoi && (
                 <Message type="error" className="mt-6">
                   {erreurEnvoi.texte}
-                  {erreurEnvoi.telephone && <Telephone />}
+                  {erreurEnvoi.contact && <EcrireNous />}
                 </Message>
               )}
               <button

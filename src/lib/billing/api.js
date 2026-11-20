@@ -175,7 +175,13 @@ function lireOffre(brut, pmsDisponible, modules) {
     comptesInclus,
     categoriesAutorisees: categoriesAutorisees.filter((c) => typeof c === "string"),
     modules: brut.modules.filter((m) => modules.some((connu) => connu.cle === m)),
-    fonctions: { accesOrdinateur, ddpp: fonctions.ddpp, superviseur: fonctions.superviseur === true },
+    // Suivi du score hygiène par l'équipe (billing d6c33f0) : true, false, ou null s'il manque (aucune ligne alors).
+    fonctions: {
+      accesOrdinateur,
+      ddpp: fonctions.ddpp,
+      superviseur: fonctions.superviseur === true,
+      suivi: typeof fonctions.suivi === "boolean" ? fonctions.suivi : null,
+    },
     versions,
     // Vente ouverte ou non (billing, commit 0a05904) : true, false, ou null si le champ manque (billing pas encore à
     // jour). Voir offreVerrouillee (pricing.js) : quand il manque, le garde-fou du code décide.

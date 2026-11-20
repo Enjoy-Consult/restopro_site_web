@@ -183,15 +183,15 @@ test("replis sans jeton : lien de reprise, jamais « connectez-vous à votre esp
     assert.doesNotMatch(texte, /connectez-vous|votre espace/i, texte);
   }
   assert.match(MESSAGE_SESSION_EXPIREE, /compte est conservé/);
-  assert.ok(MESSAGE_INSCRIPTION_SANS_JETON.includes(BUSINESS.phone.display));
+  assert.ok(MESSAGE_INSCRIPTION_SANS_JETON.includes(BUSINESS.email));
 });
 
-test("CGV_VERSION_OBSOLETE au paiement : ni panne, ni rechargement sans issue, téléphone", () => {
+test("CGV_VERSION_OBSOLETE au paiement : ni panne, ni rechargement sans issue, e-mail du contact", () => {
   const message = messageErreur(new ApiError("CGV_VERSION_OBSOLETE", 409));
   assert.equal(message, MESSAGE_CGV_OBSOLETE_PAIEMENT);
   assert.notEqual(message, MESSAGE_INDISPONIBLE);
   assert.ok(!/recharge/i.test(message));
-  assert.ok(message.includes(BUSINESS.phone.display));
+  assert.ok(message.includes(BUSINESS.email));
   assert.match(message, /compte est conservé/);
 });
 

@@ -368,7 +368,7 @@ test("inscription : jeton lu, enveloppe comprise ; sans jeton, erreur explicite 
   }
   const message = messageErreur(new ApiError("INSCRIPTION_SANS_JETON"));
   assert.equal(message, MESSAGE_INSCRIPTION_SANS_JETON);
-  assert.ok(message.includes(BUSINESS.phone.display));
+  assert.ok(message.includes(BUSINESS.email));
 
   const faux = simulerFetch(t, () => json(201, { data: corps }));
   assert.equal((await inscrire({ responsable: {} })).token, "jeton");

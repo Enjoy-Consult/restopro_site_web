@@ -17,7 +17,7 @@ import { prendreAnnonceReprise } from "@/lib/billing/reprise";
 import { decisionAnnulation } from "@/lib/billing/retour";
 import { preparerScenario } from "@/lib/billing/scenarios";
 import { lireSession } from "@/lib/billing/session";
-import { atoutsTarifs, questionsTarifs } from "@/lib/billing/textes-tarifs";
+import { RENVOI_EQUIPIERS, atoutsTarifs, questionsTarifs, renvoiPms } from "@/lib/billing/textes-tarifs";
 
 function Chargement() {
   return (
@@ -163,8 +163,8 @@ export default function Tarifs() {
           {isError && (
             <Message type="error">
               <p>
-                {messageCatalogue(error) ?? "Les tarifs sont momentanément indisponibles. Réessayez dans quelques minutes."} Vous pouvez aussi nous appeler au{" "}
-                <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+                {messageCatalogue(error) ?? "Les tarifs sont momentanément indisponibles. Réessayez dans quelques minutes."} Vous pouvez aussi nous écrire à{" "}
+                <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
               </p>
               <button type="button" onClick={() => refetch()} disabled={isFetching} className="link-underline mt-2 disabled:opacity-60">
                 {isFetching ? "Nouvelle tentative…" : "Réessayer"}
@@ -206,6 +206,16 @@ export default function Tarifs() {
                     className={`h-2 rounded-full transition-all duration-300 ${actif === i ? "w-6 bg-bottle" : "w-2 bg-[#cfcbb9]"}`}
                   />
                 ))}
+              </div>
+
+              {/* Renvois des cartes : « * » des équipiers, « ** » du PMS (article 14 des CGV). */}
+              <div className="text-muted text-[14px] leading-snug text-center max-w-[760px] mx-auto mt-5 min-[700px]:mt-6 flex flex-col gap-2">
+                <p>* {RENVOI_EQUIPIERS}</p>
+                {renvoiPms(catalogue) && (
+                  <p>
+                    ** {renvoiPms(catalogue)} Conditions : <Link to="/cgv" className="underline underline-offset-2 hover:text-ink">article 14 des CGV</Link>.
+                  </p>
+                )}
               </div>
             </>
           )}

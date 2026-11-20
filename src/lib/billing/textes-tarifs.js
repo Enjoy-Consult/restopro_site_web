@@ -29,9 +29,71 @@ function atoutEngagement(catalogue) {
   return null;
 }
 
+// Équipiers : « point impératif » de Louis (19/11), ce qui lève les freins à la souscription. Sur la carte de chaque
+// formule, sans ouvrir le détail : la mention en gras, avec un astérisque qui renvoie à RENVOI_EQUIPIERS, sous les cartes.
+// La même formule dans le détail des cartes, les atouts et la FAQ.
+export const MENTION_EQUIPIERS = "Équipiers illimités et gratuits";
+export const RENVOI_EQUIPIERS =
+  "Les équipiers n’ont pas de connexion propre : ils signent leurs actions avec un code PIN, sur l’appareil de l’établissement.";
+
+// Ce que la formule apporte, en tête de la carte, avant les comptes (décision de Louis du 19/11 ; Expert reprend tout
+// Sérénité). Trois points, chacun lu sur le catalogue ou sur les CGV :
+// 1. suivi du score hygiène : fonctions.suivi du catalogue (billing d6c33f0) ; sans le champ, pas de ligne ;
+// 2. PMS offert : CGV 1.0, article 14.2 (le catalogue ne le dit qu'une fois le PMS disponible) ; renvoi « ** » ;
+// 3. courrier à la DDPP : complète l'assistance DDPP (fonctions.ddpp), incluse en Sérénité, en option en Expert.
+// Jamais « représente » ni « conseil juridique » : l'article 20 exclut la représentation, et la rédaction juridique
+// pour autrui est réglementée (loi du 31/12/1971). Formulation du courrier à faire valider par Louis.
+export const TEXTE_SUIVI = "Suivi de votre score hygiène par notre équipe : nous vous contactons si votre score baisse.";
+export const TEXTE_COURRIER_DDPP =
+  "Aide à la rédaction de votre réponse à la DDPP en cas de mise en demeure : un courrier qui présente vos mesures correctives, signé et envoyé par vous.";
+// Expert : le courrier fait partie de l'assistance DDPP, en option payante (article 20).
+export const TEXTE_COURRIER_DDPP_OPTION =
+  "Aide à la rédaction de votre réponse à la DDPP en cas de mise en demeure, avec l’assistance DDPP en option : un courrier qui présente vos mesures correctives, signé et envoyé par vous.";
+export const MENTION_PMS = "PMS offert";
+// Article 14.2 des CGV 1.0 : Sérénité annuel dès le 1er paiement ; Sérénité ou Expert en mensuel engagé dès le 3e ;
+// rien en mensuel sans engagement, ni en Essentiel. La précision courte de la carte ; le renvoi dit tout.
+export const PMS_OFFERT = Object.freeze({
+  serenite: "en annuel, dès le 1er paiement",
+  expert: "en mensuel avec engagement, dès le 3ᵉ paiement",
+});
+
+const aPms = (offre) => Object.prototype.hasOwnProperty.call(PMS_OFFERT, offre?.cle ?? "");
+
+// [{ cle, texte, precision? }] dans l'ordre de la carte : suivi, PMS, courrier à la DDPP.
+export function pointsFormule(offre) {
+  const points = [];
+  if (offre?.fonctions?.suivi === true) points.push({ cle: "suivi", texte: TEXTE_SUIVI });
+  if (aPms(offre)) points.push({ cle: "pms", texte: MENTION_PMS, precision: PMS_OFFERT[offre.cle] });
+  const ddpp = offre?.fonctions?.ddpp;
+  if (ddpp === "incluse") points.push({ cle: "ddpp", texte: TEXTE_COURRIER_DDPP });
+  if (ddpp === "option") points.push({ cle: "ddpp", texte: TEXTE_COURRIER_DDPP_OPTION });
+  return points;
+}
+
+// Renvoi « ** » sous les cartes, dès qu'une formule affichée annonce le PMS. Tant que le catalogue ne le dit pas
+// disponible : la date prévue, sans garantie (article 14.1), et le mensuel engagé « quand il sera proposé » (article 3.2).
+export function renvoiPms(catalogue) {
+  if (!catalogue?.offres?.some(aPms)) return null;
+  const disponible = catalogue.pmsDisponible === true;
+  return [
+    disponible ? null : "Lancement prévu à la mi-décembre 2026, sans date garantie.",
+    `Le PMS (plan de maîtrise sanitaire) est offert en Sérénité annuel dès le 1er paiement, et en Sérénité ou Expert en mensuel avec engagement dès le 3ᵉ paiement${disponible ? "" : ", quand cette version sera proposée"}.`,
+    "Pas de PMS offert en mensuel sans engagement.",
+    "Mises à jour illimitées tant que le droit est ouvert.",
+  ].filter(Boolean).join(" ");
+}
+
+// Lignes du détail de la carte (null : pas de ligne).
+export function ligneSuivi(offre) {
+  const suivi = offre?.fonctions?.suivi;
+  if (suivi === true) return "Inclus : nous vous contactons si votre score baisse";
+  return suivi === false ? "Non" : null;
+}
+export const PRECISION_COURRIER_DDPP = "avec l’aide à la rédaction de votre réponse en cas de mise en demeure";
+
 export function atoutsTarifs(catalogue) {
   return [
-    ["Équipiers illimités", "Gratuits dans toutes les formules, pour signer les actions."],
+    [MENTION_EQUIPIERS, `Dans toutes les formules. ${RENVOI_EQUIPIERS}`],
     atoutEngagement(catalogue),
     ["Paiement sécurisé", "Par carte bancaire ou prélèvement SEPA. Le montant exact figure sur la page de paiement."],
   ].filter(Boolean);

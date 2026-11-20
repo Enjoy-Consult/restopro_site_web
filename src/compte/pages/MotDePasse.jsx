@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { CircleCheck, Link2Off, LoaderCircle, Mail } from "lucide-react";
 import Message from "@/components/billing/Message";
+import CadreConnexion from "@/compte/CadreConnexion";
+import { CLASSE_BOUTON, CLASSE_LIEN_SECONDAIRE, ChampSecret } from "@/compte/ChampsConnexion";
 import { CHEMINS_COMPTE } from "@/compte/chemins";
 import { BUSINESS } from "@/lib/business-info";
 import { definirMotDePasse, verifierLienMotDePasse } from "@/lib/billing/api";
@@ -16,43 +19,11 @@ import {
 } from "@/lib/billing/motdepasse";
 import { lireJetonDuFragment } from "@/lib/billing/reprise";
 
-const CLASSE_CHAMP =
-  "w-full border bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
-
-function Telephone() {
+function EcrireNous() {
   return (
     <>
-      {" "}Vous pouvez aussi nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+      {" "}Vous pouvez aussi nous écrire à <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
     </>
-  );
-}
-
-// Champ de mot de passe : jamais de majuscule ni de correction automatiques, même affiché en clair (type text), pour
-// que le mot de passe enregistré soit celui que la personne a tapé.
-function ChampMotDePasse({ id, name, label, valeur, onChange, erreur, aide, visible, disabled }) {
-  const decrit = [aide && `${id}-aide`, erreur && `${id}-erreur`].filter(Boolean).join(" ") || undefined;
-  return (
-    <div>
-      <label htmlFor={id} className="block text-muted text-[14px] mb-2">{label}</label>
-      <input
-        id={id}
-        name={name}
-        type={visible ? "text" : "password"}
-        value={valeur}
-        onChange={onChange}
-        autoComplete="new-password"
-        autoCapitalize="none"
-        autoCorrect="off"
-        spellCheck={false}
-        maxLength={LONGUEUR_MAX + 1}
-        disabled={disabled}
-        aria-invalid={erreur ? "true" : undefined}
-        aria-describedby={decrit}
-        className={`${CLASSE_CHAMP} ${erreur ? "border-[#8a2424]" : "border-faint"}`}
-      />
-      {aide && !erreur && <p id={`${id}-aide`} className="text-faint text-[13px] mt-1.5">{aide}</p>}
-      {erreur && <p id={`${id}-erreur`} role="alert" className="text-[#8a2424] text-[14px] mt-1.5">{erreur}</p>}
-    </div>
   );
 }
 
@@ -174,146 +145,154 @@ export default function MotDePasse() {
 
   const { etape } = etat;
   const TITRES = {
-    defini: "Votre mot de passe est enregistré.",
+    defini: "Mot de passe enregistré.",
     indisponible: "Lien indisponible.",
     absent: "Ouvrez le lien reçu par e-mail.",
-    peut_etre_defini: "Votre mot de passe est peut-être déjà enregistré.",
+    peut_etre_defini: "Mot de passe peut-être déjà enregistré.",
   };
   const titre = TITRES[etape] ?? "Choisissez votre mot de passe.";
+  const SYMBOLES = {
+    defini: <CircleCheck aria-hidden="true" size={24} strokeWidth={1.75} />,
+    indisponible: <Link2Off aria-hidden="true" size={22} strokeWidth={1.75} />,
+    absent: <Mail aria-hidden="true" size={22} strokeWidth={1.75} />,
+  };
+  const sousTitre =
+    etape === "formulaire" ? (
+      etat.emailMasque ? (
+        <>
+          Pour <strong className="text-ink font-medium [overflow-wrap:anywhere]">{etat.emailMasque}</strong>, dans l’application et cet espace.
+        </>
+      ) : (
+        "Pour l’application et cet espace abonnement."
+      )
+    ) : etape === "defini" ? (
+      etat.email ? (
+        <>
+          Connectez-vous avec <strong className="text-ink font-medium [overflow-wrap:anywhere]">{etat.email}</strong>.
+        </>
+      ) : (
+        "Connectez-vous avec votre adresse e-mail."
+      )
+    ) : etape === "absent" ? (
+      "Il a expiré ou a déjà servi ? Demandez-en un nouveau."
+    ) : etape === "indisponible" ? (
+      TEXTE_LIEN_INDISPONIBLE_COMPTE
+    ) : etape === "peut_etre_defini" ? (
+      "La confirmation n’est pas arrivée. Essayez de vous connecter avec votre nouveau mot de passe."
+    ) : null;
+  const nouveauLien = (
+    <Link to={CHEMINS_COMPTE.motDePasseOublie} className={CLASSE_BOUTON}>
+      Demander un nouveau lien
+    </Link>
+  );
 
   return (
-    <section className="pt-12 pb-24 md:pt-20 md:pb-32">
-      <div className="max-w-[640px] mx-auto px-5 md:px-6">
-        <p className="text-bottle text-[12px] font-medium uppercase tracking-[0.14em] mb-5">Mon compte</p>
-        <h1 ref={titreRef} tabIndex={-1} className="text-ink mb-5 text-[clamp(2rem,5vw,3rem)] focus:outline-none">{titre}</h1>
+    <CadreConnexion surtitre={SYMBOLES[etape] ? null : "Mon compte"} titre={titre} titreRef={titreRef} sousTitre={sousTitre} symbole={SYMBOLES[etape] ?? null}>
+      {etape === "verification" && (
+        <p className="flex items-center gap-2.5 text-muted text-[16px]" role="status">
+          <LoaderCircle aria-hidden="true" size={18} strokeWidth={1.75} className="animate-spin motion-reduce:animate-none text-bottle" />
+          Vérification du lien…
+        </p>
+      )}
 
-        {etape === "verification" && (
-          <p className="text-muted text-lg leading-relaxed" role="status">Vérification du lien…</p>
-        )}
+      {etape === "erreur" && (
+        <>
+          <Message type="error">
+            {etat.issue.texte}
+            {etat.issue.contact && <EcrireNous />}
+          </Message>
+          {/* Le bouton disparaît à son propre clic : le focus va au titre, qui reste pendant la vérification. */}
+          <button
+            type="button"
+            className={`${CLASSE_BOUTON} mt-6`}
+            onClick={() => {
+              setRelance((n) => n + 1);
+              titreRef.current?.focus();
+            }}
+          >
+            Réessayer
+          </button>
+        </>
+      )}
 
-        {etape === "erreur" && (
-          <>
-            <Message type="error">
-              {etat.issue.texte}
-              {etat.issue.telephone && <Telephone />}
-            </Message>
-            <button type="button" className="link-underline text-[15px] mt-4" onClick={() => setRelance((n) => n + 1)}>
-              Réessayer
-            </button>
-          </>
-        )}
-
-        {etape === "indisponible" && (
-          <>
-            <Message type="info">{TEXTE_LIEN_INDISPONIBLE_COMPTE}</Message>
-            <p className="text-muted text-[15px] leading-relaxed mt-6">
-              <Link to={CHEMINS_COMPTE.motDePasseOublie} className="link-underline">Demander un nouveau lien</Link>, ou appelez-nous au{" "}
-              <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
-            </p>
-          </>
-        )}
-
-        {etape === "absent" && (
-          <p className="text-muted text-lg leading-relaxed">
-            Pour choisir votre mot de passe, ouvrez le lien reçu par e-mail. S’il a expiré ou s’il a déjà servi,{" "}
-            <Link to={CHEMINS_COMPTE.motDePasseOublie} className="link-underline">demandez un nouveau lien</Link>.
+      {etape === "indisponible" && (
+        <>
+          {nouveauLien}
+          <p className="text-faint text-[14px] mt-3 text-center">
+            Besoin d’aide ? <a href={`mailto:${BUSINESS.email}`} className={`${CLASSE_LIEN_SECONDAIRE} link-underline text-muted`}>Nous écrire</a>
           </p>
-        )}
+        </>
+      )}
 
-        {etape === "peut_etre_defini" && (
-          <>
-            <Message type="info">
-              La réponse précédente ne nous est pas parvenue, mais votre mot de passe a peut-être été enregistré. Essayez de
-              vous connecter ; si cela ne marche pas, demandez un nouveau lien.
+      {etape === "absent" && nouveauLien}
+
+      {etape === "peut_etre_defini" && (
+        <>
+          <div className="flex flex-col gap-3">
+            <Link to={CHEMINS_COMPTE.connexion} className={CLASSE_BOUTON}>Se connecter</Link>
+            <Link to={CHEMINS_COMPTE.motDePasseOublie} className={`${CLASSE_LIEN_SECONDAIRE} self-center link-underline`}>
+              Demander un nouveau lien
+            </Link>
+          </div>
+        </>
+      )}
+
+      {etape === "formulaire" && (
+        <form onSubmit={enregistrer} noValidate className="flex flex-col gap-5">
+          <ChampSecret
+            id="champ-mot-de-passe"
+            name="password"
+            label="Nouveau mot de passe"
+            value={valeurs.motDePasse}
+            onChange={modifier("motDePasse")}
+            autoComplete="new-password"
+            maxLength={LONGUEUR_MAX + 1}
+            erreur={erreurs.motDePasse}
+            aide={TEXTE_REGLE}
+            visible={visible}
+            onBasculer={() => setVisible((v) => !v)}
+            controle="champ-mot-de-passe champ-confirmation"
+            libelleBascule="Afficher les mots de passe"
+            readOnly={envoi}
+          />
+          <ChampSecret
+            id="champ-confirmation"
+            name="password-confirmation"
+            label="Confirmez-le"
+            value={valeurs.confirmation}
+            onChange={modifier("confirmation")}
+            autoComplete="new-password"
+            maxLength={LONGUEUR_MAX + 1}
+            erreur={erreurs.confirmation}
+            visible={visible}
+            bascule={false}
+            readOnly={envoi}
+          />
+          {erreurEnvoi && (
+            <Message type="error">
+              {erreurEnvoi.texte}
+              {erreurEnvoi.contact && <EcrireNous />}
             </Message>
-            <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
-              <Link to={CHEMINS_COMPTE.connexion} className="btn-primary text-center">Se connecter</Link>
-              <Link to={CHEMINS_COMPTE.motDePasseOublie} className="link-underline text-[15px]">Demander un nouveau lien</Link>
-            </div>
-          </>
-        )}
+          )}
+          <button type="submit" aria-disabled={envoi || undefined} aria-busy={envoi} className={`${CLASSE_BOUTON} mt-2`}>
+            {envoi ? "Enregistrement…" : "Enregistrer"}
+          </button>
+          {etat.echeance && <p className="text-faint text-[13px] text-center">Lien valable {etat.echeance}, une seule fois.</p>}
+        </form>
+      )}
 
-        {etape === "formulaire" && (
-          <form onSubmit={enregistrer} noValidate>
-            <p className="text-muted text-lg leading-relaxed mb-8">
-              {etat.emailMasque ? (
-                <>
-                  Choisissez le mot de passe du compte <strong className="text-ink font-medium [overflow-wrap:anywhere]">{etat.emailMasque}</strong>.
-                </>
-              ) : (
-                "Choisissez le mot de passe de votre compte."
-              )}{" "}
-              Il sert à vous connecter à l’application et à votre espace abonnement.
-              {etat.echeance && <> Ce lien est valable {etat.echeance} et ne sert qu’une fois.</>}
-            </p>
-            <div className="flex flex-col gap-5">
-              <ChampMotDePasse
-                id="champ-mot-de-passe"
-                name="password"
-                label="Nouveau mot de passe"
-                valeur={valeurs.motDePasse}
-                onChange={modifier("motDePasse")}
-                erreur={erreurs.motDePasse}
-                aide={TEXTE_REGLE}
-                visible={visible}
-                disabled={envoi}
-              />
-              <ChampMotDePasse
-                id="champ-confirmation"
-                name="password-confirmation"
-                label="Confirmez le mot de passe"
-                valeur={valeurs.confirmation}
-                onChange={modifier("confirmation")}
-                erreur={erreurs.confirmation}
-                visible={visible}
-                disabled={envoi}
-              />
-              <label className="flex items-center gap-3 text-sm text-muted">
-                <input type="checkbox" checked={visible} onChange={(e) => setVisible(e.target.checked)} className="w-4 h-4 accent-[#1c4b38]" />
-                Afficher le mot de passe
-              </label>
-            </div>
-            {erreurEnvoi && (
-              <Message type="error" className="mt-6">
-                {erreurEnvoi.texte}
-                {erreurEnvoi.telephone && <Telephone />}
-              </Message>
-            )}
-            <button
-              type="submit"
-              disabled={envoi}
-              aria-busy={envoi}
-              className="btn-primary w-full sm:w-auto text-center mt-8 disabled:opacity-60 disabled:cursor-wait"
-            >
-              {envoi ? "Enregistrement…" : "Enregistrer mon mot de passe"}
-            </button>
-          </form>
-        )}
-
-        {etape === "defini" && (
-          <>
-            <p className="text-muted text-lg leading-relaxed">
-              {etat.email ? (
-                <>
-                  Connectez-vous avec l’adresse <strong className="text-ink font-medium [overflow-wrap:anywhere]">{etat.email}</strong> et ce mot de passe.
-                </>
-              ) : (
-                "Connectez-vous avec votre adresse e-mail et ce mot de passe."
-              )}
-            </p>
-            <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
-              <Link to={CHEMINS_COMPTE.connexion} className="btn-primary text-center">
-                Gérer mon abonnement
-              </Link>
-              {APP_WEB_URL && (
-                <a href={APP_WEB_URL} className="link-underline text-[15px]">
-                  Ouvrir l’application web
-                </a>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    </section>
+      {etape === "defini" && (
+        <div className="flex flex-col gap-3">
+          <Link to={CHEMINS_COMPTE.connexion} className={CLASSE_BOUTON}>
+            Gérer mon abonnement
+          </Link>
+          {APP_WEB_URL && (
+            <a href={APP_WEB_URL} className={`${CLASSE_LIEN_SECONDAIRE} self-center link-underline`}>
+              Ouvrir l’application web
+            </a>
+          )}
+        </div>
+      )}
+    </CadreConnexion>
   );
 }

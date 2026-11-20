@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { ArrowLeft, MailCheck } from "lucide-react";
 import Message from "@/components/billing/Message";
+import CadreConnexion from "@/compte/CadreConnexion";
+import { CLASSE_BOUTON, CLASSE_LIEN_SECONDAIRE, Champ } from "@/compte/ChampsConnexion";
 import { CHEMINS_COMPTE } from "@/compte/chemins";
 import { BUSINESS } from "@/lib/business-info";
 import { demanderLienMotDePasse } from "@/lib/billing/api";
-import { issueOubli, texteLienEnvoye } from "@/lib/billing/motdepasse";
-
-const CLASSE_CHAMP =
-  "w-full border bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
+import { AIDE_ADRESSE_INSCRIPTION, TEXTE_RIEN_RECU_ADRESSE, issueOubli, texteLienEnvoye } from "@/lib/billing/motdepasse";
 
 // « Mot de passe oublié » (spécification de la connexion, demande 9) : l'adresse e-mail, puis la même réponse dans tous
 // les cas. Apirest envoie, si le compte y a droit, un lien de 60 minutes vers /mot-de-passe#jeton=… (page MotDePasse).
@@ -40,7 +40,7 @@ export default function MotDePasseOublie() {
       document.getElementById("champ-email")?.focus();
       return;
     }
-    // Le champ est désactivé pendant l'envoi : le focus après une erreur attend le rendu suivant.
+    // Pendant l'envoi, le champ est en lecture seule et le bouton aria-disabled : le focus reste en place.
     envoiEnCours.current = true;
     setEnvoi(true);
     setIssue(null);
@@ -63,71 +63,65 @@ export default function MotDePasseOublie() {
   };
 
   return (
-    <section className="pt-12 pb-24 md:pt-20 md:pb-32">
-      <div className="max-w-[640px] mx-auto px-5 md:px-6">
-        <p className="text-bottle text-[12px] font-medium uppercase tracking-[0.14em] mb-5">Mon compte</p>
-        <h1 ref={titreRef} tabIndex={-1} className="text-ink mb-5 text-[clamp(2rem,5vw,3rem)] focus:outline-none">
-          {envoye ? "Regardez vos e-mails." : "Mot de passe oublié."}
-        </h1>
-
-        {envoye ? (
-          <>
-            <Message type="info">
-              {envoye.avant}
-              <strong className="font-medium [overflow-wrap:anywhere]">{envoye.email}</strong>
-              {envoye.apres}
+    <CadreConnexion
+      surtitre={envoye ? null : "Mon compte"}
+      titre={envoye ? "Regardez vos e-mails." : "Mot de passe oublié."}
+      titreRef={titreRef}
+      sousTitre={envoye ? null : "Recevez un lien pour en choisir un nouveau."}
+      symbole={envoye ? <MailCheck aria-hidden="true" size={24} strokeWidth={1.75} /> : null}
+    >
+      {envoye ? (
+        <>
+          <p className="text-muted text-[16px] leading-relaxed text-pretty" role="status">
+            {envoye.avant}
+            <strong className="text-ink font-medium [overflow-wrap:anywhere]">{envoye.email}</strong>
+            {envoye.apres}
+          </p>
+          <div className="mt-6 pt-4 border-t border-border">
+            <p className="text-faint text-[14px] leading-relaxed text-pretty">
+              {TEXTE_RIEN_RECU_ADRESSE}
+              <a href={`mailto:${BUSINESS.email}`} className="link-underline text-muted">{BUSINESS.email}</a>.
+            </p>
+            <button type="button" className={`${CLASSE_LIEN_SECONDAIRE} link-underline text-muted mt-1`} onClick={refaire}>
+              Refaire une demande
+            </button>
+          </div>
+        </>
+      ) : (
+        <form onSubmit={envoyer} noValidate className="flex flex-col gap-5">
+          <Champ
+            id="champ-email"
+            label="Adresse e-mail"
+            name="username"
+            type="email"
+            value={email}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (issue?.champ) setIssue(null);
+            }}
+            autoComplete="username"
+            inputMode="email"
+            readOnly={envoi}
+            aide={AIDE_ADRESSE_INSCRIPTION}
+            erreur={issue?.champ ? issue.texte : null}
+          />
+          {issue && !issue.champ && (
+            <Message type="error">
+              {issue.texte}
+              {issue.contact && (
+                <> Vous pouvez aussi nous écrire à <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.</>
+              )}
             </Message>
-            <p className="text-muted text-[15px] leading-relaxed mt-6">
-              Rien reçu ? Vérifiez l’adresse et{" "}
-              <button type="button" className="link-underline" onClick={refaire}>refaites une demande</button>, ou appelez-nous au{" "}
-              <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
-            </p>
-          </>
-        ) : (
-          <form onSubmit={envoyer} noValidate>
-            <p className="text-muted text-lg leading-relaxed mb-8">
-              Saisissez l’adresse e-mail de votre compte. Nous vous enverrons un lien pour choisir un nouveau mot de passe.
-            </p>
-            <label htmlFor="champ-email" className="block text-muted text-[14px] mb-2">Adresse e-mail</label>
-            <input
-              id="champ-email"
-              name="username"
-              type="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (issue?.champ) setIssue(null);
-              }}
-              autoComplete="username"
-              inputMode="email"
-              disabled={envoi}
-              aria-invalid={issue?.champ ? "true" : undefined}
-              aria-describedby={issue?.champ ? "champ-email-erreur" : undefined}
-              className={`${CLASSE_CHAMP} ${issue?.champ ? "border-[#8a2424]" : "border-faint"}`}
-            />
-            {issue?.champ && <p id="champ-email-erreur" role="alert" className="text-[#8a2424] text-[14px] mt-1.5">{issue.texte}</p>}
-            {issue && !issue.champ && (
-              <Message type="error" className="mt-6">
-                {issue.texte}
-                {issue.telephone && (
-                  <> Vous pouvez aussi nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.</>
-                )}
-              </Message>
-            )}
-            <div className="mt-8 flex flex-col sm:flex-row sm:items-center gap-4">
-              <button
-                type="submit"
-                disabled={envoi}
-                aria-busy={envoi}
-                className="btn-primary w-full sm:w-auto text-center disabled:opacity-60 disabled:cursor-wait"
-              >
-                {envoi ? "Envoi…" : "Recevoir un lien"}
-              </button>
-              <Link to={CHEMINS_COMPTE.connexion} className="link-underline text-[15px]">Retour à la connexion</Link>
-            </div>
-          </form>
-        )}
-      </div>
-    </section>
+          )}
+          <button type="submit" aria-disabled={envoi || undefined} aria-busy={envoi} className={`${CLASSE_BOUTON} mt-2`}>
+            {envoi ? "Envoi…" : "Recevoir un lien"}
+          </button>
+          <Link to={CHEMINS_COMPTE.connexion} className={`${CLASSE_LIEN_SECONDAIRE} self-center text-muted hover:text-ink`}>
+            <ArrowLeft aria-hidden="true" size={16} strokeWidth={1.75} />
+            Retour à la connexion
+          </Link>
+        </form>
+      )}
+    </CadreConnexion>
   );
 }

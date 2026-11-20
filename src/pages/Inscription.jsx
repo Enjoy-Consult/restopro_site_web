@@ -65,7 +65,7 @@ function Champ({ label, name, valeur, erreur, onChange, aide, facultatif, type =
 }
 
 // Message général : « reprendre votre inscription » mène à la page de reprise, avec l'adresse connue ;
-// « votre espace abonnement » mène à compte.restoclair.fr/mon-abonnement ; une panne donne le téléphone.
+// « votre espace abonnement » mène à compte.restoclair.fr/mon-abonnement ; une panne donne l’adresse e-mail du contact.
 function TexteErreur({ texte, email }) {
   const { avant, lien, apres } = decouperLien(texte);
   return (
@@ -76,7 +76,7 @@ function TexteErreur({ texte, email }) {
       {apres}
       {texte === MESSAGE_INDISPONIBLE && (
         <>
-          {" "}Vous pouvez aussi nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+          {" "}Vous pouvez aussi nous écrire à <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
         </>
       )}
     </>
@@ -161,8 +161,8 @@ export default function Inscription() {
       <div className="max-w-[1200px] mx-auto px-6 py-24">
         <Message type="error">
           <p>
-            {messageCatalogue(error) ?? MESSAGE_INDISPONIBLE} Vous pouvez aussi nous appeler au{" "}
-            <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+            {messageCatalogue(error) ?? MESSAGE_INDISPONIBLE} Vous pouvez aussi nous écrire à{" "}
+            <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
           </p>
           <button type="button" onClick={() => refetch()} disabled={isFetching} className="link-underline mt-2 disabled:opacity-60">
             {isFetching ? "Nouvelle tentative…" : "Réessayer"}
@@ -492,7 +492,7 @@ export default function Inscription() {
                       <Champ label="Prénom" name="prenom" valeur={valeurs.prenom} erreur={erreurs.prenom} onChange={modifier} autoComplete="given-name" maxLength={BORNES.prenom} />
                       <Champ label="Nom" name="nom" valeur={valeurs.nom} erreur={erreurs.nom} onChange={modifier} autoComplete="family-name" maxLength={BORNES.nom} />
                       <div className="sm:col-span-2">
-                        <Champ label="Adresse e-mail" name="email" type="email" valeur={valeurs.email} erreur={erreurs.email} onChange={modifier} autoComplete="email" maxLength={BORNES.email} aide="Le lien pour choisir votre mot de passe sera envoyé à cette adresse." />
+                        <Champ label="Adresse e-mail" name="email" type="email" valeur={valeurs.email} erreur={erreurs.email} onChange={modifier} autoComplete="email" maxLength={BORNES.email} aide="Ce sera votre adresse de connexion, à votre espace et à l’application. Le lien pour choisir votre mot de passe y sera envoyé." />
                       </div>
                       <div className="sm:col-span-2">
                         <Champ label="Confirmez votre adresse e-mail" name="confirmationEmail" type="email" valeur={valeurs.confirmationEmail} erreur={erreurs.confirmationEmail} onChange={modifier} autoComplete="email" maxLength={BORNES.email} />
@@ -547,7 +547,7 @@ export default function Inscription() {
                     <button type="submit" className="btn-primary w-full sm:w-auto text-center disabled:opacity-60 disabled:cursor-wait" disabled={envoi} aria-busy={envoi}>
                       {envoi ? "Envoi en cours…" : "Créer mon compte et payer"}
                     </button>
-                    <span className="text-faint text-sm">Besoin d’aide ? {BUSINESS.phone.display}</span>
+                    <span className="text-faint text-sm">Besoin d’aide ? <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a></span>
                   </div>
 
                   <p className="text-muted text-[13px] leading-relaxed mt-6">

@@ -13,7 +13,7 @@ export const MESSAGE_CATALOGUE_INVALIDE = "Les formules ne peuvent pas s’affic
 // Inscription acceptée sans jeton : le compte existe sans doute, on ne propose pas d'en recréer un.
 // Sans mot de passe avant le paiement, la suite passe par un lien de reprise reçu par e-mail (CGV 0.2, article 5).
 export const MESSAGE_INSCRIPTION_SANS_JETON =
-  `Votre compte a peut-être été créé, mais le paiement n’a pas pu démarrer. Recevez un lien pour reprendre votre inscription, ou appelez-nous au ${BUSINESS.phone.display}.`;
+  `Votre compte a peut-être été créé, mais le paiement n’a pas pu démarrer. Recevez un lien pour reprendre votre inscription, ou écrivez-nous à ${BUSINESS.email}.`;
 
 // Refus (403) au code inconnu : message neutre, l'indisponibilité est réservée au réseau et aux 5xx.
 export const MESSAGE_REFUS_GENERIQUE = "Cette action n’est pas possible pour le moment. Contactez-nous si le problème persiste.";
@@ -34,9 +34,9 @@ export const PHRASE_ESSAI_INTERROMPU =
   "Si votre inscription s’est interrompue avant le paiement, votre compte est conservé : recevez un lien pour reprendre votre inscription.";
 
 // CGV changées alors que le compte existe déjà, sans nouvelle version lisible : le checkout envoie la version de cette
-// page, refusée, et ni un rechargement ni un lien de reprise n'en donnent une autre. Seul le téléphone reste.
+// page, refusée, et ni un rechargement ni un lien de reprise n'en donnent une autre. Seul le contact par e-mail reste.
 export const MESSAGE_CGV_OBSOLETE_PAIEMENT =
-  `Les conditions générales de vente ont été mises à jour. Appelez-nous au ${BUSINESS.phone.display} pour finaliser votre abonnement : votre compte est conservé.`;
+  `Les conditions générales de vente ont été mises à jour. Écrivez-nous à ${BUSINESS.email} pour finaliser votre abonnement : votre compte est conservé.`;
 
 // 409 CGV_VERSION_OBSOLETE lisible : la page affiche la nouvelle version et la fait accepter (même texte que le front).
 export const MESSAGE_CGV_A_REACCEPTER =

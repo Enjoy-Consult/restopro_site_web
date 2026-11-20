@@ -23,15 +23,16 @@ import {
   texteDemandeEnvoyee,
 } from "@/lib/billing/reprise";
 import { ecrireSession, effacerSession } from "@/lib/billing/session";
+import { AIDE_ADRESSE_INSCRIPTION, TEXTE_RIEN_RECU_ADRESSE } from "@/lib/billing/motdepasse";
 import { BORNES, estEmailValide } from "@/lib/billing/validation";
 
 const CLASSE_CHAMP =
   "w-full border bg-white px-4 py-3.5 text-ink text-[16px] transition-shadow focus:outline-none focus:border-bottle focus:ring-4 focus:ring-bottle/10 disabled:opacity-60";
 
-function Telephone() {
+function EcrireNous() {
   return (
     <>
-      {" "}Vous pouvez aussi nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+      {" "}Vous pouvez aussi nous écrire à <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
     </>
   );
 }
@@ -48,7 +49,7 @@ function DejaAbonne() {
         "Connectez-vous à l’application"
       )}
       . Vous n’avez pas reçu le lien pour choisir votre mot de passe ? Demandez un lien ci-dessus : si votre inscription est déjà payée, il vous permettra de définir
-      votre mot de passe. Vous pouvez aussi utiliser « Mot de passe oublié » sur l’écran de connexion de l’application, ou nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+      votre mot de passe. Vous pouvez aussi utiliser « Mot de passe oublié » sur l’écran de connexion de l’application, ou nous écrire à <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
     </p>
   );
 }
@@ -210,7 +211,7 @@ export default function AbonnementReprendre() {
               {issue?.type === "erreur" && (
                 <Message type="error" className="mb-6">
                   {issue.texte}
-                  {issue.telephone && <Telephone />}
+                  {issue.contact && <EcrireNous />}
                 </Message>
               )}
               <button
@@ -279,7 +280,7 @@ export default function AbonnementReprendre() {
               {issue?.type === "payee" && (
                 <Message type="info" className="mb-8">
                   {TEXTE_INSCRIPTION_PAYEE}
-                  <Telephone />
+                  <EcrireNous />
                 </Message>
               )}
 
@@ -290,6 +291,10 @@ export default function AbonnementReprendre() {
                     <strong>{envoyee.email}</strong>
                     {envoyee.apres}
                   </Message>
+                  <p className="text-muted text-[15px] leading-relaxed mt-4">
+                    {TEXTE_RIEN_RECU_ADRESSE}
+                    <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
+                  </p>
                   {BILLING_MOCK && (
                     <p className="text-faint text-[13px] leading-relaxed mt-4">
                       Maquette : aucun e-mail ne part. Ouvrez{" "}
@@ -324,14 +329,15 @@ export default function AbonnementReprendre() {
                     autoComplete="email"
                     maxLength={BORNES.email + 1}
                     aria-invalid={erreurEmail ? "true" : undefined}
-                    aria-describedby={erreurEmail ? "champ-email-erreur" : undefined}
+                    aria-describedby={erreurEmail ? "champ-email-aide champ-email-erreur" : "champ-email-aide"}
                     className={`${CLASSE_CHAMP} ${erreurEmail ? "border-[#8a2424]" : "border-border"}`}
                   />
+                  <p id="champ-email-aide" className="text-faint text-[13px] mt-1.5">{AIDE_ADRESSE_INSCRIPTION}</p>
                   {erreurEmail && <p id="champ-email-erreur" className="text-[#8a2424] text-[14px] mt-1.5">{erreurEmail}</p>}
                   {demande.erreur && (
                     <Message type="error" className="mt-6">
                       {demande.erreur.texte}
-                      {demande.erreur.telephone && <Telephone />}
+                      {demande.erreur.contact && <EcrireNous />}
                     </Message>
                   )}
                   <button

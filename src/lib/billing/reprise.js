@@ -64,9 +64,9 @@ export function prendreAnnonceReprise() {
 // Réponse identique quel que soit le compte : la page ne dit jamais si une adresse est connue.
 export function texteDemandeEnvoyee(email) {
   return {
-    avant: "Si une inscription en attente correspond à l’adresse ",
+    avant: "Si l’adresse ",
     email: String(email ?? "").trim(),
-    apres: `, un lien valable ${DUREE_LIEN_MINUTES} minutes vient d’y être envoyé. Pensez à regarder dans vos courriers indésirables.`,
+    apres: " correspond à un compte, vous recevrez un e-mail dans quelques minutes. Pensez à vérifier vos courriers indésirables.",
   };
 }
 
@@ -86,12 +86,12 @@ export const TEXTE_INSCRIPTION_PAYEE =
 
 export const estLienIndisponible = (erreur) => erreur?.code === "LIEN_INDISPONIBLE" || erreur?.status === 410;
 
-// Demande d'un lien. Renvoie null si la demande est partie, sinon { champ?, texte, telephone? } à afficher.
+// Demande d'un lien. Renvoie null si la demande est partie, sinon { champ?, texte, contact? } à afficher.
 export function issueDemande(erreur) {
   if (!erreur) return null;
   if (estTropDEssais(erreur)) return { texte: MESSAGE_TROP_D_ESSAIS };
   if (erreur.code === "VALIDATION_ERROR") return { champ: "email", texte: TEXTE_EMAIL_INVALIDE };
-  return { texte: MESSAGE_INDISPONIBLE, telephone: true };
+  return { texte: MESSAGE_INDISPONIBLE, contact: true };
 }
 
 // Reprise (POST …/reprise/consommer). Renvoie l'une de :
@@ -107,7 +107,7 @@ export function issueEchange(erreur) {
   if (estTropDEssais(erreur)) return { type: "erreur", texte: MESSAGE_TROP_D_ESSAIS, garderBouton: true };
   // Un autre refus (4xx) : le code ne servira plus, on propose d'en demander un autre.
   if (erreur?.status >= 400 && erreur?.status < 500) return { type: "lien_indisponible" };
-  return { type: "erreur", texte: MESSAGE_INDISPONIBLE, garderBouton: true, telephone: true };
+  return { type: "erreur", texte: MESSAGE_INDISPONIBLE, garderBouton: true, contact: true };
 }
 
 // Annulation (POST …/reprise/annuler). Renvoie l'une de :
@@ -121,5 +121,5 @@ export function issueAnnulation(erreur) {
   if (estLienIndisponible(erreur)) return { type: "lien_indisponible" };
   if (estTropDEssais(erreur)) return { type: "erreur", texte: MESSAGE_TROP_D_ESSAIS, garderBouton: true };
   if (erreur.status >= 400 && erreur.status < 500) return { type: "lien_indisponible" };
-  return { type: "erreur", texte: MESSAGE_INDISPONIBLE, garderBouton: true, telephone: true };
+  return { type: "erreur", texte: MESSAGE_INDISPONIBLE, garderBouton: true, contact: true };
 }

@@ -46,18 +46,32 @@ function RienRecu({ email }) {
     <p className="text-muted text-[15px] leading-relaxed mt-5">
       {avant}
       <LienReprise email={email}>demandez un nouveau lien</LienReprise>
-      {apres} Vous pouvez aussi nous appeler au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+      {apres} Ou écrivez-nous à <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
     </p>
   );
 }
 
-// Issues sans confirmation : le lien de reprise (paiement non abouti), l'espace client et le téléphone restent à portée de main.
+// Issues sans confirmation : le lien de reprise (paiement non abouti), l'espace client et l'adresse e-mail du contact restent à portée de main.
+// Une seule adresse, celle de l'inscription, pour la connexion, la facturation et les e-mails (règle retenue après la
+// démonstration du 19/11) : elle est rappelée dès que l'abonnement est en place.
+function AdresseConnexion({ email }) {
+  if (!email) return null;
+  return (
+    <div className="mt-6 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(22,33,27,0.06),0_12px_28px_-16px_rgba(22,33,27,0.2)]">
+      <p className="text-ink text-[16px]">
+        Votre adresse de connexion : <strong className="font-medium [overflow-wrap:anywhere]">{email}</strong>
+      </p>
+      <p className="text-muted text-[14px] mt-1">Utilisez-la pour vous connecter à votre espace et à l’application.</p>
+    </div>
+  );
+}
+
 function Aide({ email }) {
   return (
     <p className="text-muted text-[15px] leading-relaxed mt-5">
       Paiement non abouti, et plus de bouton pour le reprendre ? <LienReprise email={email}>Recevez un lien pour reprendre votre inscription</LienReprise>.{" "}
       Vous pouvez retrouver votre abonnement depuis <LienEspace>votre espace abonnement</LienEspace>.{" "}
-      Une question ? Appelez-nous au <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+      Une question ? Écrivez-nous à <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
     </p>
   );
 }
@@ -181,6 +195,7 @@ export default function AbonnementRetour() {
                   {identifiants.email && <strong className="text-ink font-medium">{identifiants.email}</strong>}
                   {identifiants.apres}
                 </p>
+                <AdresseConnexion email={identifiants.email || emailSession} />
                 <RienRecu email={identifiants.email || emailSession} />
               </>
             )}
@@ -193,6 +208,7 @@ export default function AbonnementRetour() {
                   {identifiants.email && <strong className="text-ink font-medium">{identifiants.email}</strong>}
                   {identifiants.apres}
                 </p>
+                <AdresseConnexion email={identifiants.email || emailSession} />
                 <RienRecu email={identifiants.email || emailSession} />
               </>
             )}
@@ -204,6 +220,7 @@ export default function AbonnementRetour() {
                   {identifiants.email && <strong className="text-ink font-medium">{identifiants.email}</strong>}
                   {identifiants.apres} {TEXTE_EN_PLACE_SEPA}
                 </p>
+                <AdresseConnexion email={identifiants.email || emailSession} />
                 <RienRecu email={identifiants.email || emailSession} />
               </>
             )}

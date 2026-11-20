@@ -99,8 +99,8 @@ export default function EssaiGratuit() {
         type: "error",
         text:
           error.name === "AbortError"
-            ? `L’envoi n’a pas abouti. Réessayez dans un instant, ou appelez-nous au ${BUSINESS.phone.display}.`
-            : `Votre demande n’est pas partie. Vos informations sont toujours dans le formulaire : réessayez, ou appelez-nous au ${BUSINESS.phone.display}.`,
+            ? `L’envoi n’a pas abouti. Réessayez dans un instant, ou écrivez-nous à ${BUSINESS.email}.`
+            : `Votre demande n’est pas partie. Vos informations sont toujours dans le formulaire : réessayez, ou écrivez-nous à ${BUSINESS.email}.`,
       });
     } finally {
       clearTimeout(timer);

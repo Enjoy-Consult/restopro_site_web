@@ -370,7 +370,8 @@ test("comptes supplémentaires proposés : catégories autorisées et tarifées 
   const { categoriesSupplementaires } = await import("./pricing.js");
   const [ess, ser, exp] = catalogue.offres;
   assert.deepEqual(categoriesSupplementaires(catalogue, ess, ess.versions[0]).map((c) => c.cle), ["responsable", "cuisinier", "services_techniques"]);
-  assert.deepEqual(categoriesSupplementaires(catalogue, ser, ser.versions.find((v) => v.cle === "annuel")).map((c) => c.cle), ["responsable", "superviseur", "cuisinier", "services_techniques"]);
+  // Sérénité sans superviseur (décision de Louis du 19/11).
+  assert.deepEqual(categoriesSupplementaires(catalogue, ser, ser.versions.find((v) => v.cle === "annuel")).map((c) => c.cle), ["responsable", "cuisinier", "services_techniques"]);
   assert.equal(categoriesSupplementaires(catalogue, exp, exp.versions[0]).length, 4);
 });
 

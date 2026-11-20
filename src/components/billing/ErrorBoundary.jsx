@@ -45,8 +45,8 @@ export default class ErrorBoundary extends React.Component {
         </h1>
         <Message type="error">
           <p>
-            Cette page ne peut pas s’afficher pour le moment. Rechargez-la, ou appelez-nous au{" "}
-            <a href={BUSINESS.phone.href} className="link-underline">{BUSINESS.phone.display}</a>.
+            Cette page ne peut pas s’afficher pour le moment. Rechargez-la, ou écrivez-nous à{" "}
+            <a href={`mailto:${BUSINESS.email}`} className="link-underline">{BUSINESS.email}</a>.
           </p>
           <button type="button" onClick={() => window.location.reload()} className="link-underline mt-2">
             Recharger la page
