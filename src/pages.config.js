@@ -1,24 +1,28 @@
-import About from './pages/About';
+import Accompagnement from './pages/Accompagnement';
+import Application from './pages/Application';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
 import Contact from './pages/Contact';
+import Entreprise from './pages/Entreprise';
 import Home from './pages/Home';
-import MentionsLegales from './pages/MentionsLegales';
-import PolitiqueConfidentialite from './pages/PolitiqueConfidentialite';
-import Services from './pages/Services';
+import OuvrirRestaurant from './pages/OuvrirRestaurant';
+import Reseaux from './pages/Reseaux';
 import Sitemap from './pages/Sitemap';
 import __Layout from './Layout.jsx';
 
 
+// La clé est le chemin de la page (/entreprise, /accompagnement…). Les anciennes adresses /About et /Services
+// redirigent vers les nouvelles (App.jsx).
 export const PAGES = {
-    "About": About,
+    "accompagnement": Accompagnement,
+    "application": Application,
     "Blog": Blog,
     "BlogPost": BlogPost,
     "Contact": Contact,
+    "entreprise": Entreprise,
     "Home": Home,
-    "MentionsLegales": MentionsLegales,
-    "PolitiqueConfidentialite": PolitiqueConfidentialite,
-    "Services": Services,
+    "ouvrir-un-restaurant": OuvrirRestaurant,
+    "reseaux": Reseaux,
     "Sitemap": Sitemap,
 }
 

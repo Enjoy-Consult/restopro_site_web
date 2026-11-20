@@ -18,11 +18,12 @@ export function lireSession() {
 }
 
 export function ecrireSession(session) {
-  memoire = session;
   try {
     window.sessionStorage.setItem(CLE, JSON.stringify(session));
+    // Écrit : sessionStorage fait foi. Une page restaurée par le navigateur ne ressort pas un jeton effacé depuis ailleurs.
+    memoire = null;
   } catch {
-    // ignoré : la copie en mémoire suffit pour la page en cours
+    memoire = session; // la copie en mémoire suffit pour la page en cours
   }
 }
 

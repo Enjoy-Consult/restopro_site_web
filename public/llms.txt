@@ -1,87 +1,54 @@
-# RestOclair - Cabinet de Conseil en Hygiene et Securite Alimentaire
+# RestOclair
 
-## A propos de RestOclair
+> Hygiène alimentaire et HACCP pour les restaurants, commerces de bouche et cuisines collectives : une application pour l'équipe en cuisine, et une équipe du métier pour l'exploitant.
 
-RestOclair est un cabinet de conseil specialise en hygiene et securite alimentaire pour les restaurateurs en Ile-de-France. Fonde par Thierry Bailleul, expert avec plus de 15 ans d'experience dans le secteur de la restauration et de la securite alimentaire.
+## L'entreprise
 
-## Mission
+RestOclair est une société par actions simplifiée installée à Roye (Somme, Hauts-de-France). Elle développe elle-même l'application RestOclair et accompagne les établissements avant et après les contrôles sanitaires. L'équipe : Thierry Bailleul (président, expertise hygiène et restauration collective), Guillaume Theot (directeur général, clients, réseaux et partenaires), Louis Theot (application et technique).
 
-Transformer les obligations sanitaires des restaurateurs en atouts pour leur etablissement. Accompagnement bienveillant, pragmatique et sans jugement.
+## L'application RestOclair
 
-## Services proposes
+- Relevés de températures des enceintes froides
+- Traçabilité : réceptions, lots, DLC secondaires, photos des étiquettes
+- Plan de nettoyage et tâches du jour, signés par l'équipier
+- Actions correctives
+- Score hygiène de 0 à 100
+- Dossier d'inspection prêt le jour du contrôle
+- Équipiers illimités et gratuits : ils n'ont pas de connexion à eux et signent leurs actions avec un code PIN sur l'appareil de l'établissement
+- Données hébergées en France
+- Formules Essentiel, Sérénité et Expert ; abonnement et paiement uniquement sur restoclair.fr ; essai gratuit
 
-### 1. Service d'Urgence DDPP
-- Intervention sous 24h suite a un controle sanitaire
-- Diagnostic rapide des points critiques
-- Actions correctives immediates
-- Accompagnement jusqu'a la levee des non-conformites
-- Objectif: eviter la fermeture administrative
+## Accompagnement
 
-### 2. Audit Hygiene et Organisation
-- Analyse complete de la cuisine: locaux, equipements, pratiques
-- Rapport detaille avec photos et recommandations
-- Plan d'actions priorise
-- Anticipation des remarques des inspecteurs DDPP
-- Tarif: a partir de 350 euros HT
+- Aide face à la DDPP : plan d'actions et aide à la rédaction de la réponse, que l'exploitant signe et envoie lui-même
+- Audit hygiène dans l'établissement, rapport avec des priorités classées
+- Plan de maîtrise sanitaire (PMS) sur mesure, établi selon le guide de bonnes pratiques du métier, à valider et appliquer par l'exploitant
 
-### 3. Accompagnement Administratif
-- Creation de Plan de Maitrise Sanitaire (PMS) personnalise
-- Conformite aux obligations EGAlim
-- Gestion des allergenes et tracabilite
-- CERFA et documents obligatoires
-- Tarif: a partir de 500 euros HT
+## Ouvrir un restaurant
 
-## Expertise
+Pack d'ouverture (disponible mi-décembre 2026) : le PMS de l'établissement et trois mois d'application offerts.
 
-- Plan de Maitrise Sanitaire (PMS)
-- HACCP (Hazard Analysis Critical Control Point)
-- Normes sanitaires et reglementations
-- Controles DDPP (Direction Departementale de la Protection des Populations)
-- Loi EGAlim et Climat et Resilience
-- Formation du personnel en hygiene alimentaire
+## Réseaux et collectivités
 
-## Zone d'intervention
+Offre à part pour les groupes, chaînes, apparthôtels et collectivités : un PMS par site, l'application dans chaque cuisine et une vue d'ensemble pour la direction. Sur rendez-vous.
 
-Ile-de-France (Paris et region parisienne):
-- Restaurants traditionnels
-- Brasseries
-- Hotels
-- Restauration collective
-- Dark kitchens
+## Zone
+
+Basée dans les Hauts-de-France. Application et aide à distance partout en France ; déplacements sur devis.
 
 ## Contact
 
-- Telephone: 07 77 75 26 05
-- Email: contact@restoclair.fr
-- Horaires: Lundi au Samedi, 8h-20h
-- Urgences: disponible 7j/7
+- Téléphone : 07 77 75 26 05
+- E-mail : contact@restoclair.fr
+- Du lundi au vendredi
 
-## Valeurs
+## Liens
 
-1. Bienveillance - Pas de jugement, que des solutions
-2. Efficacite - Recommandations concretes et applicables
-3. Proximite - Un interlocuteur unique
-4. Pedagogie - Formation et autonomisation
-
-## Questions frequentes
-
-Q: Qu'est-ce que le Plan de Maitrise Sanitaire (PMS)?
-R: Le PMS est un document obligatoire decrivant les mesures d'hygiene et de securite alimentaire: procedures de nettoyage, tracabilite, gestion des temperatures, formation du personnel.
-
-Q: Que faire en cas de controle DDPP avec non-conformites?
-R: Contactez immediatement RestOclair au 07 77 75 26 05. Intervention possible sous 24h pour diagnostic et mise en conformite rapide.
-
-Q: Quels types d'etablissements accompagnez-vous?
-R: Tous etablissements de restauration: restaurants, brasseries, hotels, restauration collective, dark kitchens en Ile-de-France.
-
-## Liens utiles
-
-- Page d'accueil: https://restoclair.fr
-- Services: https://restoclair.fr/Services
-- A propos: https://restoclair.fr/About
-- Contact: https://restoclair.fr/Contact
-- Blog: https://restoclair.fr/Blog
-
-## Mots-cles
-
-consultant hygiene alimentaire, securite alimentaire restaurant, HACCP, controle DDPP, audit hygiene cuisine, plan maitrise sanitaire, PMS, formation hygiene, EGAlim, tracabilite alimentaire, allergenes, normes sanitaires, Ile-de-France, Paris
+- Accueil : https://restoclair.fr
+- L'application : https://restoclair.fr/application
+- Ouvrir un restaurant : https://restoclair.fr/ouvrir-un-restaurant
+- Accompagnement : https://restoclair.fr/accompagnement
+- Réseaux et collectivités : https://restoclair.fr/reseaux
+- L'entreprise : https://restoclair.fr/entreprise
+- Contact : https://restoclair.fr/Contact
+- Essai gratuit : https://restoclair.fr/essai-gratuit

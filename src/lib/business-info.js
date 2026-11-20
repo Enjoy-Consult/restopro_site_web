@@ -1,10 +1,11 @@
 export const BUSINESS = {
   name: "RestOclair",
   legalName: "RestOclair",
+  // La marque parle au nom de l'entreprise : le président figure dans les données structurées, sans titre de consultant.
   founder: "Thierry Bailleul",
-  founderTitle: "Consultant en Hygiène et Sécurité Alimentaire",
+  founderTitle: "Président",
   description:
-    "Conseil en hygiène et sécurité alimentaire pour les professionnels partout en France. Urgence DDPP, audit hygiène, création PMS.",
+    "Application d’hygiène alimentaire et accompagnement pour les restaurants, commerces de bouche et cuisines collectives : températures, traçabilité, nettoyage, aide face à la DDPP.",
   url: "https://restoclair.fr",
   email: "contact@restoclair.fr",
   phone: {
@@ -24,17 +25,8 @@ export const BUSINESS = {
     longitude: 2.7903,
   },
   openingHours: ["Mo-Fr 07:00-20:00", "Sa 08:00-18:00"],
-  serviceAreas: [
-    "Paris",
-    "Île-de-France",
-    "Lyon",
-    "Marseille",
-    "Bordeaux",
-    "Lille",
-    "Nantes",
-    "Toulouse",
-    "France entière",
-  ],
+  // Basée dans les Hauts-de-France ; l'application et l'aide à distance partout en France, déplacements sur devis.
+  serviceAreas: ["Hauts-de-France", "France"],
   foundingYear: 2025,
   priceRange: "$$",
   sameAs: [],

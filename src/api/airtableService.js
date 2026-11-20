@@ -1,3 +1,5 @@
+import { ecrituresProductionPermises } from '@/lib/environnement';
+
 const API_BASE_URL = 'https://restoclair.fr/php-api';
 
 export async function getBlogPosts() {
@@ -27,6 +29,8 @@ export async function getTestimonials() {
 }
 
 export async function submitContactForm(data) {
+  // Écriture vers le PHP de production : jamais depuis le serveur de développement ni le site de test.
+  if (!ecrituresProductionPermises()) throw new Error('Envoi coupé hors du site de production');
   const response = await fetch(`${API_BASE_URL}/contact.php`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

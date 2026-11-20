@@ -1,0 +1,231 @@
+[
+  {
+    "document": "mentions-legales",
+    "chemin": "/MentionsLegales",
+    "titre": "Mentions légales",
+    "description": "Mentions légales du site restoclair.fr et de l’application RestOclair.",
+    "portee": "site",
+    "versionEnVigueur": "1.0",
+    "versions": [
+      {
+        "version": "0.1",
+        "enVigueurLe": "2026-11-03",
+        "statut": "projet"
+      },
+      {
+        "version": "1.0",
+        "enVigueurLe": "2026-11-16",
+        "statut": "publie",
+        "sha256": "5246025697e85a91f4dfe1183cdcefb74dca5a008db79978d7be06d67ffacf1d"
+      }
+    ]
+  },
+  {
+    "document": "cgv",
+    "chemin": "/cgv",
+    "titre": "Conditions générales de vente de l’abonnement",
+    "description": "Conditions générales de vente de l’abonnement à l’application RestOclair.",
+    "portee": "site",
+    "versionEnVigueur": "1.0",
+    "versions": [
+      {
+        "version": "0.1",
+        "enVigueurLe": "2026-11-03",
+        "statut": "projet"
+      },
+      {
+        "version": "0.2",
+        "enVigueurLe": "2026-11-10",
+        "statut": "projet"
+      },
+      {
+        "version": "1.0",
+        "enVigueurLe": "2026-11-16",
+        "statut": "publie",
+        "sha256": "c45cce1c2611157166a191ebcd16e9041ea32c754aad438944dc2b1a16440f08"
+      }
+    ]
+  },
+  {
+    "document": "accord-sous-traitance",
+    "chemin": "/accord-sous-traitance",
+    "titre": "Accord de sous-traitance des données",
+    "description": "Accord de sous-traitance (article 28 du RGPD), annexe aux conditions générales de vente.",
+    "portee": "site",
+    "versionEnVigueur": "1.0",
+    "versions": [
+      {
+        "version": "0.1",
+        "enVigueurLe": "2026-11-03",
+        "statut": "projet"
+      },
+      {
+        "version": "0.2",
+        "enVigueurLe": "2026-11-10",
+        "statut": "projet"
+      },
+      {
+        "version": "1.0",
+        "enVigueurLe": "2026-11-16",
+        "statut": "publie",
+        "sha256": "8e56c09df5a377bb3e16e52f2c2a677d21afb278b5aa5d81d29d6667ba24fa8d"
+      }
+    ]
+  },
+  {
+    "document": "conditions-acheteurs-publics",
+    "chemin": "/conditions-acheteurs-publics",
+    "titre": "Conditions particulières pour les acheteurs publics",
+    "description": "Conditions particulières de l’abonnement RestOclair pour les acheteurs publics (CCAS, syndicats intercommunaux, collectivités).",
+    "portee": "site",
+    "versionEnVigueur": "1.0",
+    "versions": [
+      {
+        "version": "0.1",
+        "enVigueurLe": "2026-11-10",
+        "statut": "projet"
+      },
+      {
+        "version": "1.0",
+        "enVigueurLe": "2026-11-16",
+        "statut": "publie",
+        "sha256": "d9d0fe5d2803108b5de849fffba5f9fe4f84a5b385a8649877c24dea2b650428"
+      }
+    ]
+  },
+  {
+    "document": "confidentialite-site",
+    "chemin": "/confidentialite",
+    "titre": "Politique de confidentialité du site",
+    "description": "Comment le site restoclair.fr traite vos données personnelles.",
+    "portee": "site",
+    "versionEnVigueur": "1.0",
+    "versions": [
+      {
+        "version": "0.1",
+        "enVigueurLe": "2026-11-03",
+        "statut": "projet"
+      },
+      {
+        "version": "0.2",
+        "enVigueurLe": "2026-11-10",
+        "statut": "projet"
+      },
+      {
+        "version": "1.0",
+        "enVigueurLe": "2026-11-16",
+        "statut": "publie",
+        "sha256": "d6ee92399f113df95b4d18f0a66cc5675c84f66b8744a5e307d9c9519d5c68f8"
+      }
+    ]
+  },
+  {
+    "document": "cookies",
+    "chemin": "/cookies",
+    "titre": "Politique de cookies",
+    "description": "Cookies et traceurs utilisés sur le site restoclair.fr.",
+    "portee": "site",
+    "versionEnVigueur": "1.0",
+    "versions": [
+      {
+        "version": "0.1",
+        "enVigueurLe": "2026-11-03",
+        "statut": "projet"
+      },
+      {
+        "version": "0.2",
+        "enVigueurLe": "2026-11-10",
+        "statut": "projet"
+      },
+      {
+        "version": "1.0",
+        "enVigueurLe": "2026-11-16",
+        "statut": "publie",
+        "sha256": "e4c711b5ce9cea90a29ccd432c89d6cf654fa12afaf19b8f9aa96316444366bd"
+      }
+    ]
+  },
+  {
+    "document": "cgu-app",
+    "chemin": "/application/cgu",
+    "titre": "Conditions générales d’utilisation de l’application",
+    "description": "Conditions générales d’utilisation de l’application RestOclair.",
+    "portee": "application",
+    "versionEnVigueur": "1.0",
+    "versions": [
+      {
+        "version": "0.1",
+        "enVigueurLe": "2026-11-03",
+        "statut": "projet"
+      },
+      {
+        "version": "0.2",
+        "enVigueurLe": "2026-11-10",
+        "statut": "projet"
+      },
+      {
+        "version": "0.3",
+        "enVigueurLe": "2026-11-10",
+        "statut": "projet"
+      },
+      {
+        "version": "1.0",
+        "enVigueurLe": "2026-11-16",
+        "statut": "publie",
+        "sha256": "19cd635dd690d90b64416c360539cfd1701c96c57b5eeab60f51838a4e62d96a"
+      }
+    ]
+  },
+  {
+    "document": "confidentialite-app",
+    "chemin": "/application/confidentialite",
+    "titre": "Politique de confidentialité de l’application",
+    "description": "Comment l’application RestOclair traite les données personnelles.",
+    "portee": "application",
+    "versionEnVigueur": "1.0",
+    "versions": [
+      {
+        "version": "0.1",
+        "enVigueurLe": "2026-11-03",
+        "statut": "projet"
+      },
+      {
+        "version": "0.2",
+        "enVigueurLe": "2026-11-10",
+        "statut": "projet"
+      },
+      {
+        "version": "0.3",
+        "enVigueurLe": "2026-11-10",
+        "statut": "projet"
+      },
+      {
+        "version": "1.0",
+        "enVigueurLe": "2026-11-16",
+        "statut": "publie",
+        "sha256": "c0ebd5973d650bc536043d5adc9e92089c4c9c339bceacc41d469110d279ce0f"
+      }
+    ]
+  },
+  {
+    "document": "mentions-legales-app",
+    "chemin": "/application/mentions-legales",
+    "titre": "Mentions légales de l’application",
+    "description": "Mentions légales de l’application RestOclair (iOS, Android et version web).",
+    "portee": "application",
+    "versionEnVigueur": "1.0",
+    "versions": [
+      {
+        "version": "0.1",
+        "enVigueurLe": "2026-11-10",
+        "statut": "projet"
+      },
+      {
+        "version": "1.0",
+        "enVigueurLe": "2026-11-16",
+        "statut": "publie",
+        "sha256": "aa06ff819a36cc56c5f469bbb4a363657ea44c5840128a7d2eda7ad8ae2b755b"
+      }
+    ]
+  }
+]

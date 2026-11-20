@@ -15,21 +15,22 @@ export default function SEO({
 }) {
   useEffect(() => {
     const siteName = BUSINESS.name;
-    const defaultImage = "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&h=630&fit=crop";
+    const defaultImage = "https://restoclair.fr/images/cuisine-partage-1200x630.jpg";
     const baseUrl = BUSINESS.url;
 
+    // Le nom du site n'est ajouté qu'une fois, même si le titre de la page le contient déjà.
     document.title = title
-      ? `${title} | ${siteName}`
-      : `${siteName} - Expert en Securite Alimentaire pour Professionnels`;
+      ? (title.includes(siteName) ? title : `${title} | ${siteName}`)
+      : `${siteName} | Hygiène alimentaire et HACCP pour restaurants`;
 
     const metaTags = [
       { name: "description", content: description },
       { name: "keywords", content: keywords },
       { name: "robots", content: noindex ? "noindex, nofollow" : "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" },
-      { name: "author", content: `${BUSINESS.founder} - ${siteName}` },
+      { name: "author", content: siteName },
       { name: "publisher", content: siteName },
 
-      { property: "og:title", content: title || `${siteName} - Expert Hygiene Alimentaire` },
+      { property: "og:title", content: title || `${siteName} | Hygiène alimentaire et HACCP pour restaurants` },
       { property: "og:description", content: description },
       { property: "og:type", content: pageType },
       { property: "og:site_name", content: siteName },
@@ -37,7 +38,7 @@ export default function SEO({
       { property: "og:image", content: ogImage || defaultImage },
       { property: "og:image:width", content: "1200" },
       { property: "og:image:height", content: "630" },
-      { property: "og:image:alt", content: title || `${siteName} - Expertise Hygiene Alimentaire` },
+      { property: "og:image:alt", content: title || `${siteName} | Hygiène alimentaire` },
       { property: "og:url", content: canonicalUrl || window.location.href },
 
       { name: "twitter:card", content: "summary_large_image" },
@@ -55,7 +56,7 @@ export default function SEO({
       metaTags.push(
         { property: "article:published_time", content: articleData.publishedDate },
         { property: "article:modified_time", content: articleData.modifiedDate || articleData.publishedDate },
-        { property: "article:author", content: BUSINESS.founder },
+        { property: "article:author", content: siteName },
         { property: "article:section", content: articleData.category }
       );
       if (articleData.tags) {
@@ -121,23 +122,9 @@ export default function SEO({
         "longitude": BUSINESS.geo.longitude
       },
       "areaServed": BUSINESS.serviceAreas.map(area => ({
-        "@type": "City",
+        "@type": "Place",
         "name": area
       })),
-      "openingHoursSpecification": [
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
-          "opens": "07:00",
-          "closes": "20:00"
-        },
-        {
-          "@type": "OpeningHoursSpecification",
-          "dayOfWeek": "Saturday",
-          "opens": "08:00",
-          "closes": "18:00"
-        }
-      ],
       "priceRange": BUSINESS.priceRange,
       "foundingDate": `${BUSINESS.foundingYear}`,
       "image": ogImage || defaultImage,
@@ -149,25 +136,26 @@ export default function SEO({
           {
             "@type": "Offer",
             "itemOffered": {
-              "@type": "Service",
-              "name": "Urgence DDPP",
-              "description": "Intervention sous 24h après contrôle sanitaire défavorable"
+              "@type": "SoftwareApplication",
+              "name": "Application RestOclair",
+              "applicationCategory": "BusinessApplication",
+              "description": "Relevés de températures, traçabilité, plan de nettoyage, score hygiène et dossier d’inspection"
             }
           },
           {
             "@type": "Offer",
             "itemOffered": {
               "@type": "Service",
-              "name": "Audit Hygiène Préventif",
-              "description": "Audit complet de votre établissement avant passage de l'inspecteur"
+              "name": "Audit hygiène",
+              "description": "Visite de l’établissement, rapport écrit avec des priorités classées"
             }
           },
           {
             "@type": "Offer",
             "itemOffered": {
               "@type": "Service",
-              "name": "Dossiers Réglementaires",
-              "description": "Création et mise à jour PMS, fiches traçabilité, conformité EGAlim"
+              "name": "Aide face à la DDPP",
+              "description": "Plan d’actions et aide à la rédaction de la réponse, signée et envoyée par l’exploitant"
             }
           }
         ]
@@ -185,9 +173,9 @@ export default function SEO({
         "datePublished": articleData.publishedDate,
         "dateModified": articleData.modifiedDate || articleData.publishedDate,
         "author": {
-          "@type": "Person",
-          "name": BUSINESS.founder,
-          "url": `${baseUrl}/About`
+          "@type": "Organization",
+          "name": siteName,
+          "url": `${baseUrl}/entreprise`
         },
         "publisher": {
           "@type": "Organization",
@@ -214,7 +202,7 @@ export default function SEO({
         "description": serviceData.description,
         "provider": { "@id": `${baseUrl}/#localbusiness` },
         "areaServed": BUSINESS.serviceAreas.map(area => ({
-          "@type": "City",
+          "@type": "Place",
           "name": area
         })),
         "serviceType": serviceData.type

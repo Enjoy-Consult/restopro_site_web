@@ -40,9 +40,10 @@ export function calculerTTC(htCentimes, tvaPourcentage = 20) {
   return Math.round((htCentimes * (100 + tvaPourcentage)) / 100);
 }
 
+// « 15 décembre 2026 » ; « 1er décembre 2026 », usage français qu'Intl ne fait pas (formatBillingDate de l'app).
 export function formatDate(iso) {
   const date = new Date(iso);
-  return Number.isNaN(date.getTime()) ? "" : dateLongue.format(date);
+  return Number.isNaN(date.getTime()) ? "" : dateLongue.format(date).replace(/^1(\s)/, "1er$1");
 }
 
 export function formatPourcentage(valeur) {

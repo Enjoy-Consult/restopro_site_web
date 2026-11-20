@@ -9,24 +9,33 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Le jeton ne peut que lire : npm ci et la compilation n'ont aucun droit d'ecriture.
+# Seul le job "publier" peut ecrire, et il n'execute aucun code du depot ni de npm.
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   build:
+    # workflow_dispatch : seule la branche main peut etre publiee
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Recuperer le code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Installer Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
           cache: npm
 
       - name: Installer les dependances
         run: npm ci
+
+      - name: Lancer les tests
+        run: npm test
 
       - name: Compiler le site
         run: npm run build
@@ -35,6 +44,9 @@ jobs:
           VITE_BILLING_ACTIF: ${{ vars.VITE_BILLING_ACTIF }}
           VITE_API_URL: ${{ vars.VITE_API_URL }}
           VITE_APP_WEB_URL: ${{ vars.VITE_APP_WEB_URL }}
+          # Les deux origines (README, « Deux builds ») : liens de la vitrine vers compte.restoclair.fr
+          VITE_COMPTE_URL: ${{ vars.VITE_COMPTE_URL }}
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
           VITE_APP_STORE_URL: ${{ vars.VITE_APP_STORE_URL }}
           VITE_PLAY_STORE_URL: ${{ vars.VITE_PLAY_STORE_URL }}
 
@@ -42,13 +54,36 @@ jobs:
         run: |
           mkdir -p deploy/php-api
           cp -R dist/. deploy/
-          # Copier l'API PHP en EXCLUANT config.php (contient le token en prod)
-          find php-api -maxdepth 1 -type f ! -name 'config.php' -exec cp {} deploy/php-api/ \;
+          # API PHP : liste fermee. config.php (contient le token en prod) et les fichiers de test ne sont jamais publies.
+          for fichier in blog.php contact.php essai.php securite.php testimonials.php; do
+            cp "php-api/$fichier" deploy/php-api/
+          done
           # .gitignore de la branche production : protege les fichiers locaux du serveur
           printf '%s\n' '.DS_Store' 'php-api/config.php' 'php-api/.htaccess' '.claude/' '_to_delete/' 'restopro_site_web/' > deploy/.gitignore
 
+      - name: Conserver les fichiers a publier
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: site
+          path: deploy
+          include-hidden-files: true
+          retention-days: 1
+
+  publier:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Recuperer les fichiers a publier
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: site
+          path: deploy
+
       - name: Publier dans la branche production
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: production

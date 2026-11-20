@@ -1,20 +1,34 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { BUSINESS } from "@/lib/business-info";
-import { BILLING_ACTIF } from "@/lib/billing/config";
+import { VENTE_VISIBLE } from "@/lib/billing/invitation";
+import { ouvrirGestionCookies } from "@/lib/consentement";
+import { lireSession } from "@/lib/billing/session";
+import { googlePermisDansCeDocument } from "@/lib/environnement";
 
+// Menu principal : l'entreprise d'abord (l'application, l'ouverture, l'accompagnement, les réseaux), puis le contact.
 const navigation = [
-  { name: "Services", page: "Services" },
-  ...(BILLING_ACTIF ? [{ name: "Tarifs", page: "tarifs" }] : []),
-  { name: "Blog", page: "Blog" },
-  { name: "À propos", page: "About" },
+  { name: "L’application", page: "application" },
+  ...(VENTE_VISIBLE ? [{ name: "Tarifs", page: "tarifs" }] : []),
+  { name: "Ouvrir un restaurant", page: "ouvrir-un-restaurant" },
+  { name: "Accompagnement", page: "accompagnement" },
+  { name: "Réseaux", page: "reseaux" },
+  { name: "L’entreprise", page: "entreprise" },
+];
+
+// Pied de page : tout le menu, plus le contact, l'essai et le blog.
+const navigationPied = [
+  ...navigation,
+  { name: "Ressources", page: "Blog" },
   { name: "Contact", page: "Contact" },
-  { name: "Essai gratuit", page: "essai-gratuit" }
+  { name: "Essai gratuit", page: "essai-gratuit" },
 ];
 
 export default function Layout({ children, currentPageName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // « Gérer mes cookies » seulement là où Google peut être chargé : ailleurs, il n'y a aucun choix à gérer.
+  const gestionCookies = googlePermisDansCeDocument(useLocation().pathname, Boolean(lireSession()));
 
   return (
     <div className="min-h-screen flex flex-col bg-paper">
@@ -30,7 +44,7 @@ export default function Layout({ children, currentPageName }) {
               <span className="font-serif font-semibold text-[26px] text-ink">RestOclair</span>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden lg:flex items-center gap-6">
               {navigation.map((item) => (
                 <Link
                   key={item.page}
@@ -44,23 +58,29 @@ export default function Layout({ children, currentPageName }) {
               ))}
             </nav>
 
-            <div className="hidden md:flex items-center gap-4">
+            <div className="hidden lg:flex items-center gap-4">
               <a
-                href="tel:0777752605"
-                className="text-[15px] font-medium text-bottle hover:text-bottle-hover transition-colors"
+                href={BUSINESS.phone.href}
+                className="hidden xl:inline text-[15px] font-medium text-bottle hover:text-bottle-hover transition-colors"
               >
-                07 77 75 26 05
+                {BUSINESS.phone.display}
               </a>
               <Link
                 to={createPageUrl("Contact")}
+                className="text-[15px] text-muted hover:text-ink transition-colors"
+              >
+                Contact
+              </Link>
+              <Link
+                to="/essai-gratuit"
                 className="btn-primary text-[14px] px-4 py-2"
               >
-                Prendre contact
+                Essai gratuit
               </Link>
             </div>
 
             <button
-              className="md:hidden p-2 text-ink"
+              className="lg:hidden p-2 text-ink"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Menu"
             >
@@ -81,7 +101,7 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-border bg-paper px-6 py-6">
+          <div className="lg:hidden border-t border-border bg-paper px-6 py-6">
             <nav className="flex flex-col gap-4">
               {navigation.map((item) => (
                 <Link
@@ -97,11 +117,20 @@ export default function Layout({ children, currentPageName }) {
               ))}
             </nav>
             <hr className="rule my-4" />
+            <nav className="flex flex-col gap-4">
+              <Link to={createPageUrl("Contact")} onClick={() => setMobileMenuOpen(false)} className="text-[17px] text-muted">
+                Contact
+              </Link>
+              <Link to="/essai-gratuit" onClick={() => setMobileMenuOpen(false)} className="text-[17px] text-muted">
+                Essai gratuit
+              </Link>
+            </nav>
+            <hr className="rule my-4" />
             <a
-              href="tel:0777752605"
+              href={BUSINESS.phone.href}
               className="text-[17px] font-medium text-bottle"
             >
-              07 77 75 26 05
+              {BUSINESS.phone.display}
             </a>
           </div>
         )}
@@ -125,7 +154,7 @@ export default function Layout({ children, currentPageName }) {
                 <span className="font-serif font-semibold text-xl" style={{ color: '#f6f4ec' }} itemProp="name">RestOclair</span>
               </Link>
               <p className="text-sm leading-relaxed max-w-xs" style={{ color: '#a0a89d' }} itemProp="description">
-                Conseil en hygiene et securite alimentaire pour les professionnels de la restauration.
+                L’application d’hygiène alimentaire et l’équipe qui vous accompagne, pour les restaurants, commerces de bouche et cuisines collectives.
               </p>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-1">
                 <a
@@ -150,7 +179,7 @@ export default function Layout({ children, currentPageName }) {
             <div className="md:col-span-3">
               <p className="text-xs font-medium uppercase tracking-wider mb-4" style={{ color: '#6b7268' }}>Navigation</p>
               <nav className="flex flex-col gap-2.5">
-                {navigation.map(item => (
+                {navigationPied.map(item => (
                   <Link
                     key={item.page}
                     to={createPageUrl(item.page)}
@@ -174,7 +203,7 @@ export default function Layout({ children, currentPageName }) {
               <meta itemProp="addressCountry" content="FR" />
               <p className="text-xs font-medium uppercase tracking-wider mt-6 mb-3" style={{ color: '#6b7268' }}>Intervention</p>
               <p className="text-sm leading-relaxed" style={{ color: '#a0a89d' }}>
-                {BUSINESS.serviceAreas.join(" \u00B7 ")}
+                Application et aide à distance partout en France. Déplacements sur devis.
               </p>
             </div>
           </div>
@@ -185,8 +214,19 @@ export default function Layout({ children, currentPageName }) {
               &copy; {new Date().getFullYear()} {BUSINESS.name}
             </p>
             <nav className="flex flex-wrap gap-5 text-xs">
-              <Link to={createPageUrl("MentionsLegales")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Mentions legales</Link>
-              <Link to={createPageUrl("PolitiqueConfidentialite")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Confidentialite</Link>
+              <Link to={createPageUrl("MentionsLegales")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Mentions légales</Link>
+              <Link to="/confidentialite" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Confidentialité</Link>
+              <Link to="/cookies" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Cookies</Link>
+              {gestionCookies && (
+                <button type="button" onClick={ouvrirGestionCookies} className="hover:underline transition-colors text-left" style={{ color: '#6b7268' }}>Gérer mes cookies</button>
+              )}
+              {VENTE_VISIBLE && (
+                <>
+                  <Link to="/cgv" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>CGV</Link>
+                  <Link to="/application/cgu" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>CGU</Link>
+                  <Link to="/accord-sous-traitance" className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Sous-traitance des données</Link>
+                </>
+              )}
               <Link to={createPageUrl("Sitemap")} className="hover:underline transition-colors" style={{ color: '#6b7268' }}>Plan du site</Link>
             </nav>
           </div>
