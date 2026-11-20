@@ -1,15 +1,27 @@
 import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import SEO from "@/components/SEO";
 import { submitContactForm } from "@/api/airtableService";
 import { TEXTE_ENVOI_COUPE, ecrituresProductionPermises } from "@/lib/environnement";
 
+// Valeurs acceptées par php-api/contact.php (RAISONS) : ne pas en ajouter sans mettre à jour le PHP et Airtable.
+const SUJETS = [
+  ["urgence", "Aide face à la DDPP (rapport, mise en demeure)"],
+  ["audit", "Audit hygiène"],
+  ["dossiers", "PMS ou ouverture d’un établissement"],
+  ["autre", "L’application, un abonnement, un réseau ou autre question"],
+];
+
 export default function Contact() {
+  // /Contact?sujet=dossiers (page « Ouvrir un restaurant »), ?sujet=autre (page « Réseaux ») : sujet prérempli.
+  const [params] = useSearchParams();
+  const sujetInitial = SUJETS.some(([v]) => v === params.get("sujet")) ? params.get("sujet") : "";
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     restaurant: "",
-    subject: "",
+    subject: sujetInitial,
     message: "",
     _honey: ""
   });
@@ -44,9 +56,9 @@ export default function Contact() {
   return (
     <>
       <SEO
-        title="Contact — RestOclair | 07 77 75 26 05"
-        description="Contactez Thierry Bailleul pour une intervention urgence DDPP, un audit hygiène ou une question réglementaire. Réponse sous 2 h en semaine."
-        keywords="contact RestOclair, consultant hygiène alimentaire, rendez-vous DDPP"
+        title="Contact"
+        description="Contactez l’équipe RestOclair : l’application, un abonnement, une ouverture, un audit ou une aide face à la DDPP."
+        keywords="contact RestOclair, hygiène alimentaire, application HACCP, DDPP, plan de maîtrise sanitaire"
         canonicalUrl={`${window.location.origin}/Contact`}
       />
       <div>
@@ -55,14 +67,18 @@ export default function Contact() {
             <div className="grid md:grid-cols-12 gap-12 md:gap-0">
               {/* Left column */}
               <div className="md:col-span-5 md:pr-16">
-                <h1 className="text-ink mb-8">Parlons de votre situation.</h1>
+                <h1 className="text-ink mb-4">Parlons de votre établissement.</h1>
+                <p className="text-muted text-lg leading-relaxed mb-10">
+                  L’équipe RestOclair vous répond en semaine. Pour votre abonnement (factures, comptes, résiliation),
+                  passez par votre espace abonnement.
+                </p>
 
                 <div className="mb-10">
                   <p className="text-faint text-sm mb-2">Téléphone</p>
                   <a href="tel:0777752605" className="font-serif text-3xl md:text-4xl text-ink block mb-1">
                     07 77 75 26 05
                   </a>
-                  <p className="text-faint text-sm">Réponse sous 2 h en semaine</p>
+                  <p className="text-faint text-sm">Du lundi au vendredi</p>
                 </div>
 
                 <div className="mb-10">
@@ -73,15 +89,14 @@ export default function Contact() {
                 </div>
 
                 <div className="mb-10">
-                  <p className="text-faint text-sm mb-2">Zone d'intervention</p>
-                  <p className="text-ink text-lg">France entière</p>
-                  <p className="text-muted text-[15px] mt-1">Intervention sur tout le territoire</p>
+                  <p className="text-faint text-sm mb-2">Où nous trouver</p>
+                  <p className="text-ink text-lg">Roye, Hauts-de-France</p>
+                  <p className="text-muted text-[15px] mt-1">Application et aide à distance partout en France. Déplacements sur devis.</p>
                 </div>
 
                 <div>
-                  <p className="text-faint text-sm mb-2">Délais</p>
-                  <p className="text-muted text-[15px]">Urgence DDPP : intervention sous 24 h</p>
-                  <p className="text-muted text-[15px]">Audit préventif : rendez-vous sous 5 jours</p>
+                  <p className="text-faint text-sm mb-2">Après un contrôle</p>
+                  <p className="text-muted text-[15px]">Indiquez dans votre message la date du rapport et le délai fixé par la DDPP : nous traitons ces demandes en priorité.</p>
                 </div>
               </div>
 
@@ -137,10 +152,9 @@ export default function Contact() {
                       className="w-full border border-border bg-paper px-4 py-3 text-ink text-[15px] focus:outline-none focus:border-bottle"
                     >
                       <option value="">Choisir un sujet</option>
-                      <option value="urgence">Urgence après contrôle DDPP</option>
-                      <option value="audit">Audit hygiène préventif</option>
-                      <option value="dossiers">Dossiers obligatoires (PMS, EGAlim)</option>
-                      <option value="autre">Autre question</option>
+                      {SUJETS.map(([valeur, libelle]) => (
+                        <option key={valeur} value={valeur}>{libelle}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
@@ -161,7 +175,7 @@ export default function Contact() {
 
                   {status === "success" && (
                     <p className="text-bottle font-medium text-[15px]">
-                      Message envoyé. Nous vous recontactons sous 2 h en semaine.
+                      Message envoyé. Nous vous recontactons dès que possible, en semaine.
                     </p>
                   )}
                   {status === "coupe" && (

@@ -105,6 +105,9 @@ const AuthenticatedApp = () => {
         ];
       })}
       <Route path="/cgu" element={<Navigate to="/application/cgu" replace />} />
+      {/* Anciennes adresses de la vitrine (avant la page « L'entreprise » et « Accompagnement ») */}
+      <Route path="/About" element={<Navigate to="/entreprise" replace />} />
+      <Route path="/Services" element={<Navigate to="/accompagnement" replace />} />
       {/* Ancienne URL déclarée aux magasins : 301 côté serveur (.htaccess), et repli ici */}
       <Route path="/PolitiqueConfidentialite" element={<Navigate to="/application/confidentialite" replace />} />
       {/* Vente d'abonnements : routes enregistrées seulement si la vente est visible (BILLING_ACTIF, et l'invitation si elle est exigée).

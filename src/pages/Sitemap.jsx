@@ -18,8 +18,12 @@ export default function Sitemap() {
     
     const staticPages = [
       { url: '/', priority: '1.0', changefreq: 'weekly' },
-      { url: '/Services', priority: '0.9', changefreq: 'monthly' },
-      { url: '/About', priority: '0.8', changefreq: 'monthly' },
+      { url: '/application', priority: '0.9', changefreq: 'monthly' },
+      { url: '/ouvrir-un-restaurant', priority: '0.9', changefreq: 'monthly' },
+      { url: '/accompagnement', priority: '0.9', changefreq: 'monthly' },
+      { url: '/reseaux', priority: '0.8', changefreq: 'monthly' },
+      { url: '/entreprise', priority: '0.8', changefreq: 'monthly' },
+      { url: '/essai-gratuit', priority: '0.9', changefreq: 'monthly' },
       { url: '/Contact', priority: '0.9', changefreq: 'monthly' },
       { url: '/Blog', priority: '0.8', changefreq: 'daily' },
     ];
@@ -61,8 +65,12 @@ ${allPages.map(page => `  <url>
           <h2 className="text-ink mb-4">Pages incluses</h2>
           <ul className="space-y-2 text-muted text-[15px]">
             <li>Accueil</li>
-            <li>Services</li>
-            <li>À propos</li>
+            <li>L’application</li>
+            <li>Ouvrir un restaurant</li>
+            <li>Accompagnement</li>
+            <li>Réseaux et collectivités</li>
+            <li>L’entreprise</li>
+            <li>Essai gratuit</li>
             <li>Contact</li>
             <li>Blog ({blogPosts.length} articles)</li>
           </ul>

@@ -14,13 +14,6 @@ const IMG = "/essai";
 
 const EMPTY = { nom: "", prenom: "", entreprise: "", poste: "", telephone: "", email: "", consentement: false, _honey: "" };
 
-const CLIENTS = [
-  ["Spoon", "Golf du Touquet"],
-  ["Boucherie Bourgeois", "Boulogne-sur-Mer"],
-  ["Térèse", "Asnières"],
-  ["Paris Plage", "Le Touquet"],
-  ["Domino’s Pizza", "Carvin"],
-];
 
 const FONCTIONS = [
   {
@@ -160,15 +153,9 @@ export default function EssaiGratuit() {
       <hr className="rule" />
       <section className="py-8">
         <div className="max-w-[1200px] mx-auto px-6">
-          <p className="text-[15px] leading-relaxed">
-            <span className="text-faint">Déjà en place chez </span>
-            {CLIENTS.map(([nom, lieu], i) => (
-              <span key={nom}>
-                <strong className="text-ink font-medium">{nom}</strong>
-                <span className="text-muted"> ({lieu})</span>
-                {i < CLIENTS.length - 2 ? <span className="text-muted">, </span> : i === CLIENTS.length - 2 ? <span className="text-muted"> et </span> : <span className="text-muted">.</span>}
-              </span>
-            ))}
+          {/* Pas de nom de client sans son accord écrit (ni de marque d'enseigne sans celui de l'enseigne). */}
+          <p className="text-[15px] leading-relaxed text-muted">
+            Déjà en place dans des restaurants, une boucherie et une pizzeria franchisée, du Touquet à l’Île-de-France.
           </p>
         </div>
       </section>
